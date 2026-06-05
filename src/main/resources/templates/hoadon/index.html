@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản Lý Hóa Đơn</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/hoadon.css}">
+</head>
+<body>
+
+<div class="layout">
+
+    <aside class="sidebar">
+        <div class="logo">
+            <img th:src="@{/images/img.png}" alt="Logo">
+        </div>
+
+        <div class="menu-wrapper">
+            <div class="menu-group">
+                <span class="group-title">CHÍNH</span>
+                <ul class="menu">
+                    <li><i class="fa-solid fa-house"></i> Trang Chủ</li>
+                    <li><i class="fa-solid fa-cart-shopping"></i> Bán Hàng</li>
+                    <li><i class="fa-solid fa-box"></i> Sản phẩm</li>
+                    <li class="active"><i class="fa-solid fa-file-invoice"></i> Hóa đơn</li>
+                </ul>
+            </div>
+
+            <div class="menu-group">
+                <span class="group-title">QUẢN LÝ</span>
+                <ul class="menu">
+                    <li><i class="fa-solid fa-user-tie"></i> Nhân viên</li>
+                    <li><i class="fa-solid fa-users"></i> Khách hàng</li>
+                    <li><i class="fa-solid fa-download"></i> Nhập hàng</li>
+                    <li><i class="fa-solid fa-arrow-rotate-left"></i> Trả hàng</li>
+                </ul>
+            </div>
+
+            <div class="menu-group">
+                <span class="group-title">KHUYẾN MÃI</span>
+                <ul class="menu">
+                    <li><i class="fa-solid fa-percent"></i> Giảm giá</li>
+                    <li><i class="fa-solid fa-calendar-days"></i> Đợt giảm giá</li>
+                </ul>
+            </div>
+
+            <div class="menu-group">
+                <span class="group-title">BÁO CÁO</span>
+                <ul class="menu">
+                    <li><i class="fa-solid fa-clock"></i> Giao ca & chấm công</li>
+                    <li><i class="fa-solid fa-chart-line"></i> Thống kê</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <button class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+        </div>
+    </aside>
+
+    <main class="content-area">
+
+        <header class="main-header">
+            <div class="breadcrumb">
+                <span>Home</span> / <span class="active">Hóa đơn</span>
+            </div>
+            <div class="header-icons">
+                <i class="fa-regular fa-comment-dots"></i>
+                <i class="fa-regular fa-bell"></i>
+                <i class="fa-solid fa-gear"></i>
+            </div>
+        </header>
+
+        <section class="filter-card">
+            <h3 class="card-title">BỘ LỌC</h3>
+            <form class="filter-form" method="get" th:action="@{/hoa-don}">
+                <div class="filter-row">
+                    <div class="form-group">
+                        <label>MÃ HÓA ĐƠN</label>
+                        <input type="text" name="keyword" th:value="${keyword}"
+                               placeholder="Nhập mã hóa đơn cần tìm...">
+                    </div>
+                    <div class="form-group">
+                        <label>NGÀY BẮT ĐẦU</label>
+                        <input type="date">
+                    </div>
+                    <div class="form-group">
+                        <label>NGÀY KẾT THÚC</label>
+                        <input type="date">
+                    </div>
+                    <div class="form-group">
+                        <label>LOẠI ĐƠN</label>
+                        <select>
+                            <option>Tất cả</option>
+                            <option>Trực tuyến</option>
+                            <option>Tại quầy</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-refresh"><i class="fa-solid fa-magnifying-glass"></i> Tìm</button>
+                    <a th:href="@{/hoa-don}" class="btn-refresh"
+                       style="display: flex; align-items: center; justify-content: center; text-decoration: none;"><i
+                            class="fa-solid fa-arrow-rotate-right"></i></a>
+                </div>
+            </form>
+        </section>
+
+        <section class="table-card">
+
+            <div class="status-tabs-container">
+                <div class="status-tabs">
+                    <button class="tab-item active">Tất cả</button>
+                    <button class="tab-item">Chờ xác nhận</button>
+                    <button class="tab-item">Đã xác nhận</button>
+                    <button class="tab-item">Chờ giao</button>
+                    <button class="tab-item">Đang giao</button>
+                    <button class="tab-item">Đã hoàn thành</button>
+                    <button class="tab-item">Đã huỷ</button>
+                    <button class="tab-item">Yêu cầu hủy</button>
+                    <button class="tab-item">Đã hoàn tiền</button>
+                </div>
+                <button class="btn-excel"><i class="fa-solid fa-file-excel"></i> Xuất Excel</button>
+            </div>
+
+            <div class="table-wrapper">
+                <table class="invoice-table">
+                    <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>MÃ HĐ</th>
+                        <th>MÃ NV</th>
+                        <th>MÃ KH</th>
+                        <th>TỔNG TIỀN TT</th>
+                        <th>P.THỨC THANH TOÁN</th>
+                        <th>TRẠNG THÁI</th>
+                        <th>HÀNH ĐỘNG</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="hd,stt : ${list}">
+                        <td th:text="${stt.count}">1</td>
+
+                        <td class="code-text" th:text="'HD' + ${hd.maHoaDon}">HD1</td>
+
+                        <td th:text="${hd.maNhanVien}">2</td>
+
+                        <td th:text="${hd.maKhachHang}">1</td>
+
+                        <td class="money-text"
+                            th:text="${#numbers.formatDecimal(hd.tongTien, 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND
+                        </td>
+
+                        <td>
+                            <span class="badge-type" th:text="${hd.phuongThucThanhToan}">Tiền mặt</span>
+                        </td>
+
+                        <td>
+              <span th:class="'status-badge ' + (${hd.trangThai} == 'Đã thanh toán' ? 'success' : 'waiting')"
+                    th:text="${hd.trangThai}">Đã thanh toán</span>
+                        </td>
+
+                        <td class="actions-cell">
+                            <a th:href="@{/hoa-don/detail/{id}(id=${hd.maHoaDon})}" class="action-icon btn-view">
+                                <i class="fa-regular fa-eye"></i>
+                            </a>
+                            <a th:href="@{/hoa-don/delete/{id}(id=${hd.maHoaDon})}" class="action-icon btn-delete"><i
+                                    class="fa-regular fa-trash-can"></i></a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+</body>
+</html>
