@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+</head>
+<body>
+
+<form method="post" th:object="${sanphamct}">
+
+    <div>
+        <label>Mã sản phẩm chi tiết</label>
+        <div>
+            <input type="text" th:field="*{maSanPhamChiTiet}" readonly id="masanphamct" class="form-control">
+        </div>
+        <div th:if="${#fields.hasErrors('maSanPhamChiTiet')}" th:errors="*{maSanPhamChiTiet}"></div>
+    </div>
+
+    <div>
+        <label>Mã sản phẩm</label>
+        <div>
+            <select class="form-control" th:field="*{maSanPham.maSanPham}" disabled>
+                <option th:each="c : ${listsp}"
+                        th:value="${c.maSanPham}"
+                        th:text="${c.maSanPham + '-' + c.tenSanPham}">
+                </option>
+            </select>
+
+            <input type="hidden"
+                   th:field="*{maSanPham.maSanPham}">
+        </div>
+    </div>
+
+    <div>
+        <label>Kích cỡ</label>
+        <div>
+            <select id="size" th:field="*{size}" class="form-control">
+                <option value="38">38</option>
+                <option value="39">39</option>
+                <option value="40">40</option>
+                <option value="41">41</option>
+                <option value="42">42</option>
+                <option value="43">43</option>
+                <option value="44">44</option>
+            </select>
+        </div>
+        <div th:if="${#fields.hasErrors('size')}" th:errors="*{size}"></div>
+    </div>
+
+    <div>
+        <label>Màu sắc</label>
+        <div>
+            <input type="text" th:field="*{mauSac}" id="mausac" class="form-control">
+        </div>
+        <div th:if="${#fields.hasErrors('mauSac')}" th:errors="*{mauSac}"></div>
+    </div>
+
+    <div>
+        <label>Giá nhập</label>
+        <div>
+            <input type="number" step="any" th:field="*{giaNhap}" id="gianhap" class="form-control">
+        </div>
+        <div th:if="${#fields.hasErrors('giaNhap')}" th:errors="*{giaNhap}"></div>
+    </div>
+
+    <div>
+        <label>Giá bán</label>
+        <div>
+            <input type="number" step="any" th:field="*{giaBan}" id="giaban" class="form-control">
+        </div>
+        <div th:if="${#fields.hasErrors('giaBan')}" th:errors="*{giaBan}"></div>
+    </div>
+
+    <div>
+        <label>Số lượng tồn</label>
+        <div>
+            <input type="number" th:field="*{soLuongTon}" id="soluongton" class="form-control">
+        </div>
+        <div th:if="${#fields.hasErrors('soLuongTon')}" th:errors="*{soLuongTon}"></div>
+    </div>
+
+    <div>
+        <label>Trạng thai</label>
+        <div>
+            <select id="trangthai" th:field="*{trangThai}" class="form-control">
+                <option value="Còn hàng">Còn hàng</option>
+                <option value="Hết hàng">Hết hàng</option>
+                <option value="Sắp hết">Sắp hết</option>
+            </select>
+        </div>
+        <div th:if="${#fields.hasErrors('trangThai')}" th:errors="*{trangThai}"></div>
+    </div>
+
+    <div>
+        <label>Ngày tạo</label>
+        <div>
+            <input type="date" th:value="${#temporals.format(sanphamct.ngayTao, 'yyyy-MM-dd')}" name="ngayTao" id="ngaytao" readonly class="form-control">
+        </div>
+        <div th:if="${#fields.hasErrors('ngayTao')}" th:errors="*{ngayTao}"></div>
+    </div>
+
+    <div>
+        <label>Ngày cập nhật</label>
+        <div>
+            <input type="date" th:value="${#temporals.format(sanphamct.ngayCapNhat, 'yyyy-MM-dd')}" name="ngayCapNhat" id="ngaycapnhat" readonly class="form-control">
+        </div>
+        <div th:if="${#fields.hasErrors('ngayCapNhat')}" th:errors="*{ngayCapNhat}"></div>
+    </div>
+
+    <div>
+        <button type="submit" formaction="/sanphamct/add">Thêm</button>
+        <button type="submit" formaction="/sanphamct/update">Sửa</button>
+        <input type="button" onclick="resetform()" value="Reset">
+    </div>
+
+</form>
+
+<table class="table">
+    <thead>
+        <th>STT</th>
+        <th>Mã sản phẩm chi tiết</th>
+        <th>Mã sản phẩm</th>
+        <th>Kích cỡ</th>
+        <th>Màu sắc</th>
+        <th>Giá nhập</th>
+        <th>Giá bán</th>
+        <th>Số lượng tồn</th>
+        <th>Trạng thái</th>
+        <th>Ngày tạo </th>
+        <th>Ngày cập nhật</th>
+        <th>Hình ảnh</th>
+        <th>Hành động</th>
+    </thead>
+    <tbody>
+    <tr th:each="c,row : ${listspct}">
+        <td th:text="${row.count}"></td>
+        <td th:text="${c.maSanPhamChiTiet}"></td>
+        <td th:text="${c.maSanPham.maSanPham +  ' - '  + c.maSanPham.tenSanPham}"></td>
+        <td th:text="${c.size}"></td>
+        <td th:text="${c.mauSac}"></td>
+        <td th:text="${c.giaNhap}"></td>
+        <td th:text="${c.giaBan}"></td>
+        <td th:text="${c.soLuongTon}"></td>
+        <td th:text="${c.trangThai}"></td>
+        <td th:text="${c.ngayTao}"></td>
+        <td th:text="${c.ngayCapNhat}"></td>
+        <td>
+            <th:block th:each="anh : ${c.danhSachAnh}">
+                <img th:if="${anh.laAnhChinh}"
+                     th:src="@{/sanphamct/image/{id}(id=${anh.maHinhAnh})}"
+                     width="80">
+            </th:block>
+        </td>
+        <td>
+            <a th:href="@{/sanphamct/edit/{id}(id=${c.maSanPhamChiTiet})}">Xem</a>
+            <a th:href="@{/sanphamct/delete/{id}(id=${c.maSanPhamChiTiet})}">Xoá</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<script>
+    function resetform(){
+        document.getElementById('masanphamct').value="";
+        document.getElementById('masanpham').value="";
+        document.getElementById('madanhmuc').value="";
+        document.getElementById('size').value="";
+        document.getElementById('mausac').value="";
+        document.getElementById('giaban').value="";
+        document.getElementById('gianhap').value="";
+        document.getElementById('soluongton').value="";
+        document.getElementById('trangthai').selectedIndex = 0;
+        document.getElementById('ngaytao').value="";
+        document.getElementById('ngaycapnhat').value="";
+    }
+</script>
+
+</body>
+</html>
