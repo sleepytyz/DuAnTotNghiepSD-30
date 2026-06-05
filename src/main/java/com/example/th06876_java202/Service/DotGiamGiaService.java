@@ -1,7 +1,7 @@
-package com.example.duantotnghiep.service;
+package com.example.th06876_java202.Service;
 
-import com.example.duantotnghiep.model.DotGiamGia;
-import com.example.duantotnghiep.repository.DotGiamGiaRepository;
+import com.example.th06876_java202.Entity.DotGiamGia;
+import com.example.th06876_java202.Repository.DotGiamGiaRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

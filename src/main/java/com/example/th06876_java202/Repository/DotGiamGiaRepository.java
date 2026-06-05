@@ -1,6 +1,6 @@
-package com.example.duantotnghiep.repository;
+package com.example.th06876_java202.Repository;
 
-import com.example.duantotnghiep.model.DotGiamGia;
+import com.example.th06876_java202.Entity.DotGiamGia;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
