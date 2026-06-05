@@ -1,0 +1,78 @@
+package com.example.th06876_java202.Service;
+
+import com.example.th06876_java202.Entity.SanPhamChiTiet;
+import com.example.th06876_java202.Repository.SanPhamChiTietRepository;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+
+@Service
+public class SanPhamChiTietService {
+
+    private final SanPhamChiTietRepository sanPhamChiTietRepository;
+
+    public SanPhamChiTietService(SanPhamChiTietRepository sanPhamChiTietRepository) {
+        this.sanPhamChiTietRepository = sanPhamChiTietRepository;
+    }
+
+    public List<SanPhamChiTiet> getall(){
+        return sanPhamChiTietRepository.findAll();
+    }
+
+    public SanPhamChiTiet them(SanPhamChiTiet sanPhamChiTiet) {
+        return sanPhamChiTietRepository.save(sanPhamChiTiet);
+    }
+
+    public Optional<SanPhamChiTiet> findbyId(Integer id) {
+        return sanPhamChiTietRepository.findById(id);
+    }
+
+    public void capNhatTrangThai(SanPhamChiTiet spct) {
+        if (spct.getSoLuongTon() == 0) {
+            spct.setTrangThai("Hết hàng");
+        } else if (spct.getSoLuongTon() <= 10) {
+            spct.setTrangThai("Sắp hết hàng");
+        } else {
+            spct.setTrangThai("Còn hàng");
+        }
+    }
+
+    public int suaSanPham(int maSanPham) {
+        return sanPhamChiTietRepository.updateTrangThaiNgungBan(maSanPham);
+    }
+
+    public List<SanPhamChiTiet> getBySanPhamVaMau(
+            Integer maSP,
+            String mauSac){
+
+        return sanPhamChiTietRepository.findByMaSanPham_MaSanPhamAndMauSac(
+                maSP,
+                mauSac);
+    }
+
+    public List<SanPhamChiTiet> getByHinhAnh(){
+        return sanPhamChiTietRepository.findAllSanPham();
+    }
+
+    public List<SanPhamChiTiet> getDistinctSanPhamMau() {
+
+        List<SanPhamChiTiet> all = sanPhamChiTietRepository.findAll();
+
+        Map<String, SanPhamChiTiet> map = new LinkedHashMap<>();
+
+        for (SanPhamChiTiet spct : all) {
+
+            String key =
+                    spct.getMaSanPham().getMaSanPham()
+                            + "_"
+                            + spct.getMauSac();
+
+            if (!map.containsKey(key)) {
+                map.put(key, spct);
+            }
+        }
+
+        return new ArrayList<>(map.values());
+    }
+
+}
