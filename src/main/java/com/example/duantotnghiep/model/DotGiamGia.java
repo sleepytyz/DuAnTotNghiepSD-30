@@ -42,4 +42,6 @@ public class DotGiamGia {
 
     @Column(name = "TrangThai")
     private int trangThai;
+
+    //abc
 }
