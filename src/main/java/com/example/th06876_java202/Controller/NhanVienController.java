@@ -1,7 +1,7 @@
-package com.example.duantotnghiep.controller;
+package com.example.th06876_java202.Controller;
 
-import com.example.duantotnghiep.model.NhanVien;
-import com.example.duantotnghiep.repository.NhanVienRepository;
+import com.example.th06876_java202.Entity.NhanVien;
+import com.example.th06876_java202.Repository.NhanVienRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
