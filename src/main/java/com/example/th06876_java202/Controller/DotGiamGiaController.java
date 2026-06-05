@@ -1,7 +1,7 @@
-package com.example.duantotnghiep.controller;
+package com.example.th06876_java202.Controller;
 
-import com.example.duantotnghiep.model.DotGiamGia;
-import com.example.duantotnghiep.service.DotGiamGiaService;
+import com.example.th06876_java202.Entity.DotGiamGia;
+import com.example.th06876_java202.Service.DotGiamGiaService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
