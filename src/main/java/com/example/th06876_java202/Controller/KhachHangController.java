@@ -1,0 +1,53 @@
+package com.example.th06876_java202.Controller;
+
+import com.example.th06876_java202.Entity.KhachHang;
+import com.example.th06876_java202.Service.KhachHangService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+
+@Controller
+@RequestMapping("/khach-hang")
+public class KhachHangController {
+    @Autowired
+    private KhachHangService khachHangService;
+
+
+    @GetMapping("/hien-thi")
+    public String khachHang(Model model) {
+        model.addAttribute("activeMenu", "khachhang");
+        model.addAttribute("khachHang", khachHangService.getKhachHang());
+        model.addAttribute("kh", new KhachHang());
+        return "khachhang/index";
+    }
+
+    @GetMapping("/edit/{maKH}")
+    public String edit(@PathVariable Integer maKH, Model model) {
+        model.addAttribute("khachHang", khachHangService.getKhachHang());
+        model.addAttribute("kh", khachHangService.getKhachHangById(maKH));
+        return "khachhang/index";
+    }
+
+    @GetMapping("/delete/{maKH}")
+    public String delete(@PathVariable Integer maKH) {
+        khachHangService.delete(maKH);
+        return "redirect:/khachhang/index";
+    }
+
+    @PostMapping("/add")
+    public String add(@ModelAttribute KhachHang khachHang) {
+        khachHang.setNgayDangKy(LocalDate.now());
+        khachHangService.save(khachHang);
+        return "redirect:/khachhang/index";
+    }
+
+    @PostMapping("/update")
+    public String update(@ModelAttribute KhachHang kh) {
+        khachHangService.save(kh);
+        return "redirect:/khachhang/index";
+    }
+
+}
