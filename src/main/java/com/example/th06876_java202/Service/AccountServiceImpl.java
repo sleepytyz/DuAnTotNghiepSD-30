@@ -1,14 +1,15 @@
-package com.example.duantotnghiep.service.impl;
+package com.example.th06876_java202.Service;
 
-import com.example.duantotnghiep.model.Account;
-import com.example.duantotnghiep.repository.Repo_Account;
-import com.example.duantotnghiep.service.AccountService;
+
+
+import com.example.th06876_java202.Entity.Account;
+import com.example.th06876_java202.Repository.Repo_Account;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class AccountServiceImpl implements AccountService {
+public class AccountServiceImpl {
 
     private final Repo_Account repo;
 
@@ -16,12 +17,10 @@ public class AccountServiceImpl implements AccountService {
         this.repo = repo;
     }
 
-    @Override
     public List<Account> getAll() {
         return repo.findAll();
     }
 
-    @Override
     public List<Account> search(String keyword) {
         if(keyword == null || keyword.trim().isEmpty()){
             return repo.findAll();
@@ -29,12 +28,10 @@ public class AccountServiceImpl implements AccountService {
         return repo.findByTenDangNhapContaining(keyword);
     }
 
-    @Override
     public Account save(Account account) {
         return repo.save(account);
     }
 
-    @Override
     public void lock(Integer id) {
         Account account = repo.findById(id).orElse(null);
         if(account != null){
@@ -43,7 +40,6 @@ public class AccountServiceImpl implements AccountService {
         }
     }
 
-    @Override
     public void unlock(Integer id) {
         Account account = repo.findById(id).orElse(null);
         if(account != null){
@@ -52,7 +48,6 @@ public class AccountServiceImpl implements AccountService {
         }
     }
 
-    @Override
     public void delete(Integer id){
         Account account = repo.findById(id).orElse(null);
         if(account != null){

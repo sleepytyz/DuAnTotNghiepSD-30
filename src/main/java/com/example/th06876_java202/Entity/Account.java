@@ -1,4 +1,4 @@
-package com.example.duantotnghiep.model;
+package com.example.th06876_java202.Entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

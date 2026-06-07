@@ -6,150 +6,31 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 
-    <style>
-        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow-x: hidden; }
-        .wrapper { display: flex; align-items: stretch; }
-
-        /* SIDEBAR BÊN TRÁI */
-        .sidebar {
-            min-width: 250px;
-            max-width: 250px;
-            background: #ffffff;
-            min-height: 100vh;
-            border-right: 1px solid #e5e9f2;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-        }
-        .sidebar-header { padding: 24px; text-align: center; border-bottom: 1px solid #f4f6f9; }
-        .sidebar-header img { max-width: 110px; height: auto; object-fit: contain; }
-
-        .sidebar-menu-wrapper { flex-grow: 1; overflow-y: auto; padding: 10px 0; }
-        .menu-heading { padding: 12px 24px 6px 24px; font-size: 11px; text-transform: uppercase; color: #9aa0ac; font-weight: 700; letter-spacing: 0.8px; }
-        .sidebar-menu-wrapper a { padding: 10px 24px; display: flex; align-items: center; gap: 12px; color: #5a6169; text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s; }
-        .sidebar-menu-wrapper a:hover { background-color: #f8f9fa; color: #c92327; }
-        .sidebar-menu-wrapper a.active { background-color: #fff5f5; color: #c92327; font-weight: 600; border-right: 4px solid #c92327; }
-
-        .sidebar-footer { padding: 15px 24px; border-top: 1px solid #f4f6f9; background-color: #ffffff; }
-
-        /* KHU VỰC CONTENT CHÍNH */
-        .content-body { width: 100%; padding: 24px; flex-grow: 1; }
-
-        /* TOP NAVBAR - CỤM ICON FIGMA */
-        .top-navbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        .breadcrumb-box { font-size: 13px; color: #868e96; }
-        .breadcrumb-box .active-path { color: #212529; font-weight: 500; }
-
-        .header-utilities { display: flex; align-items: center; gap: 20px; color: #5a6169; font-size: 18px; }
-        .header-utilities i { cursor: pointer; transition: color 0.2s; position: relative; }
-        .header-utilities i:hover { color: #c92327; }
-        .icon-badge { position: absolute; top: -2px; right: -2px; width: 7px; height: 7px; background-color: #e53e3e; border-radius: 50%; }
-
-        .page-title { font-size: 18px; font-weight: 700; color: #212529; display: flex; align-items: center; gap: 10px; text-transform: uppercase; margin-bottom: 20px; }
-        .page-title i { color: #c92327; }
-
-        /* KHỐI BỘ LỌC TÌM KIẾM CHUẨN FIGMA */
-        .filter-card { background: #ffffff; border: none; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 24px; }
-        .filter-label { font-size: 11px; font-weight: 700; color: #9aa0ac; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; display: block; }
-        .filter-card .form-control, .filter-card .form-select { font-size: 13.5px; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 6px; }
-        .search-input-group .input-group-text { background-color: #ffffff; border-right: none; color: #a0aec0; }
-        .search-input-group .form-control { border-left: none; }
-        .search-input-group .form-control:focus { box-shadow: none; border-color: #e2e8f0; }
-
-        .btn-reset-filter { background-color: #1a1a1a; color: #ffffff; border: none; font-size: 13px; font-weight: 600; padding: 11px 20px; border-radius: 6px; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s; width: 100%; justify-content: center; }
-        .btn-reset-filter:hover { background-color: #333333; color: #ffffff; }
-
-        /* KHỐI BẢNG DỮ LIỆU DÀNH SÁCH */
-        .table-card { background: #ffffff; border: none; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .table-custom { border-collapse: collapse; width: 100%; }
-        .table-custom thead th { background-color: #c92327 !important; color: #ffffff !important; font-size: 12px; font-weight: 600; text-transform: uppercase; padding: 12px; text-align: center; }
-        .table-custom tbody td { padding: 12px; font-size: 13.5px; color: #333333; border-bottom: 1px solid #f1f3f5; text-align: center; vertical-align: middle; }
-
-        .btn-add-account { background-color: #c92327; color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; padding: 10px 18px; margin-top: 15px; display: inline-flex; align-items: center; gap: 6px; }
-        .btn-add-account:hover { background-color: #b01e21; color: white; }
-
-        .btn-action-lock { background-color: #ffb703; color: #000000; border: none; font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 4px; text-decoration: none; display: inline-block; transition: 0.2s; }
-        .btn-action-lock:hover { background-color: #fb8500; color: #000000; }
-
-        .btn-action-unlock { background-color: #2ec4b6; color: #ffffff; border: none; font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 4px; text-decoration: none; display: inline-block; transition: 0.2s; }
-
-        .btn-trash { color: #a0aec0; border: none; background: none; padding: 0; font-size: 15px; }
-        .btn-trash:hover { color: #e53e3e; }
-
-        .badge-active { background-color: #e6f6ec; color: #15803d; border: 1px solid #bbf7d0; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; }
-        .badge-locked { background-color: #fdf2f2; color: #9b1c1c; border: 1px solid #fde8e8; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; }
-
-        /* STYLE DIỆN DIỆN CỬA SỔ POPUP MODAL */
-        .modal-custom-content { border-radius: 16px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
-        .modal-custom-header { background-color: #c92327; color: white; padding: 15px 24px; border-top-left-radius: 16px; border-top-right-radius: 16px; }
-        .modal-custom-title { font-size: 15px; font-weight: 600; text-transform: uppercase; margin: 0; }
-        .modal-custom-body { padding: 24px; min-height: 340px; }
-        .modal-custom-body label { font-size: 11px; font-weight: 700; color: #a0aec0; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .modal-custom-body .form-control, .modal-custom-body .form-select { font-size: 13.5px; padding: 9px 12px; border: 1px solid #e2e8f0; border-radius: 6px; background-color: #f8fafc; }
-
-        .btn-custom-red { background-color: #c92327; color: white; border: none; font-size: 13px; font-weight: 600; border-radius: 6px; }
-        .btn-custom-red:hover { background-color: #b01e21; color: white; }
-        .btn-submit-modal { background-color: #c92327; color: white; border: none; border-radius: 6px; font-size: 13.5px; font-weight: 600; padding: 10px 24px; }
-
-        /* KHUNG CHỨA TÌM KIẾM NHÂN VIÊN BÊN PHẢI MODAL */
-        .search-employee-panel { border: 1.5px solid #2d3748; border-radius: 12px; padding: 16px; background-color: #ffffff; height: 100%; }
-        .panel-search-title { font-size: 11px; font-weight: 700; color: #718096; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 
 <div class="wrapper">
-    <nav class="sidebar">
-        <div>
-            <div class="sidebar-header">
-                <img th:src="@{/images/logo.png}" src="https://i.imgur.com/vKq8gNF.png" alt="FS Shop Logo">
-            </div>
-            <div class="sidebar-menu-wrapper">
-                <div class="menu-heading">Chính</div>
-                <a href="#"><i class="bi bi-house-door"></i> Trang Chủ</a>
-                <a href="#"><i class="bi bi-cart3"></i> Bán hàng</a>
-                <a href="#"><i class="bi bi-box-seam"></i> Sản phẩm</a>
-                <a href="#"><i class="bi bi-file-earmark-text"></i> Hóa đơn</a>
 
-                <div class="menu-heading">Quản Lý</div>
-                <a href="#"><i class="bi bi-people"></i> Nhân viên</a>
-                <a href="/tai-khoan" class="active"><i class="bi bi-shield-lock"></i> Tài khoản & Nhân viên</a>
-                <a href="#"><i class="bi bi-person-lines-fill"></i> Khách hàng</a>
-                <a href="#"><i class="bi bi-box-arrow-in-down"></i> Nhập hàng</a>
-                <a href="#"><i class="bi bi-arrow-counterclockwise"></i> Trả hàng</a>
-
-                <div class="menu-heading">Khuyến Mãi</div>
-                <a href="#"><i class="bi bi-percent"></i> Giảm giá</a>
-                <a href="#"><i class="bi bi-tags"></i> Đợt giảm giá</a>
-
-                <div class="menu-heading">Báo Cáo</div>
-                <a href="#"><i class="bi bi-calendar2-check"></i> Giao ca & chấm công</a>
-                <a href="#"><i class="bi bi-bar-chart-line"></i> Thống kê</a>
-            </div>
-        </div>
-        <div class="sidebar-footer">
-            <a href="#" class="d-flex align-items-center gap-2 text-secondary text-decoration-none fw-semibold" style="font-size: 14px;">
-                <i class="bi bi-box-arrow-right text-danger"></i> Đăng xuất
-            </a>
-        </div>
-    </nav>
+    <div th:replace="fragments/sidebar :: sidebar"></div>
 
     <div class="content-body">
-        <div class="top-navbar">
-            <div class="breadcrumb-box">Home / Quản lý / <span class="active-path">Tài khoản & Nhân viên</span></div>
-            <div class="header-utilities">
-                <i class="bi bi-chat-left-text"><span class="icon-badge"></span></i>
-                <i class="bi bi-bell"></i>
-                <i class="bi bi-gear"></i>
+
+        <div th:replace="fragments/header :: header('Quản lý tài khoản', 'Tài khoản')"></div>
+
+
+
+        <div class="card card-custom mb-4">
+
+            <div class="card-header text-white"
+                 style="background:#c92327;">
+                <h5 class="mb-0">
+                    <i class="bi bi-pencil-square me-2"></i>
+                    Bộ lọc tìm kiếm
+                </h5>
             </div>
-        </div>
 
-        <h5 class="page-title"><i class="bi bi-people-fill"></i> Quản Lý Tài Khoản Hệ Thống</h5>
-
-        <div class="filter-card">
-            <form onsubmit="return false;">
+            <form onsubmit="return false;" class="card-body">
                 <div class="row g-3 align-items-end">
                     <div class="col-md-4">
                         <label class="filter-label">Tìm theo tên / SĐT / Email</label>
@@ -177,7 +58,7 @@
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <button type="button" class="btn-reset-filter" onclick="clearMainTableFilter()">
+                        <button type="button" class="btn-reset-filter" onclick="clearMainTableFilter()" style="background:#c92327;">
                             <i class="bi bi-arrow-clockwise"></i> Đặt lại bộ lọc
                         </button>
                     </div>
@@ -228,7 +109,7 @@
 </div>
 
 <div class="modal fade" id="modalMainAccount" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content modal-custom-content">
             <div class="modal-custom-header">
                 <h5 class="modal-custom-title">Thêm tài khoản</h5>
@@ -286,7 +167,7 @@
                         </div>
 
                         <div id="rightColumnSearch" class="col-md-6 d-none">
-                            <div class="search-employee-panel">
+                            <div class="search-employee-panel h-100">
                                 <div class="panel-search-title">Thông Tin Nhân Viên</div>
 
                                 <div class="row g-2 mb-3">
@@ -298,8 +179,8 @@
                                     </div>
                                 </div>
 
-                                <div style="max-height: 180px; overflow-y: auto; border: 1px solid #edf2f7; border-radius: 6px;">
-                                    <table class="table table-sm table-hover align-middle mb-0" style="font-size: 12px;">
+                                    <div style="max-height: 180px; overflow-y: auto; border: 1px solid #edf2f7; border-radius: 6px;">
+                                    <table class="table table-sm table-hover align-middle mb-0 employee-table">
                                         <thead class="table-light sticky-top">
                                         <tr style="font-size: 10px; text-transform: uppercase; color: #718096;">
                                             <th class="ps-2">Mã NV</th>
@@ -361,11 +242,11 @@
             const vaiTro = cells[5].textContent || cells[5].innerText;
             const trangThaiText = cells[6].textContent || cells[6].innerText;
 
-            // 1. Kiểm tra từ khóa (Mã TK, Mã NV, Tên đăng nhập, Email)
-            const matchKeyword = (maTK.toUpperCase().indexOf(query => keyword) > -1) ||
-                (maNV.toUpperCase().indexOf(keyword) > -1) ||
-                (username.toUpperCase().indexOf(keyword) > -1) ||
-                (email.toUpperCase().indexOf(keyword) > -1);
+            const matchKeyword =
+                maTK.toUpperCase().indexOf(keyword) > -1 ||
+                maNV.toUpperCase().indexOf(keyword) > -1 ||
+                username.toUpperCase().indexOf(keyword) > -1 ||
+                email.toUpperCase().indexOf(keyword) > -1;
 
             // 2. Kiểm tra vai trò
             const matchRole = (role === "") || (vaiTro.trim() === role.trim());

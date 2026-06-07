@@ -1,8 +1,8 @@
-package com.example.duantotnghiep.controller;
+package com.example.th06876_java202.Controller;
 
-import com.example.duantotnghiep.model.Account;
-import com.example.duantotnghiep.repository.NhanVienRepository;
-import com.example.duantotnghiep.service.AccountService;
+import com.example.th06876_java202.Entity.Account;
+import com.example.th06876_java202.Repository.NhanVienRepository;
+import com.example.th06876_java202.Service.AccountServiceImpl;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,27 +13,28 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/tai-khoan")
 public class AccountController {
 
-    private final AccountService service;
+    private final AccountServiceImpl serviceac;
     private final NhanVienRepository nhanVienRepo;
 
-    public AccountController(AccountService service, NhanVienRepository nhanVienRepo) {
-        this.service = service;
+    public AccountController(AccountServiceImpl serviceac, NhanVienRepository nhanVienRepo) {
+        this.serviceac = serviceac;
         this.nhanVienRepo = nhanVienRepo;
     }
 
     @GetMapping
     public String index(@RequestParam(required = false) String keyword, Model model) {
-        model.addAttribute("list", service.search(keyword));
+        model.addAttribute("activeMenu", "taikhoan");
+        model.addAttribute("list", serviceac.search(keyword));
         model.addAttribute("account", new Account());
         model.addAttribute("listNhanVien", nhanVienRepo.findAll());
         return "account/index";
     }
 
     @PostMapping("/add")
-    public String add(@ModelAttribute("account") Account account, RedirectAttributes redirectAttributes) {
+    public String add(@ModelAttribute("account") Account accounttt, RedirectAttributes redirectAttributes) {
         try {
-            account.setTrangThai(true);
-            service.save(account);
+            accounttt.setTrangThai(true);
+            serviceac.save(accounttt);
             redirectAttributes.addFlashAttribute("successMessage", "Thêm tài khoản mới thành công!");
         } catch (DataIntegrityViolationException e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: Nhân viên được chọn đã có tài khoản hoặc không hợp lệ!");
@@ -45,14 +46,14 @@ public class AccountController {
 
     @GetMapping("/lock/{id}")
     public String lock(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
-        service.lock(id);
+        serviceac.lock(id);
         redirectAttributes.addFlashAttribute("successMessage", "Đã khóa tài khoản thành công!");
         return "redirect:/tai-khoan";
     }
 
     @GetMapping("/unlock/{id}")
     public String unlock(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
-        service.unlock(id);
+        serviceac.unlock(id);
         redirectAttributes.addFlashAttribute("successMessage", "Đã mở khóa tài khoản thành công!");
         return "redirect:/tai-khoan";
     }
@@ -60,7 +61,7 @@ public class AccountController {
     @GetMapping("/delete/{id}")
     public String delete(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
         try {
-            service.delete(id);
+            serviceac.delete(id);
             redirectAttributes.addFlashAttribute("successMessage", "Xóa tài khoản thành công!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Không thể xóa tài khoản đã phát sinh dữ liệu hóa đơn/lịch sử!");

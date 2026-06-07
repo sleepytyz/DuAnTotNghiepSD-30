@@ -25,4 +25,7 @@ public class DanhMucSanPham {
     @NotBlank(message = "Mô tả danh mục không để trống")
     @Column( name = "MoTa")
     private String moTa;
+
+    @Column(name = "TrangThai")
+    private Boolean trangThai;
 }
