@@ -14,9 +14,15 @@ public class HoaDonController {
     @Autowired
     private HoaDonService service;
 
+    @GetMapping("/hoa-don")
+    public String hoaDon(Model model){
+        model.addAttribute("pageTitle", "Hóa đơn");
+        return "hoadon/index";
+    }
+
     @GetMapping
     public String index(@RequestParam(name = "keyword", required = false) String keyword, Model model) {
-        // Nếu có keyword thì tìm theo mã, không có thì lấy tất cả
+        model.addAttribute("activeMenu", "hoadon");
         model.addAttribute("list", service.searchByMa(keyword));
         model.addAttribute("hoaDon", new HoaDon());
         model.addAttribute("keyword", keyword); // Giữ lại từ khóa trên ô input sau khi tìm

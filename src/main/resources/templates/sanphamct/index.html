@@ -1,180 +1,369 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <title>Sản phẩm chi tiết</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+
 </head>
+
 <body>
 
-<form method="post" th:object="${sanphamct}">
+<div class="wrapper">
 
-    <div>
-        <label>Mã sản phẩm chi tiết</label>
-        <div>
-            <input type="text" th:field="*{maSanPhamChiTiet}" readonly id="masanphamct" class="form-control">
+    <!-- SIDEBAR -->
+    <div th:replace="fragments/sidebar :: sidebar"></div>
+
+    <!-- CONTENT -->
+    <div class="content-body">
+
+        <div th:replace="fragments/header :: header('Sản phẩm chi tiết', 'Sản phẩm chi tiết')"></div>
+
+        <div class="page-content">
+            <div class="card card-custom mb-4">
+
+                <div class="card-header text-white"
+                     style="background:#c92327;">
+                    <h5 class="mb-0">
+                        <i class="bi bi-pencil-square me-2"></i>
+                        Thông tin sản phẩm chi tiết
+                    </h5>
+                </div>
+
+                <div class="card-body p-4">
+
+                    <form method="post"
+                          th:object="${sanphamct}">
+
+                        <div class="row g-3">
+
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">
+                                    Mã SPCT
+                                </label>
+
+                                <input type="text"
+                                       class="form-control bg-light"
+                                       id="masanphamct"
+                                       th:field="*{maSanPhamChiTiet}"
+                                       readonly>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">
+                                    Sản phẩm
+                                </label>
+
+                                <select class="form-select"
+                                        th:field="*{maSanPham.maSanPham}">
+
+                                    <option th:each="c : ${listsp}"
+                                            th:value="${c.maSanPham}"
+                                            th:text="${c.maSanPham + ' - ' + c.tenSanPham}">
+                                    </option>
+
+                                </select>
+                            </div>
+
+                            <div class="col-md-2">
+                                <label class="form-label fw-bold">
+                                    Size
+                                </label>
+
+                                <select id="size"
+                                        class="form-select"
+                                        th:field="*{size}">
+                                    <option value="38">38</option>
+                                    <option value="39">39</option>
+                                    <option value="40">40</option>
+                                    <option value="41">41</option>
+                                    <option value="42">42</option>
+                                    <option value="43">43</option>
+                                    <option value="44">44</option>
+                                </select>
+
+                                <div class="error"
+                                     th:errors="*{size}">
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">
+                                    Màu sắc
+                                </label>
+
+                                <input type="text"
+                                       id="mausac"
+                                       class="form-control"
+                                       th:field="*{mauSac}">
+
+                                <div class="error"
+                                     th:errors="*{mauSac}">
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">
+                                    Giá nhập
+                                </label>
+
+                                <input type="number"
+                                       step="0.01"
+                                       id="gianhap"
+                                       class="form-control"
+                                       th:field="*{giaNhap}">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">
+                                    Giá bán
+                                </label>
+
+                                <input type="number"
+                                       step="0.01"
+                                       id="giaban"
+                                       class="form-control"
+                                       th:field="*{giaBan}">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">
+                                    Số lượng tồn
+                                </label>
+
+                                <input type="number"
+                                       id="soluongton"
+                                       class="form-control"
+                                       th:field="*{soLuongTon}">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">
+                                    Trạng thái
+                                </label>
+
+                                <select id="trangthai"
+                                        class="form-select"
+                                        th:field="*{trangThai}">
+                                    <option value="Còn hàng">Còn hàng</option>
+                                    <option value="Sắp hết">Sắp hết</option>
+                                    <option value="Hết hàng">Hết hàng</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">
+                                    Ngày tạo
+                                </label>
+
+                                <input type="date"
+                                       class="form-control bg-light"
+                                       readonly
+                                       th:value="${sanphamct.ngayTao != null ? #temporals.format(sanphamct.ngayTao,'yyyy-MM-dd') : ''}">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">
+                                    Ngày cập nhật
+                                </label>
+
+                                <input type="date"
+                                       class="form-control bg-light"
+                                       readonly
+                                       th:value="${sanphamct.ngayCapNhat != null ? #temporals.format(sanphamct.ngayCapNhat,'yyyy-MM-dd') : ''}">
+                            </div>
+
+                        </div>
+
+                        <hr>
+
+                        <div class="d-flex gap-2">
+
+                            <button class="btn btn-success"
+                                    type="submit"
+                                    formaction="/sanphamct/add">
+                                <i class="bi bi-plus-circle"></i>
+                                Thêm
+                            </button>
+
+                            <button class="btn btn-warning text-white"
+                                    type="submit"
+                                    formaction="/sanphamct/update">
+                                <i class="bi bi-pencil"></i>
+                                Sửa
+                            </button>
+
+                            <button type="button"
+                                    class="btn btn-secondary"
+                                    onclick="resetForm()">
+                                <i class="bi bi-arrow-clockwise"></i>
+                                Reset
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+            <!-- DANH SÁCH -->
+            <div class="table-card">
+
+                <div class="table-header">
+
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-list-ul me-2"></i>
+                        Danh sách sản phẩm chi tiết
+                    </h5>
+
+                    <div class="input-group"
+                         style="width:300px">
+
+                    <span class="input-group-text">
+                        <i class="bi bi-search"></i>
+                    </span>
+
+                        <input type="text"
+                               class="form-control"
+                               placeholder="Tìm kiếm sản phẩm...">
+
+                    </div>
+
+                </div>
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle">
+
+                        <thead>
+
+                        <tr>
+                            <th>STT</th>
+                            <th>Mã SPCT</th>
+                            <th>Sản phẩm</th>
+                            <th>Size</th>
+                            <th>Màu sắc</th>
+                            <th>Giá nhập</th>
+                            <th>Giá bán</th>
+                            <th>Tồn kho</th>
+                            <th>Trạng thái</th>
+                            <th>Ảnh</th>
+                            <th>Hành động</th>
+                        </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                        <tr th:each="c,row : ${listspct}">
+
+                            <td th:text="${row.count}"></td>
+
+                            <td>
+                            <span class="fw-bold text-primary"
+                                  th:text="${c.maSanPhamChiTiet}">
+                            </span>
+                            </td>
+
+                            <td th:text="${c.maSanPham.tenSanPham}"></td>
+
+                            <td th:text="${c.size}"></td>
+
+                            <td th:text="${c.mauSac}"></td>
+
+                            <td th:text="${#numbers.formatDecimal(c.giaNhap,0,'COMMA',0,'POINT')}"></td>
+
+                            <td class="fw-bold text-danger"
+                                th:text="${#numbers.formatDecimal(c.giaBan,0,'COMMA',0,'POINT')}">
+                            </td>
+
+                            <td th:text="${c.soLuongTon}"></td>
+
+                            <td>
+
+                            <span th:if="${c.trangThai == 'Còn hàng'}"
+                                  class="badge bg-success">
+                                Còn hàng
+                            </span>
+
+                                <span th:if="${c.trangThai == 'Sắp hết'}"
+                                      class="badge bg-warning text-dark">
+                                Sắp hết
+                            </span>
+
+                                <span th:if="${c.trangThai == 'Hết hàng'}"
+                                      class="badge bg-danger">
+                                Hết hàng
+                            </span>
+
+                            </td>
+
+                            <td>
+
+                                <th:block th:each="anh : ${c.danhSachAnh}">
+
+                                    <img th:if="${anh.laAnhChinh}"
+                                         th:src="@{/sanphamct/image/{id}(id=${anh.maHinhAnh})}"
+                                         width="80"
+                                         height="80"
+                                         class="shadow-sm rounded"
+                                         style="object-fit:cover">
+
+                                </th:block>
+
+                            </td>
+
+                            <td>
+
+                                <a class="btn btn-outline-primary btn-sm"
+                                   th:href="@{/sanphamct/edit/{id}(id=${c.maSanPhamChiTiet})}">
+                                    <i class="bi bi-eye-fill"></i>
+                                </a>
+
+                                <a class="btn btn-outline-danger btn-sm"
+                                   onclick="return confirm('Bạn có chắc muốn xóa?')"
+                                   th:href="@{/sanphamct/delete/{id}(id=${c.maSanPhamChiTiet})}">
+                                    <i class="bi bi-trash-fill"></i>
+                                </a>
+
+                            </td>
+
+                        </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
         </div>
-        <div th:if="${#fields.hasErrors('maSanPhamChiTiet')}" th:errors="*{maSanPhamChiTiet}"></div>
+
     </div>
-
-    <div>
-        <label>Mã sản phẩm</label>
-        <div>
-            <select class="form-control" th:field="*{maSanPham.maSanPham}" disabled>
-                <option th:each="c : ${listsp}"
-                        th:value="${c.maSanPham}"
-                        th:text="${c.maSanPham + '-' + c.tenSanPham}">
-                </option>
-            </select>
-
-            <input type="hidden"
-                   th:field="*{maSanPham.maSanPham}">
-        </div>
-    </div>
-
-    <div>
-        <label>Kích cỡ</label>
-        <div>
-            <select id="size" th:field="*{size}" class="form-control">
-                <option value="38">38</option>
-                <option value="39">39</option>
-                <option value="40">40</option>
-                <option value="41">41</option>
-                <option value="42">42</option>
-                <option value="43">43</option>
-                <option value="44">44</option>
-            </select>
-        </div>
-        <div th:if="${#fields.hasErrors('size')}" th:errors="*{size}"></div>
-    </div>
-
-    <div>
-        <label>Màu sắc</label>
-        <div>
-            <input type="text" th:field="*{mauSac}" id="mausac" class="form-control">
-        </div>
-        <div th:if="${#fields.hasErrors('mauSac')}" th:errors="*{mauSac}"></div>
-    </div>
-
-    <div>
-        <label>Giá nhập</label>
-        <div>
-            <input type="number" step="any" th:field="*{giaNhap}" id="gianhap" class="form-control">
-        </div>
-        <div th:if="${#fields.hasErrors('giaNhap')}" th:errors="*{giaNhap}"></div>
-    </div>
-
-    <div>
-        <label>Giá bán</label>
-        <div>
-            <input type="number" step="any" th:field="*{giaBan}" id="giaban" class="form-control">
-        </div>
-        <div th:if="${#fields.hasErrors('giaBan')}" th:errors="*{giaBan}"></div>
-    </div>
-
-    <div>
-        <label>Số lượng tồn</label>
-        <div>
-            <input type="number" th:field="*{soLuongTon}" id="soluongton" class="form-control">
-        </div>
-        <div th:if="${#fields.hasErrors('soLuongTon')}" th:errors="*{soLuongTon}"></div>
-    </div>
-
-    <div>
-        <label>Trạng thai</label>
-        <div>
-            <select id="trangthai" th:field="*{trangThai}" class="form-control">
-                <option value="Còn hàng">Còn hàng</option>
-                <option value="Hết hàng">Hết hàng</option>
-                <option value="Sắp hết">Sắp hết</option>
-            </select>
-        </div>
-        <div th:if="${#fields.hasErrors('trangThai')}" th:errors="*{trangThai}"></div>
-    </div>
-
-    <div>
-        <label>Ngày tạo</label>
-        <div>
-            <input type="date" th:value="${#temporals.format(sanphamct.ngayTao, 'yyyy-MM-dd')}" name="ngayTao" id="ngaytao" readonly class="form-control">
-        </div>
-        <div th:if="${#fields.hasErrors('ngayTao')}" th:errors="*{ngayTao}"></div>
-    </div>
-
-    <div>
-        <label>Ngày cập nhật</label>
-        <div>
-            <input type="date" th:value="${#temporals.format(sanphamct.ngayCapNhat, 'yyyy-MM-dd')}" name="ngayCapNhat" id="ngaycapnhat" readonly class="form-control">
-        </div>
-        <div th:if="${#fields.hasErrors('ngayCapNhat')}" th:errors="*{ngayCapNhat}"></div>
-    </div>
-
-    <div>
-        <button type="submit" formaction="/sanphamct/add">Thêm</button>
-        <button type="submit" formaction="/sanphamct/update">Sửa</button>
-        <input type="button" onclick="resetform()" value="Reset">
-    </div>
-
-</form>
-
-<table class="table">
-    <thead>
-        <th>STT</th>
-        <th>Mã sản phẩm chi tiết</th>
-        <th>Mã sản phẩm</th>
-        <th>Kích cỡ</th>
-        <th>Màu sắc</th>
-        <th>Giá nhập</th>
-        <th>Giá bán</th>
-        <th>Số lượng tồn</th>
-        <th>Trạng thái</th>
-        <th>Ngày tạo </th>
-        <th>Ngày cập nhật</th>
-        <th>Hình ảnh</th>
-        <th>Hành động</th>
-    </thead>
-    <tbody>
-    <tr th:each="c,row : ${listspct}">
-        <td th:text="${row.count}"></td>
-        <td th:text="${c.maSanPhamChiTiet}"></td>
-        <td th:text="${c.maSanPham.maSanPham +  ' - '  + c.maSanPham.tenSanPham}"></td>
-        <td th:text="${c.size}"></td>
-        <td th:text="${c.mauSac}"></td>
-        <td th:text="${c.giaNhap}"></td>
-        <td th:text="${c.giaBan}"></td>
-        <td th:text="${c.soLuongTon}"></td>
-        <td th:text="${c.trangThai}"></td>
-        <td th:text="${c.ngayTao}"></td>
-        <td th:text="${c.ngayCapNhat}"></td>
-        <td>
-            <th:block th:each="anh : ${c.danhSachAnh}">
-                <img th:if="${anh.laAnhChinh}"
-                     th:src="@{/sanphamct/image/{id}(id=${anh.maHinhAnh})}"
-                     width="80">
-            </th:block>
-        </td>
-        <td>
-            <a th:href="@{/sanphamct/edit/{id}(id=${c.maSanPhamChiTiet})}">Xem</a>
-            <a th:href="@{/sanphamct/delete/{id}(id=${c.maSanPhamChiTiet})}">Xoá</a>
-        </td>
-    </tr>
-    </tbody>
-</table>
 
 <script>
-    function resetform(){
-        document.getElementById('masanphamct').value="";
-        document.getElementById('masanpham').value="";
-        document.getElementById('madanhmuc').value="";
-        document.getElementById('size').value="";
-        document.getElementById('mausac').value="";
-        document.getElementById('giaban').value="";
-        document.getElementById('gianhap').value="";
-        document.getElementById('soluongton').value="";
-        document.getElementById('trangthai').selectedIndex = 0;
-        document.getElementById('ngaytao').value="";
-        document.getElementById('ngaycapnhat').value="";
+
+    function resetForm(){
+
+        document.getElementById('masanphamct').value='';
+        document.getElementById('size').selectedIndex=0;
+        document.getElementById('mausac').value='';
+        document.getElementById('gianhap').value='';
+        document.getElementById('giaban').value='';
+        document.getElementById('soluongton').value='';
+        document.getElementById('trangthai').selectedIndex=0;
     }
+
 </script>
 
 </body>
 </html>
+```

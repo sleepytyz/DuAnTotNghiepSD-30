@@ -1,106 +1,257 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Quản lý ảnh sản phẩm</title>
+    <title>Quản lý hình ảnh sản phẩm</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
           rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          th:href="@{/css/style.css}">
 </head>
+
 <body>
 
-<div class="container mt-3">
+<div class="wrapper">
 
-    <h3>Quản lý ảnh sản phẩm</h3>
+    <!-- SIDEBAR -->
+    <div th:replace="fragments/sidebar :: sidebar"></div>
 
-    <form method="post"
-          enctype="multipart/form-data"
-          th:action="@{/sanphamha/add}">
+    <!-- CONTENT -->
+    <div class="content-body">
 
-        <div class="mb-3">
-            <label>Sản phẩm chi tiết</label>
+        <!-- HEADER -->
+        <div th:replace="fragments/header :: header('Hình ảnh sản phẩm','Hình ảnh sản phẩm')"></div>
 
-            <select name="maSPCT" class="form-control">
-                <option value="">-- Chọn sản phẩm --</option>
+        <div class="page-content">
 
-                <option th:each="spct : ${listSPCT}"
-                        th:value="${spct.maSanPhamChiTiet}"
-                        th:text="${spct.maSanPham.tenSanPham + ' - ' + spct.mauSac}">
-                </option>
-            </select>
+            <div class="card card-custom mb-4">
+
+                <div class="card-header text-white"
+                     style="background:#c92327;">
+
+                    <h5 class="mb-0">
+                        <i class="bi bi-cloud-upload me-2"></i>
+                        Upload hình ảnh sản phẩm
+                    </h5>
+
+                </div>
+
+                <div class="card-body">
+
+                    <form method="post"
+                          enctype="multipart/form-data"
+                          th:action="@{/sanphamha/add}">
+
+                        <div class="row g-3">
+
+                            <div class="col-md-5">
+
+                                <label class="form-label fw-bold">
+                                    Sản phẩm chi tiết
+                                </label>
+
+                                <select name="maSPCT"
+                                        class="form-select">
+
+                                    <option value="">
+                                        -- Chọn sản phẩm --
+                                    </option>
+
+                                    <option th:each="spct : ${listSPCT}"
+                                            th:value="${spct.maSanPhamChiTiet}"
+                                            th:text="${spct.maSanPham.tenSanPham + ' - ' + spct.mauSac + ' - Size ' + spct.size}">
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                            <div class="col-md-5">
+
+                                <label class="form-label fw-bold">
+                                    Chọn hình ảnh
+                                </label>
+
+                                <input type="file"
+                                       name="file"
+                                       class="form-control">
+
+                            </div>
+
+                            <div class="col-md-2">
+
+                                <label class="form-label fw-bold">
+                                    Loại ảnh
+                                </label>
+
+                                <div class="form-check mt-2">
+
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           name="laAnhChinh"
+                                           value="true"
+                                           id="anhchinh">
+
+                                    <label class="form-check-label"
+                                           for="anhchinh">
+                                        Ảnh chính
+                                    </label>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <hr>
+
+                        <button type="submit"
+                                class="btn btn-success">
+
+                            <i class="bi bi-upload"></i>
+                            Upload ảnh
+
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+            <!-- TABLE -->
+            <div class="table-card">
+
+                <div class="table-header">
+
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-images me-2"></i>
+                        Danh sách hình ảnh
+                    </h5>
+
+                </div>
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle">
+
+                        <thead>
+
+                        <tr>
+                            <th style="width:80px">STT</th>
+                            <th style="width:150px">Hình ảnh</th>
+                            <th>Sản phẩm</th>
+                            <th style="width:140px">Loại ảnh</th>
+                            <th style="width:160px">Hành động</th>
+                        </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                        <tr th:each="anh,stt : ${listAnh}">
+
+                            <td th:text="${stt.count}"></td>
+
+                            <td>
+
+                                <img th:src="@{/sanphamha/image/{id}(id=${anh.maHinhAnh})}"
+                                     class="shadow rounded"
+                                     width="300"
+                                     height="300"
+                                     style="object-fit:contain; background:white;">
+
+                            </td>
+
+                            <td>
+
+                                <div class="fw-bold"
+                                     th:text="${anh.sanPhamChiTiet.maSanPham.tenSanPham}">
+                                </div>
+
+                                <small class="text-muted">
+
+                                    Màu:
+                                    <span th:text="${anh.sanPhamChiTiet.mauSac}"></span>
+
+                                    |
+
+                                    Size:
+                                    <span th:text="${anh.sanPhamChiTiet.size}"></span>
+
+                                </small>
+
+                            </td>
+
+                            <td>
+
+                                <span th:if="${anh.laAnhChinh}"
+                                      class="badge bg-success">
+
+                                    Ảnh chính
+
+                                </span>
+
+                                <span th:unless="${anh.laAnhChinh}"
+                                      class="badge bg-secondary">
+
+                                    Ảnh phụ
+
+                                </span>
+
+                            </td>
+
+                            <td>
+
+                                <a class="btn btn-outline-warning btn-sm"
+                                   th:href="@{/sanphamha/set-main/{id}(id=${anh.maHinhAnh})}">
+
+                                    <i class="bi bi-star-fill"></i>
+
+                                </a>
+
+                                <a class="btn btn-outline-danger btn-sm"
+                                   th:href="@{/sanphamha/delete/{id}(id=${anh.maHinhAnh})}"
+                                   onclick="return confirm('Bạn có chắc muốn xóa ảnh này?')">
+
+                                    <i class="bi bi-trash-fill"></i>
+
+                                </a>
+
+                            </td>
+
+                        </tr>
+
+                        <tr th:if="${#lists.isEmpty(listAnh)}">
+
+                            <td colspan="5"
+                                class="text-center text-muted py-4">
+
+                                Chưa có hình ảnh nào
+
+                            </td>
+
+                        </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
         </div>
 
-        <div class="mb-3">
-            <label>Chọn ảnh</label>
-            <input type="file" name="file" class="form-control">
-        </div>
-
-        <div class="mb-3">
-            <input type="checkbox"
-                   name="laAnhChinh"
-                   value="true">
-
-            <label>Đặt làm ảnh chính</label>
-        </div>
-
-        <button type="submit" class="btn btn-success">
-            Upload
-        </button>
-
-    </form>
-
-    <hr>
-
-    <table class="table table-bordered">
-
-        <thead>
-        <tr>
-            <th>STT</th>
-            <th>Ảnh</th>
-            <th>Sản phẩm</th>
-            <th>Loại ảnh</th>
-            <th>Hành động</th>
-        </tr>
-        </thead>
-
-        <tbody>
-
-        <tr th:each="anh, stt : ${listAnh}">
-
-            <td th:text="${stt.count}"></td>
-
-            <td>
-                <img th:src="@{/sanphamha/image/{id}(id=${anh.maHinhAnh})}"
-                     width="120"
-                     height="120">
-            </td>
-
-            <td th:text="${anh.sanPhamChiTiet.maSanPham.tenSanPham + ' - ' + anh.sanPhamChiTiet.mauSac + ' - ' + anh.sanPhamChiTiet.size}"></td>
-
-            <td th:text="${anh.laAnhChinh ? 'Ảnh chính' : 'Ảnh phụ'}"></td>
-
-            <td>
-
-                <a class="btn btn-warning btn-sm"
-                   th:href="@{/sanphamha/set-main/{id}(id=${anh.maHinhAnh})}">
-                    Ảnh chính
-                </a>
-
-                <a class="btn btn-danger btn-sm"
-                   th:href="@{/sanphamha/delete/{id}(id=${anh.maHinhAnh})}"
-                   onclick="return confirm('Bạn có chắc muốn xóa?')">
-                    Xóa
-                </a>
-
-            </td>
-
-        </tr>
-
-        </tbody>
-
-    </table>
+    </div>
 
 </div>
 
 </body>
 </html>
+```
