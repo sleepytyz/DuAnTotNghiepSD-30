@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách khách hàng</title>
+</head>
+<body>
+<form th:object="${kh}" method="post">  <input type="hidden" th:field="*{maKH}"><br>
+  Tên khách hàng: <input type="text" required th:field="*{hoTen}"><br>
+  Số điện thoại: <input type="text" required th:field="*{sdt}"><br>
+  Email: <input type="text" required th:field="*{email}"><br>
+  Địa chỉ: <input type="text" required th:field="*{diaChi}"><br>
+  Ngày sinh: <input type="date" required th:field="*{ngaySinh}"><br>
+  Giới tính:
+  <input type="radio" th:field="*{gioiTinh}" value="true"> Nam
+  <input type="radio" th:field="*{gioiTinh}" value="false"> Nữ
+  <br>
+  Điểm tích lũy: <input type="text" required th:field="*{diemTichLuy}"><br>
+  Hạng khách hàng: <input type="text" required th:field="*{hangKhachHang}"><br>
+  Ngày đăng ký: <input type="date" th:field="*{ngayDangKy}"><br>
+  Ghi chú: <input type="text" th:field="*{ghiChu}"><br>
+  <button th:formaction="@{/khach-hang/add}" type="submit">Add</button>
+  <button th:formaction="@{/khach-hang/update}" type="submit">Update</button>
+</form>
+<table border="1" width="60%" style="border-collapse: collapse">
+  <thead>
+  <td>STT</td>
+  <td>Mã khách hàng</td>
+  <td>Tên khách hàng</td>
+  <td>SĐT</td>
+  <td>Email</td>
+  <td>Địa chỉ</td>
+  <td>Ngày sinh</td>
+  <td>Giới tính</td>
+  <td>Hạng khách hàng</td>
+  <td>Ngày đăng ký</td>
+  <td>Ghi chú</td>
+  </thead>
+  <tbody>
+  <tr th:each="kh, row : ${khachHang}">
+    <td th:text="${row.count}"></td>
+    <td th:text="${kh.maKH}"></td>
+    <td th:text="${kh.hoTen}"></td>
+    <td th:text="${kh.sdt}"></td>
+    <td th:text="${kh.email}"></td>
+    <td th:text="${kh.diaChi}"></td>
+    <td th:text="${kh.ngaySinh}"></td>
+    <td th:text="${kh.gioiTinh != null && kh.gioiTinh ? 'Nam' : 'Nữ'}"></td>    <td th:text="${kh.hangKhachHang}"></td>
+    <td th:text="${kh.ngayDangKy}"></td>
+    <td th:text="${kh.ghiChu}"></td>
+    <td><a th:href="@{'/khach-hang/edit/' + ${kh.maKH}}">Detail</a></td>
+    <td><a th:href="@{'/khach-hang/delete/' + ${kh.maKH}}" onclick="return confirm('Bạn có chắc xóa không?')">Delete</a></td>
+  </tr>
+  </tbody>
+
+</table>
+
+</body>
+</html>
