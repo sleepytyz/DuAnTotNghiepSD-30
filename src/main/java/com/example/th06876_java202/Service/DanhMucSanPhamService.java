@@ -27,12 +27,12 @@ public class DanhMucSanPhamService {
         return danhMucSanPhamRepository.findById(id);
     }
 
-    public int updatett(int id){
-        return danhMucSanPhamRepository.updateTrangThai(id);
+    public void updatett(int id){
+        danhMucSanPhamRepository.updateTrangThai(id);
     }
 
-    public boolean ktraten( String tendanhmuc ){
-        return danhMucSanPhamRepository.ktraten(tendanhmuc);
+    public boolean ktraten(String tendanhmuc){
+        return danhMucSanPhamRepository.existsByTenDanhMuc(tendanhmuc);
     }
 
 }

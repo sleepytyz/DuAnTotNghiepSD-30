@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Table( name = "DanhMucSanPham")
 public class DanhMucSanPham {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MaDanhMuc")
@@ -21,6 +20,9 @@ public class DanhMucSanPham {
     @NotBlank(message = "Tên danh mục không để trống")
     @Column( name = "TenDanhMuc")
     private String tenDanhMuc;
+
+    @Column(name = "TrangThai")
+    private Boolean trangThai;
 
     @NotBlank(message = "Mô tả danh mục không để trống")
     @Column( name = "MoTa")

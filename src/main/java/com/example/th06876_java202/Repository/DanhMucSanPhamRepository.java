@@ -5,14 +5,16 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface DanhMucSanPhamRepository extends JpaRepository<DanhMucSanPham, Integer> {
 
-    @Modifying
-    @Query(value = "update DanhMucSanPham set TrangThai = 0 where MaDanhMuc = ?")
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query("UPDATE DanhMucSanPham d SET d.trangThai = false WHERE d.maDanhMuc = ?1")
     int updateTrangThai(int maDanhMuc);
 
-    boolean ktraten( String tendanhmuc );
+    boolean existsByTenDanhMuc(String tenDanhMuc);
 
 }
