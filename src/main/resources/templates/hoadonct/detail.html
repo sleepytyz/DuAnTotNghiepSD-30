@@ -60,44 +60,59 @@
             </div>
 
             <!-- TRẠNG THÁI -->
-            <section class="status-timeline">
+            <div class="invoice-stepper">
 
-                <div class="timeline-step">
+                <div class="timeline-step"
+                     th:classappend="${hoaDon.trangThai == 'Chờ xác nhận'
+                          or hoaDon.trangThai == 'Đã xác nhận'
+                          or hoaDon.trangThai == 'Chờ giao hàng'
+                          or hoaDon.trangThai == 'Đang giao hàng'
+                          or hoaDon.trangThai == 'Hoàn thành'} ? ' active'">
                     <div class="icon">
                         <i class="fa-solid fa-clock"></i>
                     </div>
-                    <span class="info-value">Chờ xác nhận</span>
+                    <span>Chờ xác nhận</span>
                 </div>
 
-                <div class="timeline-step">
+                <div class="timeline-step"
+                     th:classappend="${hoaDon.trangThai == 'Đã xác nhận'
+                          or hoaDon.trangThai == 'Chờ giao hàng'
+                          or hoaDon.trangThai == 'Đang giao hàng'
+                          or hoaDon.trangThai == 'Hoàn thành'} ? ' active'">
                     <div class="icon">
                         <i class="fa-solid fa-check"></i>
                     </div>
-                    <span class="info-value">Đã xác nhận</span>
+                    <span>Đã xác nhận</span>
                 </div>
 
-                <div class="timeline-step">
+                <div class="timeline-step"
+                     th:classappend="${hoaDon.trangThai == 'Chờ giao hàng'
+                          or hoaDon.trangThai == 'Đang giao hàng'
+                          or hoaDon.trangThai == 'Hoàn thành'} ? ' active'">
                     <div class="icon">
-                        <i class="fa-solid fa-store"></i>
+                        <i class="fa-solid fa-box"></i>
                     </div>
-                    <span class="info-value">Chờ giao hàng</span>
+                    <span>Chờ giao hàng</span>
                 </div>
 
-                <div class="timeline-step disabled">
+                <div class="timeline-step"
+                     th:classappend="${hoaDon.trangThai == 'Đang giao hàng'
+                          or hoaDon.trangThai == 'Hoàn thành'} ? ' active'">
                     <div class="icon">
                         <i class="fa-solid fa-truck"></i>
                     </div>
                     <span>Đang giao hàng</span>
                 </div>
 
-                <div class="timeline-step disabled">
+                <div class="timeline-step"
+                     th:classappend="${hoaDon.trangThai == 'Hoàn thành'} ? ' active'">
                     <div class="icon">
                         <i class="fa-solid fa-circle-check"></i>
                     </div>
                     <span>Đã hoàn thành</span>
                 </div>
 
-            </section>
+            </div>
 
             <!-- THÔNG TIN -->
             <div class="info-grid">
