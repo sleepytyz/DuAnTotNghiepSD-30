@@ -139,7 +139,22 @@
                                         class="btn-detail"
                                         data-bs-toggle="modal"
                                         data-bs-target="#nhanVienModal"
-                                        onclick="openEditModal(this)">
+                                        onclick="openEditModal(this)"
+
+                                        th:attr="
+        data-id=${nv.maNhanVien},
+        data-hoten=${nv.hoTen},
+        data-sdt=${nv.soDienThoai},
+        data-email=${nv.email},
+        data-ngaysinh=${nv.ngaySinh},
+        data-gioitinh=${nv.gioiTinh},
+        data-chucvu=${nv.chucVu},
+        data-luong=${nv.luongCoBan},
+        data-ngayvaolam=${nv.ngayVaoLam},
+        data-trangthai=${nv.trangThai},
+        data-diachi=${nv.diaChi},
+        data-ghichu=${nv.ghiChu}">
+
                                     <i class="bi bi-pencil"></i>
                                 </button>
 
@@ -181,9 +196,9 @@
 
         </div>
 
-            </div>
-        </div>
     </div>
+</div>
+</div>
 </div>
 
 <div class="modal fade" id="nhanVienModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
@@ -195,20 +210,23 @@
             </div>
             <form th:action="@{/nhan-vien/save}" th:object="${nhanVien}" method="POST">
                 <div class="modal-body p-4">
-                    <input type="hidden" id="modalMaNhanVien" th:field="*{maNhanVien}" />
+                    <input type="hidden" id="modalMaNhanVien" th:field="*{maNhanVien}"/>
 
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Họ và Tên <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="modalHoTen" th:field="*{hoTen}" required placeholder="Nguyễn Văn A">
+                            <input type="text" class="form-control" id="modalHoTen" th:field="*{hoTen}" required
+                                   placeholder="Nguyễn Văn A">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Số Điện Thoại</label>
-                            <input type="text" class="form-control" id="modalSoDienThoai" th:field="*{soDienThoai}" placeholder="0987654321">
+                            <input type="text" class="form-control" id="modalSoDienThoai" th:field="*{soDienThoai}"
+                                   placeholder="0987654321">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Email</label>
-                            <input type="email" class="form-control" id="modalEmail" th:field="*{email}" placeholder="example@gmail.com">
+                            <input type="email" class="form-control" id="modalEmail" th:field="*{email}"
+                                   placeholder="example@gmail.com">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Ngày Sinh</label>
@@ -223,11 +241,13 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Chức Vụ</label>
-                            <input type="text" class="form-control" id="modalChucVu" th:field="*{chucVu}" placeholder="Nhân viên / Quản lý">
+                            <input type="text" class="form-control" id="modalChucVu" th:field="*{chucVu}"
+                                   placeholder="Nhân viên / Quản lý">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Lương Cơ Bản</label>
-                            <input type="number" class="form-control" id="modalLuongCoBan" th:field="*{luongCoBan}" placeholder="VND">
+                            <input type="number" class="form-control" id="modalLuongCoBan" th:field="*{luongCoBan}"
+                                   placeholder="VND">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Ngày Vào Làm</label>
@@ -246,7 +266,8 @@
                         </div>
                         <div class="col-md-12">
                             <label class="form-label fw-semibold">Địa Chỉ</label>
-                            <input type="text" class="form-control" id="modalDiaChi" th:field="*{diaChi}" placeholder="Số nhà, Tên đường...">
+                            <input type="text" class="form-control" id="modalDiaChi" th:field="*{diaChi}"
+                                   placeholder="Số nhà, Tên đường...">
                         </div>
                     </div>
                 </div>
@@ -302,7 +323,7 @@
     }
 
     function formatDateString(dateStr) {
-        if(!dateStr) return "";
+        if (!dateStr) return "";
         let d = new Date(dateStr);
         if (isNaN(d.getTime())) return "";
         let month = '' + (d.getMonth() + 1);
