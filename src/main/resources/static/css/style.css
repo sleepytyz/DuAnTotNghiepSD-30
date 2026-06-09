@@ -613,6 +613,18 @@ body{
     overflow-x: auto;
 }
 
+.action-btn{
+    min-width:120px;
+    height:42px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+
+    font-weight:600;
+}
+
 /* MENU CHA */
 .menu-parent{
     display:flex !important;

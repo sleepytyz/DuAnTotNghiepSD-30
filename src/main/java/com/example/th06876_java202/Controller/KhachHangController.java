@@ -34,20 +34,19 @@ public class KhachHangController {
     @GetMapping("/delete/{maKH}")
     public String delete(@PathVariable Integer maKH) {
         khachHangService.delete(maKH);
-        return "redirect:/khachhang/index";
+        return "redirect:/khach-hang/hien-thi";
     }
 
     @PostMapping("/add")
     public String add(@ModelAttribute KhachHang khachHang) {
         khachHang.setNgayDangKy(LocalDate.now());
         khachHangService.save(khachHang);
-        return "redirect:/khachhang/index";
+        return "redirect:/khach-hang/hien-thi";
     }
-
     @PostMapping("/update")
     public String update(@ModelAttribute KhachHang kh) {
         khachHangService.save(kh);
-        return "redirect:/khachhang/index";
+        return "redirect:/khach-hang/hien-thi";
     }
 
 }
