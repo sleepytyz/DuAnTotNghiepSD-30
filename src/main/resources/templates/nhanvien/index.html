@@ -49,8 +49,14 @@
                             <label>Chức vụ</label>
                             <select class="form-select" name="role">
                                 <option value="">Tất cả</option>
-                                <option value="Quản lý">Quản lý</option>
-                                <option value="Nhân viên">Nhân viên</option>
+                                <option value="Quản lý"
+                                        th:selected="${param.role != null and param.role[0] == 'Quản lý'}">
+                                    Quản lý
+                                </option>
+                                <option value="Nhân Viên"
+                                        th:selected="${param.role != null and param.role[0] == 'Nhân Viên'}">
+                                    Nhân viên
+                                </option>
                             </select>
                         </div>
 

@@ -2,6 +2,7 @@ package com.example.th06876_java202.Controller;
 
 import com.example.th06876_java202.Entity.NhanVien;
 import com.example.th06876_java202.Repository.NhanVienRepository;
+import com.example.th06876_java202.Service.NhanVienService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,14 +17,23 @@ public class NhanVienController {
     @Autowired
     private NhanVienRepository nhanVienRepository;
 
+    @Autowired
+    private NhanVienService nhanVienService;
+
     @GetMapping
-    public String index(Model model) {
-        List<NhanVien> dsNhanVien = nhanVienRepository.findAll();
+    public String index(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) Boolean status,
+            Model model) {
+
+        List<NhanVien> dsNhanVien =
+                nhanVienService.search(keyword, role, status);
+
         model.addAttribute("list", dsNhanVien);
         model.addAttribute("activeMenu", "nhanvien");
-        if (!model.containsAttribute("nhanVien")) {
-            model.addAttribute("nhanVien", new NhanVien());
-        }
+        model.addAttribute("nhanVien", new NhanVien());
+
         return "nhanvien/index";
     }
 
