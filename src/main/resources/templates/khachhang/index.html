@@ -11,7 +11,118 @@
 </head>
 
 <body>
+<div class="modal fade"
+     id="khachHangModal"
+     tabindex="-1">
 
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header bg-danger text-white">
+
+                <h5 class="modal-title">
+                    Chi Tiết Khách Hàng
+                </h5>
+
+                <button type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label>Mã khách hàng</label>
+                        <input id="khMaKH"
+                               class="form-control"
+                               readonly>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label>Họ tên</label>
+                        <input id="khHoTen"
+                               class="form-control"
+                               readonly>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label>Số điện thoại</label>
+                        <input id="khSdt"
+                               class="form-control"
+                               readonly>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label>Email</label>
+                        <input id="khEmail"
+                               class="form-control"
+                               readonly>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label>Ngày sinh</label>
+                        <input id="khNgaySinh"
+                               class="form-control"
+                               readonly>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label>Giới tính</label>
+                        <input id="khGioiTinh"
+                               class="form-control"
+                               readonly>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label>Điểm tích lũy</label>
+                        <input id="khDiem"
+                               class="form-control"
+                               readonly>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label>Hạng khách hàng</label>
+                        <input id="khHang"
+                               class="form-control"
+                               readonly>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label>Địa chỉ</label>
+                        <input id="khDiaChi"
+                               class="form-control"
+                               readonly>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label>Ngày đăng ký</label>
+                        <input id="khNgayDangKy"
+                               class="form-control"
+                               readonly>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label>Ghi chú</label>
+                        <textarea id="khGhiChu"
+                                  class="form-control"
+                                  rows="3"
+                                  readonly></textarea>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
 <div class="wrapper">
 
     <!-- Sidebar -->
@@ -209,10 +320,29 @@
 
                     <td>
 
-                        <a class="btn-action-lock"
-                           th:href="@{'/khach-hang/edit/' + ${ok.maKH}}">
+                        <button type="button"
+                                class="btn-action-lock"
+
+                                data-bs-toggle="modal"
+                                data-bs-target="#khachHangModal"
+
+                                th:data-makh="${ok.maKH}"
+                                th:data-hoten="${ok.hoTen}"
+                                th:data-sdt="${ok.sdt}"
+                                th:data-email="${ok.email}"
+                                th:data-diachi="${ok.diaChi}"
+                                th:data-ngaysinh="${ok.ngaySinh}"
+                                th:data-gioitinh="${ok.gioiTinh}"
+                                th:data-diem="${ok.diemTichLuy}"
+                                th:data-hang="${ok.hangKhachHang}"
+                                th:data-ngaydangky="${ok.ngayDangKy}"
+                                th:data-ghichu="${ok.ghiChu}"
+
+                                onclick="showKhachHang(this)">
+
                             Xem
-                        </a>
+
+                        </button>
 
                         <a class="btn-trash ms-2"
                            th:href="@{'/khach-hang/delete/' + ${ok.maKH}}"
@@ -244,6 +374,46 @@
     </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script>
 
+    function showKhachHang(button){
+
+        document.getElementById("khMaKH").value =
+            button.getAttribute("data-makh");
+
+        document.getElementById("khHoTen").value =
+            button.getAttribute("data-hoten");
+
+        document.getElementById("khSdt").value =
+            button.getAttribute("data-sdt");
+
+        document.getElementById("khEmail").value =
+            button.getAttribute("data-email");
+
+        document.getElementById("khDiaChi").value =
+            button.getAttribute("data-diachi");
+
+        document.getElementById("khNgaySinh").value =
+            button.getAttribute("data-ngaysinh");
+
+        document.getElementById("khDiem").value =
+            button.getAttribute("data-diem");
+
+        document.getElementById("khHang").value =
+            button.getAttribute("data-hang");
+
+        document.getElementById("khNgayDangKy").value =
+            button.getAttribute("data-ngaydangky");
+
+        document.getElementById("khGhiChu").value =
+            button.getAttribute("data-ghichu");
+
+        let gt = button.getAttribute("data-gioitinh");
+
+        document.getElementById("khGioiTinh").value =
+            gt === "true" ? "Nam" : "Nữ";
+    }
+
+</script>
 </body>
 </html>

@@ -24,13 +24,6 @@ public class KhachHangController {
         return "khachhang/index";
     }
 
-    @GetMapping("/edit/{maKH}")
-    public String edit(@PathVariable Integer maKH, Model model) {
-        model.addAttribute("khachHang", khachHangService.getKhachHang());
-        model.addAttribute("kh", khachHangService.getKhachHangById(maKH));
-        return "khachhang/index";
-    }
-
     @GetMapping("/delete/{maKH}")
     public String delete(@PathVariable Integer maKH) {
         khachHangService.delete(maKH);
