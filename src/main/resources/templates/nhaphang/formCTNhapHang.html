@@ -165,8 +165,8 @@
                 <span class="info-label">Trạng thái</span>
                 <span class="tag-status"
                       th:classappend="${ctNhapHang.trangThai == 'Chờ xử lý'}   ? 'tag-cho'
-                                   : (${ctNhapHang.trangThai == 'Đã xác nhận'} ? 'tag-xac'
-                                   : (${ctNhapHang.trangThai == 'Đã nhập kho'} ? 'tag-nhap'
+                                   : (${ctNhapHang.trangThai == 'Đã nhận'} ? 'tag-xac'
+                                   : (${ctNhapHang.trangThai == 'Đang vận chuyển'} ? 'tag-nhap'
                                    : 'tag-huy'))"
                       th:text="${ctNhapHang.trangThai}">
                 </span>

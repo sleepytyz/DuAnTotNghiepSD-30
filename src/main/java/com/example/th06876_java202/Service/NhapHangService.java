@@ -55,6 +55,24 @@ public class NhapHangService {
         dto.setNgayTao(entity.getNgayNhap());
         dto.setTenNhanVien(entity.getNhanVien().getHoTen());
         dto.setTenNhaCungCap(entity.getNhaCungCap().getTenNhaCungCap());
+        String trangThai = entity.getTrangThai();
+        dto.setTrangThai(trangThai);
+
+        // Map class CSS cho trạng thái
+        switch(trangThai) {
+            case "Đã nhận":
+                dto.setTrangThai("Đã nhận");
+                break;
+            case "Đang vận chuyển":
+                dto.setTrangThai("Đang vận chuyển");
+                break;
+            case "Đã hủy":
+                dto.setTrangThai("Đã hủy");
+                break;
+            default:
+                dto.setTrangThai("Ko có tt");
+        }
+
 
         List<SanPhamDetailDTO> sanPhams = entity.getChiTietNhapHangList().stream().map(ct -> {
             SanPhamDetailDTO sp = new SanPhamDetailDTO();
