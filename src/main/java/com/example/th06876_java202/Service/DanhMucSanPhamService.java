@@ -22,7 +22,6 @@ public class DanhMucSanPhamService {
     public DanhMucSanPham them ( DanhMucSanPham danhMucSanPham ) {
         return danhMucSanPhamRepository.save(danhMucSanPham);
     }
-
     public Optional<DanhMucSanPham> findById (int id ) {
         return danhMucSanPhamRepository.findById(id);
     }

@@ -15,6 +15,7 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -51,7 +52,10 @@ public class SanPhamChiTietController {
         model.addAttribute("listspct", listspct);
         model.addAttribute("listsp", Listsp);
         model.addAttribute("listdmsp", listdmsp);
+        model.addAttribute("listms", sanPhamChiTietService.getMsac());
+        model.addAttribute("lists", sanPhamChiTietService.getSize());
         model.addAttribute("sanphamct", new SanPhamChiTiet());
+        model.addAttribute("isEdit", null);
         return "sanphamct/index";
     }
 
@@ -65,6 +69,10 @@ public class SanPhamChiTietController {
         model.addAttribute("listspct", listspct);
         model.addAttribute("listsp", Listsp);
         model.addAttribute("listdmsp", listdmsp);
+        model.addAttribute("listms", sanPhamChiTietService.getMsac());
+        model.addAttribute("listms", sanPhamChiTietService.getSize());
+        model.addAttribute("showModal", true);
+        model.addAttribute("isEdit", true);
         return "sanphamct/index";
     }
 
@@ -77,6 +85,8 @@ public class SanPhamChiTietController {
             model.addAttribute("listspct", listspct);
             model.addAttribute("listsp", Listsp);
             model.addAttribute("listdmsp", listdmsp);
+            model.addAttribute("listms", sanPhamChiTietService.getMsac());
+            model.addAttribute("listms", sanPhamChiTietService.getSize());
             return "sanphamct/index";
         }
         sanPhamChiTietService.capNhatTrangThai(sanPhamChiTiet);
@@ -94,6 +104,8 @@ public class SanPhamChiTietController {
             model.addAttribute("listspct", listspct);
             model.addAttribute("listsp", Listsp);
             model.addAttribute("listdmsp", listdmsp);
+            model.addAttribute("listms", sanPhamChiTietService.getMsac());
+            model.addAttribute("listms", sanPhamChiTietService.getSize());
             return "sanphamct/index";
         }
         sanPhamChiTietService.capNhatTrangThai(sanPhamChiTiet);
@@ -106,6 +118,66 @@ public class SanPhamChiTietController {
     public String delete(@PathVariable("id") int id, Model model) {
         sanPhamChiTietService.suaSanPham(id);
         return "redirect:/sanphamct/index";
+    }
+
+    @GetMapping("/locsize")
+    public String locsize(@RequestParam("size") String size,Model model) {
+        List<SanPhamChiTiet> listspct = sanPhamChiTietService.getBySize(size);
+        model.addAttribute("listspct", listspct);
+        List<SanPham> Listsp = sanPhamService.getAll();
+        List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
+        model.addAttribute("listsp", Listsp);
+        model.addAttribute("listdmsp", listdmsp);
+        model.addAttribute("listms", sanPhamChiTietService.getMsac());
+        model.addAttribute("lists", sanPhamChiTietService.getSize());
+        model.addAttribute("sanphamct", new SanPhamChiTiet());
+        return "sanphamct/index";
+    }
+
+    @GetMapping("/locmsac")
+    public String locmsac(@RequestParam("msac") String msac,Model model) {
+        List<SanPhamChiTiet> listspct = sanPhamChiTietService.getByMauSac(msac);
+        model.addAttribute("listspct", listspct);
+        List<SanPham> Listsp = sanPhamService.getAll();
+        List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
+        model.addAttribute("listsp", Listsp);
+        model.addAttribute("listdmsp", listdmsp);
+        model.addAttribute("listms", sanPhamChiTietService.getMsac());
+        model.addAttribute("lists", sanPhamChiTietService.getSize());
+        model.addAttribute("sanphamct", new SanPhamChiTiet());
+        return "sanphamct/index";
+    }
+
+    @GetMapping("/loctt")
+    public String loctt(@RequestParam("tt") String tt,Model model) {
+        List<SanPhamChiTiet> listspct = sanPhamChiTietService.getByTT(tt);
+        model.addAttribute("listspct", listspct);
+        List<SanPham> Listsp = sanPhamService.getAll();
+        List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
+        model.addAttribute("listsp", Listsp);
+        model.addAttribute("listdmsp", listdmsp);
+        model.addAttribute("listms", sanPhamChiTietService.getMsac());
+        model.addAttribute("lists", sanPhamChiTietService.getSize());
+        model.addAttribute("sanphamct", new SanPhamChiTiet());
+        return "sanphamct/index";
+    }
+
+    @GetMapping("/locgia")
+    public String locgia(@RequestParam("gia") BigDecimal gia, @RequestParam("gia2") BigDecimal gia2 , Model model) {
+        if (gia == null)
+            gia = BigDecimal.ZERO;
+        if (gia2 == null)
+            gia2 = BigDecimal.ZERO;
+        List<SanPhamChiTiet> listspct = sanPhamChiTietService.getBygia(gia,gia2);
+        model.addAttribute("listspct", listspct);
+        List<SanPham> Listsp = sanPhamService.getAll();
+        List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
+        model.addAttribute("listsp", Listsp);
+        model.addAttribute("listdmsp", listdmsp);
+        model.addAttribute("listms", sanPhamChiTietService.getMsac());
+        model.addAttribute("lists", sanPhamChiTietService.getSize());
+        model.addAttribute("sanphamct", new SanPhamChiTiet());
+        return "sanphamct/index";
     }
 
 }

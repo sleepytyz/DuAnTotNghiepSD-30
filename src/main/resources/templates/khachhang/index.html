@@ -31,138 +31,63 @@
             </h5>
         </div>
 
-        <!-- Form -->
-        <div class="filter-card">
+            <div class="card p-3 mb-3">
 
-            <form th:object="${kh}" method="post">
+                <div class="row g-2">
 
-                <div class="row g-3">
+                    <!-- LỌC SĐT -->
+                    <form th:action="@{/khach-hang/locsdt}" method="get" class="col-md-6 row g-2">
 
-                    <div class="col-md-6">
-                        <label class="filter-label">Mã khách hàng</label>
-                        <input type="text"
-                               class="form-control bg-light"
-                               th:field="*{maKH}"
-                               readonly>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="filter-label">Tên khách hàng</label>
-                        <input type="text"
-                               class="form-control"
-                               th:field="*{hoTen}"
-                               required>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="filter-label">Số điện thoại</label>
-                        <input type="text"
-                               class="form-control"
-                               th:field="*{sdt}"
-                               required>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="filter-label">Email</label>
-                        <input type="email"
-                               class="form-control"
-                               th:field="*{email}"
-                               required>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="filter-label">Địa chỉ</label>
-                        <input type="text"
-                               class="form-control"
-                               th:field="*{diaChi}"
-                               required>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="filter-label">Ngày sinh</label>
-                        <input type="date"
-                               class="form-control"
-                               th:field="*{ngaySinh}"
-                               required>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="filter-label">Giới tính</label>
-
-                        <div class="mt-2">
-                            <input type="radio"
-                                   th:field="*{gioiTinh}"
-                                   value="true">
-                            Nam
-
-                            <input type="radio"
-                                   class="ms-3"
-                                   th:field="*{gioiTinh}"
-                                   value="false">
-                            Nữ
+                        <div class="col-md-8">
+                            <input type="text"
+                                   name="sdt"
+                                   class="form-control"
+                                   placeholder="Tìm theo số điện thoại">
                         </div>
-                    </div>
 
-                    <div class="col-md-6">
-                        <label class="filter-label">Điểm tích lũy</label>
-                        <input type="number"
-                               class="form-control"
-                               th:field="*{diemTichLuy}">
-                    </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-primary w-100">Tìm SĐT</button>
+                        </div>
 
-                    <div class="col-md-6">
-                        <label class="filter-label">Hạng khách hàng</label>
-                        <input type="text"
-                               class="form-control"
-                               th:field="*{hangKhachHang}">
-                    </div>
+                    </form>
 
-                    <div class="col-md-6">
-                        <label class="filter-label">Ngày đăng ký</label>
-                        <input type="date"
-                               class="form-control bg-light"
-                               th:field="*{ngayDangKy}"
-                               readonly>
-                    </div>
+                    <form th:action="@{/khach-hang/lochang}" method="get" class="col-md-6 row g-2">
 
-                    <div class="col-md-12">
-                        <label class="filter-label">Ghi chú</label>
-                        <input type="text"
-                               class="form-control"
-                               th:field="*{ghiChu}">
-                    </div>
-                </div>
+                        <div class="col-md-8">
+                            <select name="hang" class="form-select">
+                                <option value="">-- Chọn hạng --</option>
+                                <option value="Mới">Mới</option>
+                                <option value="Thành viên">Thành viên</option>
+                                <option value="Vip">Vip</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <button class="btn btn-success w-100">Lọc</button>
+                        </div>
+
+                    </form>
 
 
+                        <a th:href="@{/khach-hang/hien-thi}"
+                           class="btn btn-secondary">
 
-                <div class="d-flex gap-2 mt-4">
+                            <i class="bi bi-arrow-clockwise"></i>
+                            Reset
 
-                    <button type="submit"
-                            class="btn-add-account"
-                            th:formaction="@{/khach-hang/add}">
-                        <i class="bi bi-plus-lg"></i>
-                        Thêm
+                        </a></form>
+
+                    <button class="btn btn-danger mb-3"
+                            data-bs-toggle="modal"
+                            data-bs-target="#khachHangModal"
+                            onclick="openAddKhachHang()">
+                        Thêm khách hàng
                     </button>
-
-                    <button type="submit"
-                            class="btn-action-lock"
-                            th:formaction="@{/khach-hang/update}">
-                        Sửa
-                    </button>
-
-                    <a th:href="@{/khach-hang/hien-thi}"
-                       class="btn btn-secondary">
-                        Reset
-                    </a>
 
                 </div>
 
+            </div>
 
-            </form>
-
-        </div>
-
-        <!-- Table -->
         <div class="table-card mt-4">
 
             <table class="table-custom">
@@ -179,6 +104,7 @@
                     <th>Giới tính</th>
                     <th>Hạng KH</th>
                     <th>Ngày đăng ký</th>
+                    <th>Trang thai</th>
                     <th>Hành động</th>
                 </tr>
                 </thead>
@@ -208,9 +134,14 @@
                     <td th:text="${ok.ngayDangKy}"></td>
 
                     <td>
+                        <span th:if="${ok.trangThai}" class="badge-active">Hoạt động</span>
+                        <span th:if="${!ok.trangThai}" class="badge-locked">Ngừng hoạt động</span>
+                    </td>
 
+
+                    <td>
                         <a class="btn-action-lock"
-                           th:href="@{'/khach-hang/edit/' + ${ok.maKH}}">
+                           th:href="@{/khach-hang/edit/{id}(id=${ok.maKH})}">
                             Xem
                         </a>
 
@@ -219,7 +150,6 @@
                            onclick="return confirm('Bạn có chắc xóa không?')">
 
                             <i class="bi bi-trash3"></i>
-
                         </a>
 
                     </td>
@@ -244,6 +174,148 @@
     </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<div class="modal fade" id="khachHangModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header" style="background:#c92327; color:white;">
+                <h5 class="modal-title">Thông tin khách hàng</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form th:object="${kh}" method="post">
+
+                <div class="modal-body">
+
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+                            <label>Mã khách hàng</label>
+                            <input class="form-control bg-light" th:field="*{maKH}" readonly>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label>Họ tên</label>
+                            <input class="form-control" th:field="*{hoTen}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label>Số điện thoại</label>
+                            <input class="form-control" th:field="*{sdt}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label>Email</label>
+                            <input class="form-control" th:field="*{email}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label>Địa chỉ</label>
+                            <input class="form-control" th:field="*{diaChi}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label>Ngày sinh</label>
+                            <input type="date" class="form-control" th:field="*{ngaySinh}">
+                        </div>
+
+                        <!-- GIỚI TÍNH -->
+                        <div class="col-md-6">
+                            <label>Giới tính</label><br>
+
+                            <input type="radio" th:field="*{gioiTinh}" value="true"> Nam
+                            <input type="radio" th:field="*{gioiTinh}" value="false" class="ms-3"> Nữ
+                        </div>
+
+                        <!-- TRẠNG THÁI (BOOLEAN) -->
+                        <div class="col-md-6">
+                            <label>Trạng thái</label><br>
+
+                            <input type="radio" th:field="*{trangThai}" value="true"> Hoạt động
+                            <input type="radio" th:field="*{trangThai}" value="false" class="ms-3"> Ngừng
+                        </div>
+
+                        <div class="col-md-6">
+                            <label>Điểm tích lũy</label>
+                            <input type="number" class="form-control" th:field="*{diemTichLuy}">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label>Hạng khách hàng</label>
+                            <input class="form-control" th:field="*{hangKhachHang}">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label>Ngày đăng ký</label>
+                            <input type="date" class="form-control bg-light" th:field="*{ngayDangKy}" readonly>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label>Ghi chú</label>
+                            <input class="form-control" th:field="*{ghiChu}">
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="submit"
+                            formaction="/khach-hang/add"
+                            class="btn btn-danger">
+                        Thêm
+                    </button>
+
+                    <button type="submit"
+                            formaction="/khach-hang/update"
+                            class="btn btn-warning">
+                        Sửa
+                    </button>
+
+                    <button type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal">
+                        Đóng
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+<script th:if="${showModal}">
+    document.addEventListener("DOMContentLoaded", function () {
+        new bootstrap.Modal(
+            document.getElementById('khachHangModal')
+        ).show();
+    });
+</script>
+<script>
+    function openAddKhachHang() {
+
+        const form = document.querySelector("#khachHangModal form");
+
+        form.querySelector("[name='maKH']").value = "";
+        form.querySelector("[name='hoTen']").value = "";
+        form.querySelector("[name='sdt']").value = "";
+        form.querySelector("[name='email']").value = "";
+        form.querySelector("[name='diaChi']").value = "";
+        form.querySelector("[name='ngaySinh']").value = "";
+        form.querySelector("[name='diemTichLuy']").value = "";
+        form.querySelector("[name='hangKhachHang']").value = "";
+        form.querySelector("[name='ngayDangKy']").value = "";
+        form.querySelector("[name='ghiChu']").value = "";
+
+        form.querySelectorAll("input[name='gioiTinh']").forEach(r => r.checked = false);
+        form.querySelectorAll("input[name='trangThai']").forEach(r => r.checked = false);
+
+        document.querySelector("button[formaction='/khach-hang/add']").style.display = "inline-block";
+        document.querySelector("button[formaction='/khach-hang/update']").style.display = "none";
+    }
+</script>
 
 </body>
 </html>

@@ -36,4 +36,16 @@ public class SanPhamService {
         return sanPhamRepository.existsByTenSanPham(TenSanPham);
     }
 
+    public List<SanPham> findByMadm(Integer maDanhMuc) {
+        return sanPhamRepository.getallbymaDanhMuc(maDanhMuc);
+    }
+
+    public List<SanPham> findBytenhoacma(String ten) {
+        return sanPhamRepository.timkiem(ten);
+    }
+
+    public List<SanPham> findBytt(String ten) {
+        return sanPhamRepository.getallbyTrangThai(ten);
+    }
+
 }

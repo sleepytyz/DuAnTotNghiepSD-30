@@ -26,4 +26,7 @@ public interface SanPhamHinhAnhRepository
     )
 """)
     List<SanPhamHinhAnh> findDistinctSanPhamMau();
+
+    @Query(value = "select * from SanPhamHinhAnh where MaSanPhamChiTiet = ?", nativeQuery = true)
+    List<SanPhamHinhAnh> findSanPhamHinhAnhByid(Integer id);
 }

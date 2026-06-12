@@ -47,6 +47,8 @@ public class SanPhamController {
         List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
         model.addAttribute("listsp", Listsp);
         model.addAttribute("listdmsp", listdmsp);
+        model.addAttribute("showModal", true);
+        model.addAttribute("isEdit", true);
         return "sanpham/index";
     }
 
@@ -58,6 +60,9 @@ public class SanPhamController {
         if (errors.hasErrors()) {
             model.addAttribute("listsp", sanPhamService.getAll());
             model.addAttribute("listdmsp", danhMucSanPhamService.getAll());
+            model.addAttribute("showModal", true);
+            model.addAttribute("isEdit", true);
+
             return "sanpham/index";
         }
 
@@ -85,6 +90,7 @@ public class SanPhamController {
             List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
             model.addAttribute("listsp", Listsp);
             model.addAttribute("listdmsp", listdmsp);
+            model.addAttribute("showModal", true);
             return "sanpham/index";
         }
         if (sanPhamService.existsByTenSanPham(sanpham.getTenSanPham())) {
@@ -100,6 +106,43 @@ public class SanPhamController {
     public String delete(@PathVariable("id") int id, Model model) {
         sanPhamService.suaSanPham(id);
         return "redirect:/sanpham/index";
+    }
+
+    @GetMapping("/locdmsp")
+    public String locdmsp(@RequestParam("maDanhMuc") Integer madm,
+                          Model model) {
+
+        List<SanPham> listsp = sanPhamService.findByMadm(madm);
+        List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
+
+        model.addAttribute("listsp", listsp);
+        model.addAttribute("listdmsp", listdmsp);
+        model.addAttribute("sanpham", new SanPham());
+
+        return "sanpham/index";
+    }
+
+    @GetMapping("/timkiem")
+    public String timkiem(@RequestParam("t") String hoten, Model model) {
+
+        List<SanPham> listsp = sanPhamService.findBytenhoacma(hoten);
+        List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
+
+        model.addAttribute("listsp", listsp);
+        model.addAttribute("listdmsp", listdmsp);
+        model.addAttribute("sanpham", new SanPham());
+        return "sanpham/index";
+    }
+
+    @GetMapping("/loctt")
+    public String loctt(@RequestParam("tt") String tt, Model model) {
+        List<SanPham> listsp = sanPhamService.findBytt(tt);
+        List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
+
+        model.addAttribute("listsp", listsp);
+        model.addAttribute("listdmsp", listdmsp);
+        model.addAttribute("sanpham", new SanPham());
+        return "sanpham/index";
     }
 
 

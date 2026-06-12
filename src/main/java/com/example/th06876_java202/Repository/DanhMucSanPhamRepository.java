@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface DanhMucSanPhamRepository extends JpaRepository<DanhMucSanPham, Integer> {
 
@@ -14,6 +16,7 @@ public interface DanhMucSanPhamRepository extends JpaRepository<DanhMucSanPham, 
     @Query(value = "update DanhMucSanPham set TrangThai = 0 where MaDanhMuc = ?", nativeQuery = true)
     int updateTrangThai(int maDanhMuc);
 
+    List<DanhMucSanPham> findByMaDanhMuc (int idd );
 
     boolean existsByTenDanhMuc(@NotBlank(message = "Tên danh mục không để trống") String tenDanhMuc);
 

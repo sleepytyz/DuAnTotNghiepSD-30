@@ -47,84 +47,79 @@
                           enctype="multipart/form-data"
                           th:action="@{/sanphamha/add}">
 
-                        <div class="row g-3">
+                        <div class="row g-3 align-items-end">
 
                             <div class="col-md-5">
+                                <label class="form-label fw-bold">Sản phẩm chi tiết</label>
 
-                                <label class="form-label fw-bold">
-                                    Sản phẩm chi tiết
-                                </label>
-
-                                <select name="maSPCT"
-                                        class="form-select">
-
-                                    <option value="">
-                                        -- Chọn sản phẩm --
-                                    </option>
-
+                                <select name="maSPCT" class="form-select" required>
+                                    <option value="">-- Chọn sản phẩm --</option>
                                     <option th:each="spct : ${listSPCT}"
                                             th:value="${spct.maSanPhamChiTiet}"
                                             th:text="${spct.maSanPham.tenSanPham + ' - ' + spct.mauSac + ' - Size ' + spct.size}">
                                     </option>
-
                                 </select>
-
                             </div>
 
-                            <div class="col-md-5">
-
-                                <label class="form-label fw-bold">
-                                    Chọn hình ảnh
-                                </label>
-
-                                <input type="file"
-                                       name="file"
-                                       class="form-control">
-
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Hình ảnh</label>
+                                <input type="file" name="file" class="form-control" required>
                             </div>
 
-                            <div class="col-md-2">
+                            <div class="col-md-3 d-flex flex-column justify-content-end">
+                                <label class="form-label fw-bold">Loại ảnh</label>
 
-                                <label class="form-label fw-bold">
-                                    Loại ảnh
-                                </label>
-
-                                <div class="form-check mt-2">
-
-                                    <input class="form-check-input"
-                                           type="checkbox"
-                                           name="laAnhChinh"
-                                           value="true"
-                                           id="anhchinh">
-
-                                    <label class="form-check-label"
-                                           for="anhchinh">
-                                        Ảnh chính
-                                    </label>
-
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="laAnhChinh" value="true" id="anhchinh">
+                                    <label class="form-check-label" for="anhchinh">Ảnh chính</label>
                                 </div>
 
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-upload"></i> Upload
+                                </button>
                             </div>
 
                         </div>
-
-                        <hr>
-
-                        <button type="submit"
-                                class="btn btn-success">
-
-                            <i class="bi bi-upload"></i>
-                            Upload ảnh
-
-                        </button>
-
                     </form>
 
+                    <hr class="my-3">
+
+                    <div class="row g-3 align-items-end">
+
+                        <div class="col-md-10">
+                            <label class="form-label fw-bold">Lọc sản phẩm</label>
+
+                            <select class="form-control"
+                                    onchange="window.location.href='/sanphamha/locma?ma=' + this.value">
+
+                                <option value="">-- Tất cả --</option>
+
+                                <option th:each="c : ${listSPCTtt}"
+                                        th:value="${c.maSanPhamChiTiet}"
+                                        th:text="${c.maSanPhamChiTiet + ' - ' + c.maSanPham.tenSanPham + ' - ' + c.size + ' - ' + c.mauSac}">
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <div class="col-md-2">
+
+                            <label class="form-label fw-bold">Reset</label>
+
+                            <a href="/sanphamha/index"
+                               class="btn btn-outline-secondary w-100">
+
+                                <i class="bi bi-arrow-clockwise"></i> Reset
+
+                            </a>
+
+                        </div>
+
+                    </div>
+                </div>
                 </div>
 
-            </div>
-
-            <!-- TABLE -->
             <div class="table-card">
 
                 <div class="table-header">

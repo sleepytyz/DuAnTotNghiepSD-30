@@ -54,4 +54,12 @@ public class AccountServiceImpl {
             repo.delete(account);
         }
     }
+
+    public Account dangnhap(String tenDangNhap, String matkhau) {
+        return repo.findTenDangNhap(tenDangNhap,matkhau);
+    }
+
+    public Account findByTenDangNhap(String tendn) {
+        return repo.findByTenDangNhap(tendn);
+    }
 }
