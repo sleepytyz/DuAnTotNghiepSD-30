@@ -79,9 +79,38 @@
       <a href="#"><i class="bi bi-arrow-counterclockwise"></i> Trả hàng</a>
 
       <div class="menu-heading">Khuyến Mãi</div>
-      <a href="#"><i class="bi bi-percent"></i> Giảm giá</a>
 
-      <a href="/dot-giam-gia/hien-thi" th:classappend="${activeMenu == 'dotgiamgia'} ? ' active'"><i class="bi bi-tags"></i> Đợt giảm giá</a>
+      <a href="#">
+        <i class="bi bi-percent"></i>
+        Giảm giá
+      </a>
+
+      <a href="#"
+         class="menu-parent"
+         onclick="toggleSubMenu(event)">
+
+        <div>
+          <i class="bi bi-tags me-2"></i>
+          Đợt giảm giá
+        </div>
+
+        <i class="bi bi-chevron-down arrow"></i>
+
+      </a>
+
+      <div class="submenu">
+
+        <a href="/dot-giam-gia/hien-thi">
+          <i class="bi bi-card-list"></i>
+          Danh sách đợt giảm giá
+        </a>
+
+        <a href="/chi-tiet-dot-giam-gia/hien-thi">
+          <i class="bi bi-list-check"></i>
+          Chi tiết đợt giảm giá
+        </a>
+
+      </div>
 
       <div class="menu-heading">Báo Cáo</div>
       <a href="#"><i class="bi bi-calendar2-check"></i> Giao ca & chấm công</a>

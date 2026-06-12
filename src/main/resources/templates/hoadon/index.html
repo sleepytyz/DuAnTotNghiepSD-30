@@ -8,9 +8,171 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
-
 <body>
+<!-- MODAL CHI TIET HOA DON -->
+<div class="modal fade"
+     id="hoaDonModal"
+     tabindex="-1">
+
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header bg-danger text-white">
+
+                <h5 class="modal-title">
+                    Chi Tiết Hóa Đơn
+                </h5>
+
+                <button type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <!-- TIMELINE -->
+                <div class="invoice-stepper mb-4">
+
+                    <div class="timeline-step" id="step1">
+                        <div class="icon">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        <span>Chờ xác nhận</span>
+                    </div>
+
+                    <div class="timeline-step" id="step2">
+                        <div class="icon">
+                            <i class="fa-solid fa-check"></i>
+                        </div>
+                        <span>Đã xác nhận</span>
+                    </div>
+
+                    <div class="timeline-step" id="step3">
+                        <div class="icon">
+                            <i class="fa-solid fa-box"></i>
+                        </div>
+                        <span>Chờ giao</span>
+                    </div>
+
+                    <div class="timeline-step" id="step4">
+                        <div class="icon">
+                            <i class="fa-solid fa-truck"></i>
+                        </div>
+                        <span>Đang giao</span>
+                    </div>
+
+                    <div class="timeline-step" id="step5">
+                        <div class="icon">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <span>Hoàn thành</span>
+                    </div>
+
+                    <div class="timeline-step" id="step6">
+                        <div class="icon">
+                            <i class="fa-solid fa-rotate-left"></i>
+                        </div>
+                        <span>Đã trả hàng</span>
+                    </div>
+
+                </div>
+
+                <div class="text-center mb-4">
+                    <span id="statusBadge"
+                          class="badge fs-6 px-3 py-2">
+                    </span>
+                </div>
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label>Mã hóa đơn</label>
+                        <input id="modalMaHD"
+                               class="form-control"
+                               readonly>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label>Mã nhân viên</label>
+                        <input id="modalMaNV"
+                               class="form-control"
+                               readonly>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label>Mã khách hàng</label>
+                        <input id="modalMaKH"
+                               class="form-control"
+                               readonly>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label>Tổng tiền</label>
+                        <input id="modalTongTien"
+                               class="form-control"
+                               readonly>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label>Thanh toán</label>
+                        <input id="modalThanhToan"
+                               class="form-control"
+                               readonly>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label>Trạng thái</label>
+
+                        <select id="modalTrangThai"
+                                class="form-select"
+                                onchange="updateTimeline()">
+
+                            <option value="Chờ xác nhận">Chờ xác nhận</option>
+                            <option value="Đã xác nhận">Đã xác nhận</option>
+                            <option value="Chờ giao hàng">Chờ giao hàng</option>
+                            <option value="Đang giao hàng">Đang giao hàng</option>
+                            <option value="Hoàn thành">Hoàn thành</option>
+                            <option value="Đã trả hàng">Đã trả hàng</option>
+                            <option value="Đã huỷ">Đã huỷ</option>
+
+                        </select>
+                    </div>
+
+                    <div class="col-12">
+                        <label>Ghi chú</label>
+                        <textarea id="modalGhiChu"
+                                  class="form-control"
+                                  rows="3"
+                                  readonly></textarea>
+                    </div>
+
+                </div>
+
+            </div>
+            <div class="modal-footer">
+
+                <button type="button"
+                        class="btn btn-success"
+                        onclick="capNhatTrangThai()">
+
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    Cập nhật
+
+                </button>
+
+            </div>
+        </div>
+
+    </div>
+
+</div>
 
 <div class="wrapper">
 
@@ -32,7 +194,7 @@
                 </h5>
             </div>
 
-            <form class="card-body filter-form" method="get" th:action="@{/hoa-don}" >
+            <form class="card-body filter-form" method="get" th:action="@{/hoa-don}">
 
                 <div class="filter-row">
 
@@ -95,13 +257,53 @@
             <div class="table-header">
 
                 <div class="status-tabs">
-                    <button class="tab-item active">Tất cả</button>
-                    <button class="tab-item">Chờ xác nhận</button>
-                    <button class="tab-item">Đã xác nhận</button>
-                    <button class="tab-item">Chờ giao</button>
-                    <button class="tab-item">Đang giao</button>
-                    <button class="tab-item">Hoàn thành</button>
-                    <button class="tab-item">Đã huỷ</button>
+                    <a th:href="@{/hoa-don}"
+                       class="tab-item"
+                       th:classappend="${trangThai == null} ? ' active' : ''">
+                        Tất cả
+                    </a>
+
+                    <a th:href="@{/hoa-don(trangThai='Chờ xác nhận')}"
+                       class="tab-item"
+                       th:classappend="${trangThai == 'Chờ xác nhận'} ? ' active' : ''">
+                        Chờ xác nhận
+                    </a>
+
+                    <a th:href="@{/hoa-don(trangThai='Đã xác nhận')}"
+                       class="tab-item"
+                       th:classappend="${trangThai == 'Đã xác nhận'} ? ' active' : ''">
+                        Đã xác nhận
+                    </a>
+
+                    <a th:href="@{/hoa-don(trangThai='Chờ giao hàng')}"
+                       class="tab-item"
+                       th:classappend="${trangThai == 'Chờ giao hàng'} ? ' active' : ''">
+                        Chờ giao
+                    </a>
+
+                    <a th:href="@{/hoa-don(trangThai='Đang giao hàng')}"
+                       class="tab-item"
+                       th:classappend="${trangThai == 'Đang giao hàng'} ? ' active' : ''">
+                        Đang giao
+                    </a>
+
+                    <a th:href="@{/hoa-don(trangThai='Hoàn thành')}"
+                       class="tab-item"
+                       th:classappend="${trangThai == 'Hoàn thành'} ? ' active' : ''">
+                        Hoàn thành
+                    </a>
+
+                    <a th:href="@{/hoa-don(trangThai='Đã huỷ')}"
+                       class="tab-item"
+                       th:classappend="${trangThai == 'Đã huỷ'} ? ' active' : ''">
+                        Đã huỷ
+                    </a>
+
+                    <a th:href="@{/hoa-don(trangThai='Đã trả hàng')}"
+                       class="tab-item"
+                       th:classappend="${trangThai == 'Đã trả hàng'} ? ' active' : ''">
+                        Đã trả hàng
+                    </a>
                 </div>
 
                 <button type="button" class="btn-export">
@@ -153,17 +355,26 @@
 
                         <td class="action-cell">
 
-                            <a class="btn-detail"
-                               th:href="@{/hoa-don/detail/{id}(id=${hd.maHoaDon})}"
-                               title="Chi tiết">
-                                <i class="bi bi-eye-fill"></i>
-                            </a>
+                            <button type="button"
+                                    class="btn-detail"
 
-                            <a class="btn-delete"
-                               th:href="@{/hoa-don/delete/{id}(id=${hd.maHoaDon})}"
-                               title="Xóa">
-                                <i class="bi bi-trash-fill"></i>
-                            </a>
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#hoaDonModal"
+
+                                    th:data-mahd="${hd.maHoaDon}"
+                                    th:data-manv="${hd.maNhanVien}"
+                                    th:data-makh="${hd.maKhachHang}"
+                                    th:data-tongtien="${hd.tongTien}"
+                                    th:data-thanhtoan="${hd.phuongThucThanhToan}"
+                                    th:data-trangthai="${hd.trangThai}"
+                                    th:data-ghichu="${hd.ghiChu}"
+
+                                    onclick="showHoaDon(this)">
+
+
+                                <i class="bi bi-eye-fill"></i>
+
+                            </button>
 
                         </td>
 
@@ -179,6 +390,109 @@
 
     </div>
 </div>
+<script>
+    function updateTimeline(){
 
+        let trangThai =
+            document.getElementById("modalTrangThai").value;
+
+        for(let i = 1; i <= 6; i++){
+            document.getElementById("step"+i)
+                .classList.remove("active");
+        }
+
+        if(trangThai === "Chờ xác nhận"){
+            document.getElementById("step1").classList.add("active");
+        }
+        else if(trangThai === "Đã xác nhận"){
+            document.getElementById("step1").classList.add("active");
+            document.getElementById("step2").classList.add("active");
+        }
+        else if(trangThai === "Chờ giao hàng"){
+            document.getElementById("step1").classList.add("active");
+            document.getElementById("step2").classList.add("active");
+            document.getElementById("step3").classList.add("active");
+        }
+        else if(trangThai === "Đang giao hàng"){
+            document.getElementById("step1").classList.add("active");
+            document.getElementById("step2").classList.add("active");
+            document.getElementById("step3").classList.add("active");
+            document.getElementById("step4").classList.add("active");
+        }
+        else if(trangThai === "Hoàn thành"){
+            document.getElementById("step1").classList.add("active");
+            document.getElementById("step2").classList.add("active");
+            document.getElementById("step3").classList.add("active");
+            document.getElementById("step4").classList.add("active");
+            document.getElementById("step5").classList.add("active");
+        }
+        else if(trangThai === "Đã trả hàng"){
+            document.getElementById("step1").classList.add("active");
+            document.getElementById("step2").classList.add("active");
+            document.getElementById("step3").classList.add("active");
+            document.getElementById("step4").classList.add("active");
+            document.getElementById("step5").classList.add("active");
+            document.getElementById("step6").classList.add("active");
+        }
+    }
+    function showHoaDon(button){
+
+        let trangThai = button.getAttribute("data-trangthai");
+
+        document.getElementById("modalMaHD").value =
+            button.getAttribute("data-mahd");
+
+        document.getElementById("modalMaNV").value =
+            button.getAttribute("data-manv");
+
+        document.getElementById("modalMaKH").value =
+            button.getAttribute("data-makh");
+
+        document.getElementById("modalTongTien").value =
+            button.getAttribute("data-tongtien");
+
+        document.getElementById("modalThanhToan").value =
+            button.getAttribute("data-thanhtoan");
+
+        document.getElementById("modalTrangThai").value =
+            trangThai;
+
+        document.getElementById("modalGhiChu").value =
+            button.getAttribute("data-ghichu");
+
+        updateTimeline();
+    }
+
+    function capNhatTrangThai(){
+
+        let maHD =
+            document.getElementById("modalMaHD").value;
+
+        let trangThai =
+            document.getElementById("modalTrangThai").value;
+
+        fetch("/hoa-don/cap-nhat-trang-thai",{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/x-www-form-urlencoded"
+            },
+            body:
+                "maHoaDon=" + maHD +
+                "&trangThai=" + encodeURIComponent(trangThai)
+        })
+            .then(res => res.text())
+            .then(data => {
+
+                alert("Cập nhật thành công");
+
+                location.reload();
+
+            })
+            .catch(err => {
+                console.log(err);
+            });
+    }
+
+</script>
 </body>
 </html>

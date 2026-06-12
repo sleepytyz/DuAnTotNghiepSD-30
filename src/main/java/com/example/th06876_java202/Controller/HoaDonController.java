@@ -21,11 +21,25 @@ public class HoaDonController {
     }
 
     @GetMapping
-    public String index(@RequestParam(name = "keyword", required = false) String keyword, Model model) {
+    public String index(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String trangThai,
+            Model model) {
+
         model.addAttribute("activeMenu", "hoadon");
-        model.addAttribute("list", service.searchByMa(keyword));
+
+        if (trangThai != null && !trangThai.isEmpty()) {
+            model.addAttribute("list",
+                    service.findByTrangThai(trangThai));
+        } else {
+            model.addAttribute("list",
+                    service.searchByMa(keyword));
+        }
+
         model.addAttribute("hoaDon", new HoaDon());
-        model.addAttribute("keyword", keyword); // Giữ lại từ khóa trên ô input sau khi tìm
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("trangThai", trangThai);
+
         return "hoadon/index";
     }
 
@@ -60,4 +74,20 @@ public class HoaDonController {
         model.addAttribute("list", service.getAll());
         return "hoadonct/detail";
     }
+
+    @PostMapping("/cap-nhat-trang-thai")
+    @ResponseBody
+    public String capNhatTrangThai(
+            @RequestParam Integer maHoaDon,
+            @RequestParam String trangThai){
+
+        HoaDon hd = service.findById(maHoaDon);
+
+        hd.setTrangThai(trangThai);
+
+        service.save(hd);
+
+        return "OK";
+    }
+
 }

@@ -120,16 +120,51 @@
         <!-- SEARCH CARD -->
         <div class="filter-card mt-3">
 
-            <div class="row g-3">
-                <div class="col-md-8">
-                    <input type="text" class="form-control" placeholder="Tìm kiếm đợt giảm giá...">
-                </div>
+            <div class="row g-3 align-items-end">
 
                 <div class="col-md-4">
+                    <label class="filter-label">Tìm kiếm</label>
+                    <input type="text"
+                           class="form-control"
+                           placeholder="Tìm kiếm tên giảm giá, mã...">
+                </div>
+
+                <div class="col-md-2">
+                    <label class="filter-label">Trạng thái</label>
+                    <select class="form-select">
+                        <option>Tất cả</option>
+                        <option>Hoạt động</option>
+                        <option>Ngừng hoạt động</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="filter-label">Loại giảm</label>
+                    <select class="form-select">
+                        <option>Tất cả</option>
+                        <option>Phần trăm</option>
+                        <option>Tiền mặt</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="filter-label">Mã nhân viên</label>
+                    <select class="form-select" name="maNhanVien">
+                        <option value="">Tất cả</option>
+
+                        <option th:each="nv : ${listNhanVien}"
+                                th:value="${nv.maNhanVien}"
+                                th:text="${nv.maNhanVien}">
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
                     <button class="btn btn-primary w-100">
                         <i class="bi bi-funnel-fill"></i> Lọc
                     </button>
                 </div>
+
             </div>
 
         </div>

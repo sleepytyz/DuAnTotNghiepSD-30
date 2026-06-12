@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -36,9 +37,11 @@ public class DotGiamGia {
     @Column(name = "GiamToiDa")
     private BigDecimal giamToiDa;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Column(name = "NgayBatDau")
     private Date ngayBatDau;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Column(name = "NgayKetThuc")
     private Date ngayKetThuc;
 
@@ -48,6 +51,7 @@ public class DotGiamGia {
     @Column(name = "MaNhanVienTao")
     private Integer maNhanVienTao;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Column(name = "NgayTao")
     private Date ngayTao;
 }
