@@ -13,4 +13,5 @@ public interface HoaDonRepo extends JpaRepository<HoaDon, Integer> {
     // Tìm kiếm gần đúng bằng cách cast mã hóa đơn sang chuỗi kí tự
     @Query("SELECT h FROM HoaDon h WHERE CAST(h.maHoaDon AS string) LIKE %:keyword%")
     List<HoaDon> searchByMa(@Param("keyword") String keyword);
+    List<HoaDon> findByTrangThai(String trangThai);
 }
