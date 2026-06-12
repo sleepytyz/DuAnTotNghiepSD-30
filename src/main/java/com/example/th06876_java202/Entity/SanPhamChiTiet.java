@@ -25,7 +25,7 @@ public class SanPhamChiTiet {
 
     @ManyToOne
     @JoinColumn (name = "MaSanPham")
-    private SanPham maSanPham;
+    private SanPham sanPham;
 
     @NotBlank( message = "Không được bỏ trống kích thước")
     @Column(name = "Size")

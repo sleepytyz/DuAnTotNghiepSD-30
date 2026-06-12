@@ -71,7 +71,11 @@
         <i class="bi bi-person-lines-fill"></i>
         Khách hàng
       </a>
-      <a href="#"><i class="bi bi-box-arrow-in-down"></i> Nhập hàng</a>
+      <a href="/nhap-hang/index"
+         th:classappend="${activeMenu == 'nhaphang'} ? ' active'">
+        <i class="bi bi-box-arrow-in-down"></i>
+        Nhập hàng
+      </a>
       <a href="#"><i class="bi bi-arrow-counterclockwise"></i> Trả hàng</a>
 
       <div class="menu-heading">Khuyến Mãi</div>

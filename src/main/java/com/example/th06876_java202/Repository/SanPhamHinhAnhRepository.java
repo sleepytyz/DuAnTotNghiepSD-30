@@ -21,7 +21,7 @@ public interface SanPhamHinhAnhRepository
     WHERE a.MaHinhAnh IN (
         SELECT MIN(h.MaHinhAnh)
         FROM SanPhamHinhAnh h
-        GROUP BY h.sanPhamChiTiet.maSanPham,
+        GROUP BY h.sanPhamChiTiet.sanPham,
                  h.sanPhamChiTiet.mauSac
     )
 """)

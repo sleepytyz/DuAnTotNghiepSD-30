@@ -75,7 +75,7 @@ public class SanPhamHinhAnhController {
 
         List<SanPhamChiTiet> dsSPCT =
                 sanPhamChiTietService.getBySanPhamVaMau(
-                        spct.getMaSanPham().getMaSanPham(),
+                        spct.getSanPham().getMaSanPham(),
                         spct.getMauSac());
 
         for(SanPhamChiTiet item : dsSPCT){

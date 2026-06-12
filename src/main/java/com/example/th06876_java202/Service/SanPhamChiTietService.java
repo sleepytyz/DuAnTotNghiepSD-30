@@ -45,7 +45,7 @@ public class SanPhamChiTietService {
             Integer maSP,
             String mauSac){
 
-        return sanPhamChiTietRepository.findByMaSanPham_MaSanPhamAndMauSac(
+        return sanPhamChiTietRepository.findBySanPham_MaSanPhamAndMauSac(
                 maSP,
                 mauSac);
     }
@@ -63,7 +63,7 @@ public class SanPhamChiTietService {
         for (SanPhamChiTiet spct : all) {
 
             String key =
-                    spct.getMaSanPham().getMaSanPham()
+                    spct.getSanPham().getMaSanPham()
                             + "_"
                             + spct.getMauSac();
 

@@ -15,7 +15,6 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Getter
 @Setter
-
 public class KhachHang {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
