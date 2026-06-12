@@ -3,137 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <title>Chi Tiết Hóa Đơn</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" th:href="@{/css/hoadon.css}">
-    <style>
-        /* CSS bổ sung nhanh để tạo giao diện theo mẫu Figma */
-        .detail-container { display: flex; flex-direction: column; gap: 20px; padding: 20px; }
-        .back-link { text-decoration: none; color: #64748b; font-weight: bold; margin-bottom: 10px; display: inline-block; }
-        .status-timeline { display: flex; justify-content: space-between; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .timeline-step { text-align: center; flex: 1; position: relative; }
-        .timeline-step .icon { width: 30px; height: 30px; background: #ef4444; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; }
-        .timeline-step.disabled .icon { background: #e2e8f0; color: #94a3b8; }
-        .info-grid { display: grid; grid-template-columns: 2fr 2fr 1.5fr; gap: 20px; }
-        .info-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .card-title-detail { font-size: 14px; font-weight: bold; color: #ef4444; margin-bottom: 15px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; }
-        .info-row { display: flex; margin-bottom: 10px; font-size: 14px; }
-        .info-label { width: 120px; color: #64748b; }
-        .info-value { font-weight: 500; color: #1e293b; }
-        .total-card { border-top: 4px solid #ef4444; }
-    </style>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
+
 <body>
 
-<div class="layout">
-    <aside class="sidebar">
-        <div class="logo">
-            <img th:src="@{/images/img.png}" alt="Logo">
-        </div>
+<div class="wrapper">
 
-        <div class="menu-wrapper">
-            <div class="menu-group">
-                <span class="group-title">CHÍNH</span>
-                <ul class="menu">
-                    <li><i class="fa-solid fa-house"></i> Trang Chủ</li>
-                    <li><i class="fa-solid fa-cart-shopping"></i> Bán Hàng</li>
-                    <li><i class="fa-solid fa-box"></i> Sản phẩm</li>
-                    <li class="active"><i class="fa-solid fa-file-invoice"></i> Hóa đơn</li>
-                </ul>
-            </div>
+    <!-- SIDEBAR -->
+    <div th:replace="fragments/sidebar :: sidebar"></div>
 
-            <div class="menu-group">
-                <span class="group-title">QUẢN LÝ</span>
-                <ul class="menu">
-                    <li><i class="fa-solid fa-user-tie"></i> Nhân viên</li>
-                    <li><i class="fa-solid fa-users"></i> Khách hàng</li>
-                    <li><i class="fa-solid fa-download"></i> Nhập hàng</li>
-                    <li><i class="fa-solid fa-arrow-rotate-left"></i> Trả hàng</li>
-                </ul>
-            </div>
+    <!-- CONTENT -->
+    <div class="content-body">
 
-            <div class="menu-group">
-                <span class="group-title">KHUYẾN MÃI</span>
-                <ul class="menu">
-                    <li><i class="fa-solid fa-percent"></i> Giảm giá</li>
-                    <li><i class="fa-solid fa-calendar-days"></i> Đợt giảm giá</li>
-                </ul>
-            </div>
+        <div class="top-navbar">
+            <div class="breadcrumb-box">
 
-            <div class="menu-group">
-                <span class="group-title">BÁO CÁO</span>
-                <ul class="menu">
-                    <li><i class="fa-solid fa-clock"></i> Giao ca & chấm công</li>
-                    <li><i class="fa-solid fa-chart-line"></i> Thống kê</li>
-                </ul>
+                <span  class="breadcrumb-link">
+                    Home
+                </span>
+
+                <span class="separator">/</span>
+
+                <a th:href="@{/hoa-don}" style="text-decoration:none; color:inherit;">
+                    Hóa đơn
+                </a>
+
+                <span class="separator">/</span>
+
+                <span class="active-path">
+            Chi tiết hóa đơn
+        </span>
+
             </div>
         </div>
-
-        <div class="sidebar-footer">
-            <button class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
-        </div>
-    </aside>
-
-    <main class="content-area">
-        <header class="main-header">
-            <div class="breadcrumb">
-                <span>Home</span> / <span>Hóa đơn</span> / <span class="active">Chi tiết hóa đơn</span>
-            </div>
-        </header>
 
         <div class="detail-container">
-            <a th:href="@{/hoa-don}" class="back-link"><i class="fa-solid fa-chevron-left"></i> Chi tiết hóa đơn</a>
 
+            <div class="page-action">
+
+                <a th:href="@{/hoa-don}" class="btn-back">
+
+                    <i class="bi bi-arrow-left-circle"></i>
+
+                    <span>Danh sách hóa đơn</span>
+
+                </a>
+
+            </div>
+
+            <!-- TRẠNG THÁI -->
             <section class="status-timeline">
+
                 <div class="timeline-step">
-                    <div class="icon"><i class="fa-solid fa-clock"></i></div>
+                    <div class="icon">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
                     <span class="info-value">Chờ xác nhận</span>
                 </div>
+
                 <div class="timeline-step">
-                    <div class="icon"><i class="fa-solid fa-check"></i></div>
+                    <div class="icon">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
                     <span class="info-value">Đã xác nhận</span>
                 </div>
+
                 <div class="timeline-step">
-                    <div class="icon"><i class="fa-solid fa-store"></i></div>
+                    <div class="icon">
+                        <i class="fa-solid fa-store"></i>
+                    </div>
                     <span class="info-value">Chờ giao hàng</span>
                 </div>
+
                 <div class="timeline-step disabled">
-                    <div class="icon"><i class="fa-solid fa-truck"></i></div>
+                    <div class="icon">
+                        <i class="fa-solid fa-truck"></i>
+                    </div>
                     <span>Đang giao hàng</span>
                 </div>
+
                 <div class="timeline-step disabled">
-                    <div class="icon"><i class="fa-solid fa-circle-check"></i></div>
+                    <div class="icon">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
                     <span>Đã hoàn thành</span>
                 </div>
+
             </section>
 
+            <!-- THÔNG TIN -->
             <div class="info-grid">
+
                 <div class="info-card">
-                    <div class="card-title-detail"><i class="fa-solid fa-user"></i> THÔNG TIN KHÁCH HÀNG</div>
-                    <div class="info-row"><div class="info-label">Mã khách hàng:</div><div class="info-value" th:text="${hoaDon.maKhachHang}">KH01</div></div>
-                    <div class="info-row"><div class="info-label">Số điện thoại:</div><div class="info-value">0384825611</div></div>
+                    <div class="card-title-detail">
+                        <i class="fa-solid fa-user"></i>
+                        THÔNG TIN KHÁCH HÀNG
+                    </div>
+
+                    <div class="info-row">
+                        <div class="info-label">Mã khách hàng:</div>
+                        <div class="info-value"
+                             th:text="${hoaDon.maKhachHang}">
+                            KH01
+                        </div>
+                    </div>
+
+                    <div class="info-row">
+                        <div class="info-label">Số điện thoại:</div>
+                        <div class="info-value">
+                            0384825611
+                        </div>
+                    </div>
                 </div>
 
                 <div class="info-card">
-                    <div class="card-title-detail"><i class="fa-solid fa-location-dot"></i> THÔNG TIN GIAO HÀNG</div>
-                    <div class="info-row"><div class="info-label">Phương thức:</div><div class="info-value" th:text="${hoaDon.phuongThucThanhToan}">Trực tuyến</div></div>
-                    <div class="info-row"><div class="info-label">Ghi chú:</div><div class="info-value" th:text="${hoaDon.ghiChu != null ? hoaDon.ghiChu : '----'}"></div></div>
+                    <div class="card-title-detail">
+                        <i class="fa-solid fa-location-dot"></i>
+                        THÔNG TIN GIAO HÀNG
+                    </div>
+
+                    <div class="info-row">
+                        <div class="info-label">Phương thức:</div>
+                        <div class="info-value"
+                             th:text="${hoaDon.phuongThucThanhToan}">
+                            Trực tuyến
+                        </div>
+                    </div>
+
+                    <div class="info-row">
+                        <div class="info-label">Ghi chú:</div>
+                        <div class="info-value"
+                             th:text="${hoaDon.ghiChu != null ? hoaDon.ghiChu : '----'}">
+                        </div>
+                    </div>
                 </div>
 
                 <div class="info-card total-card">
-                    <div class="card-title-detail"><i class="fa-solid fa-wallet"></i> TỔNG KẾT THANH TOÁN</div>
-                    <div class="info-row"><div class="info-label">Tiền khách đưa:</div><div class="info-value" th:text="${#numbers.formatDecimal(hoaDon.tienKhachDua, 0, 'COMMA', 0, 'POINT')} + ' VND'">0</div></div>
-                    <div class="info-row"><div class="info-label">Tiền thừa:</div><div class="info-value" th:text="${#numbers.formatDecimal(hoaDon.tienThua, 0, 'COMMA', 0, 'POINT')} + ' VND'">0</div></div>
-                    <div class="info-row"><div class="info-label">Phí vận chuyển:</div><div class="info-value" th:text="${#numbers.formatDecimal(hoaDon.tienShip, 0, 'COMMA', 0, 'POINT')} + ' VND'">0</div></div>
-                    <div class="info-row" style="margin-top:15px; border-top:1px solid #f1f5f9; padding-top:10px;">
-                        <div class="info-label" style="font-weight:bold; color:#ef4444;">TỔNG TIỀN:</div>
-                        <div class="info-value" style="font-weight:bold; color:#ef4444; font-size:16px;" th:text="${#numbers.formatDecimal(hoaDon.tongTien, 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</div>
+
+                    <div class="card-title-detail">
+                        <i class="fa-solid fa-wallet"></i>
+                        TỔNG KẾT THANH TOÁN
                     </div>
+
+                    <div class="info-row">
+                        <div class="info-label">Tiền khách đưa:</div>
+                        <div class="info-value"
+                             th:text="${#numbers.formatDecimal(hoaDon.tienKhachDua,0,'COMMA',0,'POINT')} + ' VND'">
+                            0
+                        </div>
+                    </div>
+
+                    <div class="info-row">
+                        <div class="info-label">Tiền thừa:</div>
+                        <div class="info-value"
+                             th:text="${#numbers.formatDecimal(hoaDon.tienThua,0,'COMMA',0,'POINT')} + ' VND'">
+                            0
+                        </div>
+                    </div>
+
+                    <div class="info-row">
+                        <div class="info-label">Phí vận chuyển:</div>
+                        <div class="info-value"
+                             th:text="${#numbers.formatDecimal(hoaDon.tienShip,0,'COMMA',0,'POINT')} + ' VND'">
+                            0
+                        </div>
+                    </div>
+
+                    <div class="info-row"
+                         style="margin-top:15px;border-top:1px solid #f1f5f9;padding-top:10px;">
+
+                        <div class="info-label"
+                             style="font-weight:bold;color:#ef4444;">
+                            TỔNG TIỀN:
+                        </div>
+
+                        <div class="info-value"
+                             style="font-weight:bold;color:#ef4444;font-size:16px;"
+                             th:text="${#numbers.formatDecimal(hoaDon.tongTien,0,'COMMA',0,'POINT')} + ' VND'">
+                            0 VND
+                        </div>
+
+                    </div>
+
                 </div>
+
             </div>
 
+            <!-- DANH SÁCH SẢN PHẨM -->
             <section class="info-card">
-                <div class="card-title-detail" style="color:#1e293b;"><i class="fa-solid fa-box-open"></i> DANH SÁCH SẢN PHẨM (1)</div>
+
+                <div class="card-title-detail" style="color:#1e293b;">
+                    <i class="fa-solid fa-box-open"></i>
+                    DANH SÁCH SẢN PHẨM (1)
+                </div>
+
                 <table class="invoice-table">
+
                     <thead>
                     <tr>
                         <th>STT</th>
@@ -144,20 +217,44 @@
                         <th>THÀNH TIỀN</th>
                     </tr>
                     </thead>
+
                     <tbody>
+
                     <tr>
                         <td>1</td>
-                        <td class="code-text">SP02</td>
-                        <td class="info-value">Giày Thể Thao FSSHOES Air Max 1 (Mẫu Demo)</td>
+
+                        <td class="code-text">
+                            SP02
+                        </td>
+
+                        <td class="info-value">
+                            Giày Thể Thao FSSHOES Air Max 1 (Mẫu Demo)
+                        </td>
+
                         <td>1</td>
-                        <td class="money-text" th:text="${#numbers.formatDecimal(hoaDon.tongTien, 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</td>
-                        <td class="money-text" style="color:#ef4444;" th:text="${#numbers.formatDecimal(hoaDon.tongTien, 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</td>
+
+                        <td class="money-text"
+                            th:text="${#numbers.formatDecimal(hoaDon.tongTien,0,'COMMA',0,'POINT')} + ' VND'">
+                            0 VND
+                        </td>
+
+                        <td class="money-text"
+                            style="color:#ef4444;"
+                            th:text="${#numbers.formatDecimal(hoaDon.tongTien,0,'COMMA',0,'POINT')} + ' VND'">
+                            0 VND
+                        </td>
                     </tr>
+
                     </tbody>
+
                 </table>
+
             </section>
+
         </div>
-    </main>
+
+    </div>
+
 </div>
 
 </body>

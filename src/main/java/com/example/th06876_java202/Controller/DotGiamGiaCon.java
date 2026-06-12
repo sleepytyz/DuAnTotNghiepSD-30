@@ -18,16 +18,17 @@ public class DotGiamGiaCon {
 
     @GetMapping("/dot-giam-gia/hien-thi")
     public String hienThi(Model model) {
+        model.addAttribute("activeMenu", "dotgiamgia");
         model.addAttribute("dgg", new DotGiamGia());
         model.addAttribute("listDGG", dotGiamGiaService.getAll());
-        return "index";
+        return "dotgiamgia/index";
     }
 
     @GetMapping("/dot-giam-gia/detail/{id}")
     public String dichVu(@PathVariable("id") Integer id, Model model) {
         model.addAttribute("dgg", dotGiamGiaService.getById(id));
         model.addAttribute("listDGG", dotGiamGiaService.getAll());
-        return "index";
+        return "dotgiamgia/index";
     }
 
     @GetMapping("/dot-giam-gia/delete/{id}")

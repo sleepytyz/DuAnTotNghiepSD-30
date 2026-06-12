@@ -20,7 +20,7 @@ public class NhanVienController {
     public String index(Model model) {
         List<NhanVien> dsNhanVien = nhanVienRepository.findAll();
         model.addAttribute("list", dsNhanVien);
-
+        model.addAttribute("activeMenu", "nhanvien");
         if (!model.containsAttribute("nhanVien")) {
             model.addAttribute("nhanVien", new NhanVien());
         }

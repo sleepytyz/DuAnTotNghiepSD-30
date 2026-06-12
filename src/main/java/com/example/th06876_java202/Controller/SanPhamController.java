@@ -26,8 +26,10 @@ public class SanPhamController {
         this.sanPhamService = sanPhamService;
     }
 
+
     @GetMapping("/index")
     public String index(Model model) {
+        model.addAttribute("activeMenu", "sanpham");
         List<SanPham> Listsp = sanPhamService.getAll();
         List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
         model.addAttribute("listsp", Listsp);
@@ -40,6 +42,7 @@ public class SanPhamController {
     public String edit(@PathVariable("id") int id, Model model) {
         SanPham sp = sanPhamService.findById(id).orElse(null);
         model.addAttribute("sanpham", sp);
+
         List<SanPham> Listsp = sanPhamService.getAll();
         List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
         model.addAttribute("listsp", Listsp);
@@ -48,20 +51,30 @@ public class SanPhamController {
     }
 
     @PostMapping("/update")
-    public String update(@ModelAttribute("sanpham")@Valid SanPham sanpham, Errors errors, Model model, RedirectAttributes redirectAttributes) {
-        if(errors.hasErrors()) {
-            List<SanPham> Listsp = sanPhamService.getAll();
-            List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
-            model.addAttribute("listsp", Listsp);
-            model.addAttribute("listdmsp", listdmsp);
+    public String update(@ModelAttribute("sanpham") @Valid SanPham sanpham,
+                         Errors errors,
+                         Model model) {
+
+        if (errors.hasErrors()) {
+            model.addAttribute("listsp", sanPhamService.getAll());
+            model.addAttribute("listdmsp", danhMucSanPhamService.getAll());
             return "sanpham/index";
         }
-        if (sanPhamService.existsByTenSanPham(sanpham.getTenSanPham())) {
-            redirectAttributes.addFlashAttribute("mess", "Tên sản phẩm đã tồn tại");
-            return "redirect:/sanpham/index";
-        }
+
+        SanPham spOld = sanPhamService.findById(sanpham.getMaSanPham()).orElseThrow();
+
+        sanpham.setNgayTao(spOld.getNgayTao());
         sanpham.setNgayCapNhat(LocalDate.now());
-        sanPhamService.save(sanpham);
+
+        spOld.setTenSanPham(sanpham.getTenSanPham());
+        spOld.setDanhMucSanPham(sanpham.getDanhMucSanPham());
+        spOld.setMoTa(sanpham.getMoTa());
+        spOld.setChatLieu(sanpham.getChatLieu());
+        spOld.setTrangThai(sanpham.getTrangThai());
+        spOld.setNgayCapNhat(LocalDate.now());
+
+        sanPhamService.save(spOld);
+
         return "redirect:/sanpham/index";
     }
 

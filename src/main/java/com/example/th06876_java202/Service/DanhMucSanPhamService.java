@@ -32,7 +32,7 @@ public class DanhMucSanPhamService {
     }
 
     public boolean ktraten( String tendanhmuc ){
-        return danhMucSanPhamRepository.ktraten(tendanhmuc);
+        return danhMucSanPhamRepository.existsByTenDanhMuc(tendanhmuc);
     }
 
 }
