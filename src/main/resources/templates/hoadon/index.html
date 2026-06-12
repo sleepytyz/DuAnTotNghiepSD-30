@@ -139,8 +139,8 @@
                             <option value="Chờ giao hàng">Chờ giao hàng</option>
                             <option value="Đang giao hàng">Đang giao hàng</option>
                             <option value="Hoàn thành">Hoàn thành</option>
-                            <option value="Đã huỷ">Đã huỷ</option>
                             <option value="Đã trả hàng">Đã trả hàng</option>
+                            <option value="Đã huỷ">Đã huỷ</option>
 
                         </select>
                     </div>
@@ -154,22 +154,20 @@
                     </div>
 
                 </div>
-                <div class="modal-footer">
-
-                    <button type="button"
-                            class="btn btn-success"
-                            onclick="capNhatTrangThai()">
-
-                        <i class="fa-solid fa-floppy-disk"></i>
-                        Cập nhật
-
-                    </button>
-
-                </div>
-
 
             </div>
+            <div class="modal-footer">
 
+                <button type="button"
+                        class="btn btn-success"
+                        onclick="capNhatTrangThai()">
+
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    Cập nhật
+
+                </button>
+
+            </div>
         </div>
 
     </div>
@@ -393,37 +391,42 @@
     </div>
 </div>
 <script>
-    function updateTimeline() {
+    function updateTimeline(){
 
         let trangThai =
             document.getElementById("modalTrangThai").value;
 
-        for (let i = 1; i <= 6; i++) {
-            document.getElementById("step" + i)
+        for(let i = 1; i <= 6; i++){
+            document.getElementById("step"+i)
                 .classList.remove("active");
         }
 
-        if (trangThai === "Chờ xác nhận") {
+        if(trangThai === "Chờ xác nhận"){
             document.getElementById("step1").classList.add("active");
-        } else if (trangThai === "Đã xác nhận") {
+        }
+        else if(trangThai === "Đã xác nhận"){
             document.getElementById("step1").classList.add("active");
             document.getElementById("step2").classList.add("active");
-        } else if (trangThai === "Chờ giao hàng") {
+        }
+        else if(trangThai === "Chờ giao hàng"){
             document.getElementById("step1").classList.add("active");
             document.getElementById("step2").classList.add("active");
             document.getElementById("step3").classList.add("active");
-        } else if (trangThai === "Đang giao hàng") {
+        }
+        else if(trangThai === "Đang giao hàng"){
             document.getElementById("step1").classList.add("active");
             document.getElementById("step2").classList.add("active");
             document.getElementById("step3").classList.add("active");
             document.getElementById("step4").classList.add("active");
-        } else if (trangThai === "Hoàn thành") {
+        }
+        else if(trangThai === "Hoàn thành"){
             document.getElementById("step1").classList.add("active");
             document.getElementById("step2").classList.add("active");
             document.getElementById("step3").classList.add("active");
             document.getElementById("step4").classList.add("active");
             document.getElementById("step5").classList.add("active");
-        } else if(trangThai == "Đã trả hàng"){
+        }
+        else if(trangThai === "Đã trả hàng"){
             document.getElementById("step1").classList.add("active");
             document.getElementById("step2").classList.add("active");
             document.getElementById("step3").classList.add("active");
@@ -432,8 +435,7 @@
             document.getElementById("step6").classList.add("active");
         }
     }
-
-    function showHoaDon(button) {
+    function showHoaDon(button){
 
         let trangThai = button.getAttribute("data-trangthai");
 
@@ -461,7 +463,7 @@
         updateTimeline();
     }
 
-    function capNhatTrangThai() {
+    function capNhatTrangThai(){
 
         let maHD =
             document.getElementById("modalMaHD").value;
@@ -469,10 +471,10 @@
         let trangThai =
             document.getElementById("modalTrangThai").value;
 
-        fetch("/hoa-don/cap-nhat-trang-thai", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
+        fetch("/hoa-don/cap-nhat-trang-thai",{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/x-www-form-urlencoded"
             },
             body:
                 "maHoaDon=" + maHD +
@@ -490,6 +492,7 @@
                 console.log(err);
             });
     }
+
 </script>
 </body>
 </html>
