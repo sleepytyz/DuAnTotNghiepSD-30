@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/nhap-hang")
 @RequiredArgsConstructor
@@ -45,5 +47,12 @@ public class NhapHangController {
         model.addAttribute("page", phieuNhapPage);
         model.addAttribute("ctNhapHang", nhapHangService.getChiTietPhieu(maPhieuNhap));
         return "nhaphang/index";
+    }
+
+    @GetMapping("/nhap-hang/filter")
+    public String filterPhieuNhap(@RequestParam String trangThai, Model model) {
+        List<PhieuNhapHangDTO> list = nhapHangService.getPhieuNhapByStatus(trangThai);
+        model.addAttribute("listPhieuNhap", list);
+        return "ten_trang_html_cua_ban"; // Trả về trang hiển thị danh sách
     }
 }

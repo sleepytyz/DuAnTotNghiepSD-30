@@ -19,8 +19,9 @@ public class Account {
     @Column(name = "MaTaiKhoan")
     private Integer maTaiKhoan;
 
-    @Column(name = "MaNhanVien")
-    private Integer maNhanVien;
+    @ManyToOne
+    @JoinColumn(name = "MaNhanVien")
+    private NhanVien maNhanVien;
 
     @Column(name = "TenDangNhap")
     private String tenDangNhap;

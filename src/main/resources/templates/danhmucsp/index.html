@@ -71,8 +71,8 @@
                                        class="form-control"
                                        th:field="*{tenDanhMuc}">
 
-                                <div class="error"
-                                     th:errors="*{tenDanhMuc}">
+                                <div class="text-danger"
+                                     th:errors="*{tenDanhMuc}" >
                                 </div>
                             </div>
 
@@ -85,7 +85,7 @@
                                        class="form-control"
                                        th:field="*{moTa}">
 
-                                <div class="error"
+                                <div class="text-danger"
                                      th:errors="*{moTa}">
                                 </div>
                             </div>
@@ -109,9 +109,9 @@
 
                         <div class="d-flex gap-2">
 
-                            <button class="btn btn-success"
+                            <button class="btn "
                                     type="submit"
-                                    formaction="/danhmucsp/add">
+                                    formaction="/danhmucsp/add" style="background:#c92327; color: white">
                                 <i class="bi bi-plus-circle"></i>
                                 Thêm
                             </button>

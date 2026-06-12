@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class HoaDonService {
@@ -25,8 +26,8 @@ public class HoaDonService {
         repo.deleteById(id);
     }
 
-    public HoaDon findById(Integer id) {
-        return repo.findById(id).orElse(null);
+    public Optional<HoaDon> findById(Integer id) {
+        return repo.findById(id);
     }
 
     public List<HoaDon> searchByMa(String keyword) {

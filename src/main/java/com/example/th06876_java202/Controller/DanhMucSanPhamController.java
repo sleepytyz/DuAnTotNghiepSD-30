@@ -47,6 +47,7 @@ public class DanhMucSanPhamController {
         }
         if (danhMucSanPhamService.ktraten(dmsp.getTenDanhMuc())){
             redirectAttributes.addFlashAttribute("mess", "Tên danh mục đã tồn tại");
+            return "redirect:/danhmucsp/index";
         }
         danhMucSanPhamService.them(dmsp);
         return "redirect:/danhmucsp/index";
@@ -59,9 +60,6 @@ public class DanhMucSanPhamController {
             model.addAttribute("listdmsp", listdmsp);
             return "danhmucsp/index";
         }
-        if (danhMucSanPhamService.ktraten(dmsp.getTenDanhMuc())){
-            redirectAttributes.addFlashAttribute("mess", "Tên danh mục đã tồn tại");
-        }
         danhMucSanPhamService.them(dmsp);
         return "redirect:/danhmucsp/index";
     }
@@ -71,4 +69,6 @@ public class DanhMucSanPhamController {
         danhMucSanPhamService.updatett(id);
         return "redirect:/danhmucsp/index";
     }
+
+
 }

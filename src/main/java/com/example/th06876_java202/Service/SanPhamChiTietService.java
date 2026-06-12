@@ -4,6 +4,7 @@ import com.example.th06876_java202.Entity.SanPhamChiTiet;
 import com.example.th06876_java202.Repository.SanPhamChiTietRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 @Service
@@ -73,6 +74,30 @@ public class SanPhamChiTietService {
         }
 
         return new ArrayList<>(map.values());
+    }
+
+    public List<SanPhamChiTiet> getByMauSac(String maSac) {
+        return sanPhamChiTietRepository.findByMauSac(maSac);
+    }
+
+    public List<SanPhamChiTiet> getBySize(String size) {
+        return sanPhamChiTietRepository.findBySize(size);
+    }
+
+    public List<SanPhamChiTiet> getByTT(String tt) {
+        return sanPhamChiTietRepository.findByTrangThai(tt);
+    }
+
+    public List<SanPhamChiTiet> getBygia(BigDecimal gm, BigDecimal gm2) {
+        return sanPhamChiTietRepository.findByGiaBanAndGiaBan(gm,gm2);
+    }
+
+    public List<String> getSize() {
+        return sanPhamChiTietRepository.findAllSize();
+    }
+
+    public List<String> getMsac() {
+        return sanPhamChiTietRepository.findAllMauSac();
     }
 
 }

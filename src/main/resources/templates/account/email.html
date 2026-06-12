@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quên mật khẩu</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+<div class="container d-flex justify-content-center align-items-center vh-100">
+
+    <div class="card shadow p-4" style="width: 420px; border-radius: 12px;">
+
+        <h4 class="text-center mb-3">Quên mật khẩu</h4>
+
+        <p class="text-danger text-center" th:text="${error}"></p>
+
+        <!-- EMAIL STEP -->
+        <form th:if="${step == 'email'}" method="post" action="/forgot/send-otp">
+            <label class="form-label">Email</label>
+            <input class="form-control mb-3" type="email" name="email" required>
+
+            <button class="btn btn-danger w-100">Gửi OTP</button>
+        </form>
+
+        <!-- OTP STEP -->
+        <form th:if="${step == 'otp'}" method="post" action="/forgot/verify-otp">
+            <label class="form-label">Nhập OTP</label>
+            <input class="form-control mb-3" type="text" name="otp" required>
+
+            <button class="btn btn-warning w-100">Xác nhận OTP</button>
+        </form>
+
+        <!-- RESET STEP -->
+        <form th:if="${step == 'reset'}" method="post" action="/forgot/reset">
+            <label class="form-label">Mật khẩu mới</label>
+            <input class="form-control mb-3" type="password" name="newPassword" required>
+
+            <button class="btn btn-success w-100">Đổi mật khẩu</button>
+        </form>
+
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -27,4 +27,23 @@ public class KhachHangService {
     public void delete(Integer maKH) {
         khachHangRepo.deleteById(maKH);
     }
+
+    public List<KhachHang> findBySdt( String sdt ) {
+        return khachHangRepo.findBySdt(sdt);
+    }
+
+    public List<KhachHang> findByHangKH( String hang) {
+        return khachHangRepo.findByHangKhachHang(hang);
+    }
+
+    public boolean existsBySoDienThoai(String soDienThoai) {
+        return khachHangRepo.existsBySdt(soDienThoai);
+    }
+
+    public void updatett(Integer makh){
+         khachHangRepo.updateTrangThai(makh);
+    }
+
+
+
 }

@@ -37,6 +37,10 @@ public class SanPhamHinhAnhService {
         return repository.findBySanPhamChiTiet_MaSanPhamChiTiet(maSPCT);
     }
 
+    public List<SanPhamHinhAnh> getByid(Integer maSPCT) {
+        return repository.findSanPhamHinhAnhByid(maSPCT);
+    }
+
     public List<SanPhamHinhAnh> getDistinctSanPhamMau(){
         return repository.findDistinctSanPhamMau();
     }

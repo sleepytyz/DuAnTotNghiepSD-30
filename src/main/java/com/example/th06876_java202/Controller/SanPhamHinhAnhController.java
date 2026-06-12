@@ -55,6 +55,7 @@ public class SanPhamHinhAnhController {
 
         model.addAttribute("listAnh", listAnh);
         model.addAttribute("listSPCT", listSPCT);
+        model.addAttribute("listSPCTtt", sanPhamChiTietService.getall());
         model.addAttribute("sanPhamHinhAnh", new SanPhamHinhAnh());
 
         return "sanphamha/index";
@@ -63,7 +64,7 @@ public class SanPhamHinhAnhController {
     @PostMapping("/add")
     public String add(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("maSPCT") Integer maSPCT,
+            @RequestParam(value = "maSPCT" , required = false) Integer maSPCT,
             @RequestParam(value = "laAnhChinh",
                     defaultValue = "false") Boolean laAnhChinh)
             throws IOException {
@@ -77,6 +78,10 @@ public class SanPhamHinhAnhController {
                 sanPhamChiTietService.getBySanPhamVaMau(
                         spct.getSanPham().getMaSanPham(),
                         spct.getMauSac());
+
+        if (maSPCT == null) {
+            return "redirect:/sanphamha/index?error=ChuaChonSanPham";
+        }
 
         for(SanPhamChiTiet item : dsSPCT){
 
@@ -103,5 +108,18 @@ public class SanPhamHinhAnhController {
         sanPhamHinhAnhService.delete(id);
 
         return "redirect:/sanphamha/index";
+    }
+
+    @GetMapping("/locma")
+    public String locma(@RequestParam("ma") Integer spct,Model model) {
+        List<SanPhamHinhAnh> listAnh = sanPhamHinhAnhService.getByid(spct);
+        List<SanPhamChiTiet> listSPCT =
+                sanPhamChiTietService.getDistinctSanPhamMau();
+
+        model.addAttribute("listAnh", listAnh);
+        model.addAttribute("listSPCT", listSPCT);
+        model.addAttribute("listSPCTtt", sanPhamChiTietService.getall());
+        model.addAttribute("sanPhamHinhAnh", new SanPhamHinhAnh());
+        return "sanphamha/index";
     }
 }

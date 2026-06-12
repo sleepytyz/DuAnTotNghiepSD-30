@@ -1,20 +1,23 @@
 package com.example.th06876_java202.Repository;
 
 import com.example.th06876_java202.Entity.DanhMucSanPham;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Repository
 public interface DanhMucSanPhamRepository extends JpaRepository<DanhMucSanPham, Integer> {
 
-    @Modifying(clearAutomatically = true)
-    @Transactional
-    @Query("UPDATE DanhMucSanPham d SET d.trangThai = false WHERE d.maDanhMuc = ?1")
+    @Modifying
+    @Query(value = "update DanhMucSanPham set TrangThai = 0 where MaDanhMuc = ?", nativeQuery = true)
     int updateTrangThai(int maDanhMuc);
 
-    boolean existsByTenDanhMuc(String tenDanhMuc);
+    List<DanhMucSanPham> findByMaDanhMuc (int idd );
+
+    boolean existsByTenDanhMuc(@NotBlank(message = "Tên danh mục không để trống") String tenDanhMuc);
 
 }

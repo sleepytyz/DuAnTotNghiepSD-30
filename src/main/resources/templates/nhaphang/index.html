@@ -84,10 +84,18 @@
 
             <!-- Status tabs -->
             <div class="status-bar">
-                <button class="tab-btn" onclick="filterStatus('Chờ xử lý', this)">Chờ xử lý</button>
-                <button class="tab-btn active" onclick="filterStatus('Đã xác nhận', this)">Đã xác nhận</button>
-                <button class="tab-btn" onclick="filterStatus('Đã nhập kho', this)">Đã nhập kho</button>
-                <button class="tab-btn" onclick="filterStatus('Đã hủy', this)">Đã hủy</button>
+                <a th:href="@{/nhap-hang/filter(trangThai='Chờ xử lý')}"
+                   th:classappend="${trangThai == 'Chờ xử lý'} ? 'active' : ''"
+                   class="tab-btn">Chờ xử lý</a>
+                <a th:href="@{/nhap-hang/filter(trangThai='Đang vận chuyển')}"
+                   th:classappend="${trangThai == 'Đang vận chuyển'} ? 'active' : ''"
+                   class="tab-btn">Đang vận chuyển</a>
+                <a th:href="@{/nhap-hang/filter(trangThai='Đã nhận')}"
+                   th:classappend="${trangThai == 'Đã nhận'} ? 'active' : ''"
+                   class="tab-btn">Đã nhận</a>
+                <a th:href="@{/nhap-hang/filter(trangThai='Đã hủy')}"
+                   th:classappend="${trangThai == 'Đã hủy'} ? 'active' : ''"
+                   class="tab-btn">Đã hủy</a>
                 <button class="export-btn">
                     <i class="bi bi-download"></i> Xuất file
                 </button>

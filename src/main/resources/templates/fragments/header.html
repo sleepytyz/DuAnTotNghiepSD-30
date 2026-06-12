@@ -1,28 +1,28 @@
-<header class="main-header" th:fragment="header(pageTitle, breadcrumb)">
+    <header class="main-header" th:fragment="header(pageTitle, breadcrumb)">
 
-    <div class="breadcrumb-box">
-        <a th:href="@{/}">Trang chủ</a>
+        <div class="breadcrumb-box">
+            <a th:href="@{/}">Trang chủ</a>
 
-        <span th:if="${breadcrumb != null}">
-            / <span th:text="${breadcrumb}"></span>
-        </span>
-    </div>
-
-    <div class="header-right">
-        <div class="notification-box">
-            <i class="bi bi-bell"></i>
-            <span class="notification-badge">3</span>
+            <span th:if="${breadcrumb != null}">
+                / <span th:text="${breadcrumb}"></span>
+            </span>
         </div>
 
-        <div class="user-profile">
-            <img th:src="@{/images/avatar-default.png}" class="avatar">
+        <div class="header-right">
+            <div class="notification-box">
+                <i class="bi bi-bell"></i>
+                <span class="notification-badge">3</span>
+            </div>
 
-            <div>
-                <div class="user-name"
-                     th:text="${session.nhanVien != null ? session.nhanVien.tenNhanVien : 'Nhân viên'}">
+            <div class="user-profile">
+                <img th:src="@{/images/avatar-default.png}" class="avatar">
+
+                <div>
+                    <div class="user-name"
+                         th:text="${session.user != null ? session.user.maNhanVien.hoTen : 'Nhân viên'}">
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-</header>
+    </header>

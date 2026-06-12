@@ -29,4 +29,9 @@ public class DotGiamGiaService {
     public void update(DotGiamGia dotGiamGia) {
         dotGiamGiaRepo.save(dotGiamGia);
     }
+
+    public List<DotGiamGia> getBymasp(Integer masp) {
+        return dotGiamGiaRepo.findBySanPham(masp);
+    }
+
 }

@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -19,11 +20,13 @@ public class HoaDon {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer maHoaDon;
 
-    @Column(name = "MaKhachHang")
-    private Integer maKhachHang;
+    @ManyToOne
+    @JoinColumn(name = "MaKhachHang")
+    private KhachHang maKhachHang;
 
-    @Column(name = "MaNhanVien")
-    private Integer maNhanVien;
+    @ManyToOne
+    @JoinColumn(name = "MaNhanVien")
+    private NhanVien maNhanVien;
 
     @Column(name = "MaGiamGia")
     private Integer maGiamGia;
@@ -48,4 +51,7 @@ public class HoaDon {
 
     @Column(name = "GhiChu")
     private String ghiChu;
+
+    @Column( name = "NgayTao")
+    private LocalDate ngayTao;
 }

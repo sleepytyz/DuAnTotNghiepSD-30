@@ -53,7 +53,8 @@ public class KhachHang {
     @Column(name = "GhiChu")
     private String ghiChu;
 
-
+    @Column(name = "TrangThai")
+    private Boolean trangThai;
 
 
 }

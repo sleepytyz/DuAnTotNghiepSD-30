@@ -778,10 +778,7 @@ body{
     margin:auto;
 }
 
-.table td:nth-child(2),
-.table th:nth-child(2){
-    padding-left:190px !important;
-}
+
 
 input[type="file"]{
     height:46px !important;
@@ -824,6 +821,8 @@ input[type="file"]{
     min-width:220px;
     word-break:break-word;
 }
+
+
 
 .sidebar-header { padding: 24px; text-align: center;  }
 .sidebar-header img { max-width: 110px; height: auto; object-fit: contain; }

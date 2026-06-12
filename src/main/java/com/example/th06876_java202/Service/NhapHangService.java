@@ -18,20 +18,6 @@ public class NhapHangService {
     private final PhieuNhapHangRepository phieuNhapHangRepository;
     private final ChiTietNhapHangRepository chiTietNhapHangRepository;
 
-    // Method cũ - lấy tất cả (có thể giữ lại)
-    public List<PhieuNhapHangDTO> getAllPhieuNhap() {
-        List<PhieuNhapHang> phieuNhapHangs = phieuNhapHangRepository.findAll();
-
-        return phieuNhapHangs.stream().map(entity ->{
-            PhieuNhapHangDTO dto  = new PhieuNhapHangDTO();
-            dto.setMaPhieuNhap(entity.getMaPhieuNhap());
-            dto.setTenNhaCungCap(entity.getNhaCungCap().getTenNhaCungCap());
-            dto.setNgayNhap(entity.getNgayNhap());
-            dto.setTrangThai(entity.getTrangThai());
-            return dto;
-        }).collect(Collectors.toList());
-    }
-
     // Thêm method mới - lấy có phân trang
     public Page<PhieuNhapHangDTO> getAllPhieuNhapPhanTrang(Pageable pageable) {
         Page<PhieuNhapHang> phieuNhapPage = phieuNhapHangRepository.findAll(pageable);
@@ -59,7 +45,7 @@ public class NhapHangService {
         dto.setTrangThai(trangThai);
 
         // Map class CSS cho trạng thái
-        switch(trangThai) {
+        switch (trangThai) {
             case "Đã nhận":
                 dto.setTrangThai("Đã nhận");
                 break;
@@ -92,5 +78,18 @@ public class NhapHangService {
         dto.setTongTien(tongTien);
 
         return dto;
+    }
+
+    public List<PhieuNhapHangDTO> getPhieuNhapByStatus(String status) {
+        List<PhieuNhapHang> phieuNhapHangs = phieuNhapHangRepository.findByTrangThai(status);
+
+        return phieuNhapHangs.stream().map(entity -> {
+            PhieuNhapHangDTO dto = new PhieuNhapHangDTO();
+            dto.setMaPhieuNhap(entity.getMaPhieuNhap());
+            dto.setTenNhaCungCap(entity.getNhaCungCap().getTenNhaCungCap());
+            dto.setNgayNhap(entity.getNgayNhap());
+            dto.setTrangThai(entity.getTrangThai());
+            return dto;
+        }).collect(Collectors.toList());
     }
 }
