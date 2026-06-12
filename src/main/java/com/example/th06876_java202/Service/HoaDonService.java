@@ -36,4 +36,7 @@ public class HoaDonService {
         }
         return repo.findAll();
     }
+    public List<HoaDon> findByTrangThai(String trangThai){
+        return repo.findByTrangThai(trangThai);
+    }
 }
