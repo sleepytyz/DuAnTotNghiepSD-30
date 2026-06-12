@@ -192,7 +192,7 @@ public class BanHangController {
 
         BigDecimal giamlonnhat = BigDecimal.ZERO;
 
-        List<DotGiamGia> listdgg = dotGiamGiaService.getBymasp(spct.getMaSanPham().getMaSanPham());
+        List<DotGiamGia> listdgg = dotGiamGiaService.getBymasp(spct.getSanPham().getMaSanPham());
 
         hdct.setThanhTien(hdct.getDonGia().multiply(java.math.BigDecimal.valueOf(hdct.getSoLuong())));
 
@@ -282,7 +282,7 @@ public class BanHangController {
             SanPhamChiTiet spct = dc.getSanPhamChiTiet();
 
             if (dc.getSoLuong() > spct.getSoLuongTon()) {
-                redirectAttributes.addFlashAttribute("mess", "Sản phẩm : " + spct.getMaSanPham().getTenSanPham() + "không đủ hàng tồn kho");
+                redirectAttributes.addFlashAttribute("mess", "Sản phẩm : " + spct.getSanPham().getTenSanPham() + "không đủ hàng tồn kho");
                 return "redirect:/banhang/index";
             }
 
