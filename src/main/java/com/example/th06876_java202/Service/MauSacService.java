@@ -1,0 +1,35 @@
+package com.example.th06876_java202.Service;
+
+import com.example.th06876_java202.Entity.MauSac;
+import com.example.th06876_java202.Repository.MauSacRepository;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class MauSacService {
+
+    private final MauSacRepository mauSacRepository;
+
+    public MauSacService(MauSacRepository mauSacRepository) {
+        this.mauSacRepository = mauSacRepository;
+    }
+
+    public List<MauSac> findAll() {
+        return mauSacRepository.findAll();
+    }
+
+    public MauSac add(MauSac mauSac) {
+        return mauSacRepository.save(mauSac);
+    }
+
+    public boolean existbyten(String ten) {
+        return mauSacRepository.existsByTenMauSac(ten);
+    }
+
+    public Optional<MauSac> findById(int id) {
+        return mauSacRepository.findById(id);
+    }
+
+}

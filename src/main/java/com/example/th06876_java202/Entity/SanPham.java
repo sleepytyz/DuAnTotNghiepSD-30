@@ -35,14 +35,13 @@ public class SanPham {
     private String tenSanPham;
 
     @NotBlank(message = "Không bỏ trống mô tả")
-    @Pattern(regexp = "^[\\p{L}\\s]*$", message = "Mô tả sản phẩm chỉ được chứa chữ cái và khoảng trắng")
+    @Pattern( regexp = "^[\\p{L}\\d\\s]*$", message = "Mô tả sản phẩm chỉ được chứa chữ cái và khoảng trắng")
     @Column(name = "MoTa")
     private String moTa;
 
-    @NotBlank(message = "Không bỏ trống chất liệu")
-    @Pattern(regexp = "^[\\p{L}\\s]*$", message = "Chất liệu chỉ được chứa chữ cái và khoảng trắng")
-    @Column(name = "ChatLieu")
-    private String chatLieu;
+    @ManyToOne
+    @JoinColumn(name = "MaChatLieu")
+    private ChatLieu chatLieu;
 
     @NotNull(message = "Vui lòng chọn trạng thái")
     @Column(name = "TrangThai")

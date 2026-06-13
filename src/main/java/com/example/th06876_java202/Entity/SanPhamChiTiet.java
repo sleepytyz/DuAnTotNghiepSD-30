@@ -27,13 +27,13 @@ public class SanPhamChiTiet {
     @JoinColumn (name = "MaSanPham")
     private SanPham sanPham;
 
-    @NotBlank( message = "Không được bỏ trống kích thước")
-    @Column(name = "Size")
-    private String size;
+    @ManyToOne
+    @JoinColumn(name = "MaKichThuoc")
+    private KichThuoc kichThuoc;
 
-    @NotBlank( message = "Không được bỏ trống màu sắc")
-    @Column(name = "MauSac")
-    private String mauSac;
+    @ManyToOne
+    @JoinColumn(name = "MaMauSac")
+    private MauSac mauSac;
 
     @NotNull(message = "Giá nhập không được để trống")
     @Column(name = "GiaNhap")
@@ -58,4 +58,21 @@ public class SanPhamChiTiet {
 
     @OneToMany(mappedBy = "sanPhamChiTiet")
     private List<SanPhamHinhAnh> danhSachAnh;
+
+    public String getTrangThaiHienThi() {
+
+        if ("Ngừng bán".equals(this.trangThai)) {
+            return "Ngừng bán";
+        }
+
+        if (this.soLuongTon == null || this.soLuongTon == 0) {
+            return "Hết hàng";
+        }
+
+        if (this.soLuongTon < 10) {
+            return "Sắp hết";
+        }
+
+        return "Còn hàng";
+    }
 }

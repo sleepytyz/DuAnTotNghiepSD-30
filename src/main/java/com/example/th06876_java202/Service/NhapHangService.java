@@ -63,7 +63,7 @@ public class NhapHangService {
         List<SanPhamDetailDTO> sanPhams = entity.getChiTietNhapHangList().stream().map(ct -> {
             SanPhamDetailDTO sp = new SanPhamDetailDTO();
             sp.setTenSanPham(ct.getSanPhamChiTiet().getSanPham().getTenSanPham());
-            sp.setSize(ct.getSanPhamChiTiet().getSize());
+            sp.setSize(ct.getSanPhamChiTiet().getKichThuoc().getTenKichThuoc());
             sp.setSoLuong(ct.getSoLuongNhap());
             sp.setDonGia(ct.getDonGiaNhap());
             sp.setThanhTien(ct.getThanhTien());

@@ -56,7 +56,7 @@
                                     <option value="">-- Chọn sản phẩm --</option>
                                     <option th:each="spct : ${listSPCT}"
                                             th:value="${spct.maSanPhamChiTiet}"
-                                            th:text="${spct.maSanPham.tenSanPham + ' - ' + spct.mauSac + ' - Size ' + spct.size}">
+                                            th:text="${spct.sanPham.tenSanPham + ' - ' + spct.mauSac.tenMauSac + ' - Size ' + spct.kichThuoc.tenKichThuoc}">
                                     </option>
                                 </select>
                             </div>
@@ -96,7 +96,7 @@
 
                                 <option th:each="c : ${listSPCTtt}"
                                         th:value="${c.maSanPhamChiTiet}"
-                                        th:text="${c.maSanPhamChiTiet + ' - ' + c.maSanPham.tenSanPham + ' - ' + c.size + ' - ' + c.mauSac}">
+                                        th:text="${c.maSanPhamChiTiet + ' - ' + c.sanPham.tenSanPham + ' - ' + c.kichThuoc.tenKichThuoc + ' - ' + c.mauSac.tenMauSac}">
                                 </option>
 
                             </select>
@@ -166,18 +166,18 @@
                             <td>
 
                                 <div class="fw-bold"
-                                     th:text="${anh.sanPhamChiTiet.maSanPham.tenSanPham}">
+                                     th:text="${anh.sanPhamChiTiet.sanPham.tenSanPham}">
                                 </div>
 
                                 <small class="text-muted">
 
                                     Màu:
-                                    <span th:text="${anh.sanPhamChiTiet.mauSac}"></span>
+                                    <span th:text="${anh.sanPhamChiTiet.mauSac.tenMauSac}"></span>
 
                                     |
 
                                     Size:
-                                    <span th:text="${anh.sanPhamChiTiet.size}"></span>
+                                    <span th:text="${anh.sanPhamChiTiet.kichThuoc.tenKichThuoc}"></span>
 
                                 </small>
 
