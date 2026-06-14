@@ -1,8 +1,11 @@
 package com.example.th06876_java202.Controller;
 
+import com.example.th06876_java202.Entity.ChatLieu;
 import com.example.th06876_java202.Entity.DanhMucSanPham;
 import com.example.th06876_java202.Entity.SanPham;
+import com.example.th06876_java202.Service.ChatLieuService;
 import com.example.th06876_java202.Service.DanhMucSanPhamService;
+import com.example.th06876_java202.Service.SanPhamChiTietService;
 import com.example.th06876_java202.Service.SanPhamService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -20,10 +23,15 @@ public class SanPhamController {
 
     private final DanhMucSanPhamService danhMucSanPhamService;
     private final SanPhamService sanPhamService;
+    private final ChatLieuService chatLieuService;
+    private final SanPhamChiTietService sanPhamChiTietService;
 
-    public SanPhamController( DanhMucSanPhamService danhMucSanPhamService, SanPhamService sanPhamService ) {
+    public SanPhamController( DanhMucSanPhamService danhMucSanPhamService, SanPhamService sanPhamService, ChatLieuService chatLieuService,
+                              SanPhamChiTietService sanPhamChiTietService) {
         this.danhMucSanPhamService = danhMucSanPhamService;
         this.sanPhamService = sanPhamService;
+        this.chatLieuService = chatLieuService;
+        this.sanPhamChiTietService = sanPhamChiTietService;
     }
 
 
@@ -32,11 +40,14 @@ public class SanPhamController {
         model.addAttribute("activeMenu", "sanpham");
         List<SanPham> Listsp = sanPhamService.getAll();
         List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
+        List<ChatLieu> listclieu = chatLieuService.findAll();
         model.addAttribute("listsp", Listsp);
         model.addAttribute("listdmsp", listdmsp);
+        model.addAttribute("listcl", listclieu);
         model.addAttribute("sanpham", new SanPham());
         return "sanpham/index";
     }
+
 
     @GetMapping("/edit/{id}")
     public String edit(@PathVariable("id") int id, Model model) {
@@ -47,6 +58,8 @@ public class SanPhamController {
         List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
         model.addAttribute("listsp", Listsp);
         model.addAttribute("listdmsp", listdmsp);
+        List<ChatLieu> listclieu = chatLieuService.findAll();
+        model.addAttribute("listcl", listclieu);
         model.addAttribute("showModal", true);
         model.addAttribute("isEdit", true);
         return "sanpham/index";
@@ -60,13 +73,18 @@ public class SanPhamController {
         if (errors.hasErrors()) {
             model.addAttribute("listsp", sanPhamService.getAll());
             model.addAttribute("listdmsp", danhMucSanPhamService.getAll());
+            List<ChatLieu> listclieu = chatLieuService.findAll();
+            model.addAttribute("listcl", listclieu);
             model.addAttribute("showModal", true);
             model.addAttribute("isEdit", true);
 
             return "sanpham/index";
         }
-
         SanPham spOld = sanPhamService.findById(sanpham.getMaSanPham()).orElseThrow();
+
+        Integer macl = sanpham.getChatLieu().getMaChatLieu();
+
+        ChatLieu cll = chatLieuService.findById(macl).orElseThrow();
 
         sanpham.setNgayTao(spOld.getNgayTao());
         sanpham.setNgayCapNhat(LocalDate.now());
@@ -74,7 +92,26 @@ public class SanPhamController {
         spOld.setTenSanPham(sanpham.getTenSanPham());
         spOld.setDanhMucSanPham(sanpham.getDanhMucSanPham());
         spOld.setMoTa(sanpham.getMoTa());
-        spOld.setChatLieu(sanpham.getChatLieu());
+        spOld.setChatLieu(cll);
+        Boolean ttc = spOld.getTrangThai();
+
+        Boolean trangThaiMoi = sanpham.getTrangThai();
+
+        if (!ttc.equals(trangThaiMoi)) {
+
+            if (!trangThaiMoi) {
+
+                sanPhamChiTietService.suaSanPham2(
+                        sanpham.getMaSanPham());
+
+            } else {
+
+                sanPhamChiTietService.suaSanPham3(
+                        sanpham.getMaSanPham());
+
+            }
+        }
+
         spOld.setTrangThai(sanpham.getTrangThai());
         spOld.setNgayCapNhat(LocalDate.now());
 
@@ -89,6 +126,8 @@ public class SanPhamController {
             List<SanPham> Listsp = sanPhamService.getAll();
             List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
             model.addAttribute("listsp", Listsp);
+            List<ChatLieu> listclieu = chatLieuService.findAll();
+            model.addAttribute("listcl", listclieu);
             model.addAttribute("listdmsp", listdmsp);
             model.addAttribute("showModal", true);
             return "sanpham/index";
@@ -105,6 +144,8 @@ public class SanPhamController {
     @GetMapping("/delete/{id}")
     public String delete(@PathVariable("id") int id, Model model) {
         sanPhamService.suaSanPham(id);
+        sanPhamChiTietService.suaSanPham2(id);
+
         return "redirect:/sanpham/index";
     }
 
@@ -114,7 +155,8 @@ public class SanPhamController {
 
         List<SanPham> listsp = sanPhamService.findByMadm(madm);
         List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
-
+        List<ChatLieu> listclieu = chatLieuService.findAll();
+        model.addAttribute("listcl", listclieu);
         model.addAttribute("listsp", listsp);
         model.addAttribute("listdmsp", listdmsp);
         model.addAttribute("sanpham", new SanPham());
@@ -127,7 +169,8 @@ public class SanPhamController {
 
         List<SanPham> listsp = sanPhamService.findBytenhoacma(hoten);
         List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
-
+        List<ChatLieu> listclieu = chatLieuService.findAll();
+        model.addAttribute("listcl", listclieu);
         model.addAttribute("listsp", listsp);
         model.addAttribute("listdmsp", listdmsp);
         model.addAttribute("sanpham", new SanPham());
@@ -138,7 +181,8 @@ public class SanPhamController {
     public String loctt(@RequestParam("tt") String tt, Model model) {
         List<SanPham> listsp = sanPhamService.findBytt(tt);
         List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
-
+        List<ChatLieu> listclieu = chatLieuService.findAll();
+        model.addAttribute("listcl", listclieu);
         model.addAttribute("listsp", listsp);
         model.addAttribute("listdmsp", listdmsp);
         model.addAttribute("sanpham", new SanPham());

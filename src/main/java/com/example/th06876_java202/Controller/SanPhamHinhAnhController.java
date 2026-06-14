@@ -77,7 +77,7 @@ public class SanPhamHinhAnhController {
         List<SanPhamChiTiet> dsSPCT =
                 sanPhamChiTietService.getBySanPhamVaMau(
                         spct.getSanPham().getMaSanPham(),
-                        spct.getMauSac());
+                        spct.getMauSac().getTenMauSac());
 
         if (maSPCT == null) {
             return "redirect:/sanphamha/index?error=ChuaChonSanPham";

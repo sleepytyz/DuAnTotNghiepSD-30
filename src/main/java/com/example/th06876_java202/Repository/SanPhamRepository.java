@@ -17,7 +17,7 @@ public interface SanPhamRepository extends JpaRepository<SanPham, Integer> {
 
     @Modifying
     @Transactional
-    @Query(value = "UPDATE SanPham SET TrangThai = N'0' WHERE MaSanPham = ?1",
+    @Query(value = "UPDATE SanPham SET TrangThai = N'0' ,NgayCapNhat = GETDATE() WHERE MaSanPham = ?1 ",
             nativeQuery = true)
     int updateTrangThaiNgungBan(int maSanPham);
 

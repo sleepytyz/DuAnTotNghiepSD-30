@@ -38,10 +38,6 @@ public class SanPhamChiTietService {
         }
     }
 
-    public int suaSanPham(int maSanPham) {
-        return sanPhamChiTietRepository.updateTrangThaiNgungBan(maSanPham);
-    }
-
     public List<SanPhamChiTiet> getBySanPhamVaMau(
             Integer maSP,
             String mauSac){
@@ -90,6 +86,14 @@ public class SanPhamChiTietService {
 
     public List<SanPhamChiTiet> getBygia(BigDecimal gm, BigDecimal gm2) {
         return sanPhamChiTietRepository.findByGiaBanAndGiaBan(gm,gm2);
+    }
+
+    public int suaSanPham2(int maSanPham) {
+        return sanPhamChiTietRepository.updateTrangThai(maSanPham);
+    }
+
+    public int suaSanPham3(int maSanPham) {
+        return sanPhamChiTietRepository.updateTrangThaiii(maSanPham);
     }
 
     public List<String> getSize() {

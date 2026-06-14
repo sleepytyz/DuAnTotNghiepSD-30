@@ -1,12 +1,7 @@
 package com.example.th06876_java202.Controller;
 
-import com.example.th06876_java202.Entity.DanhMucSanPham;
-import com.example.th06876_java202.Entity.SanPham;
-import com.example.th06876_java202.Entity.SanPhamChiTiet;
-import com.example.th06876_java202.Service.DanhMucSanPhamService;
-import com.example.th06876_java202.Service.SanPhamChiTietService;
-import com.example.th06876_java202.Service.SanPhamHinhAnhService;
-import com.example.th06876_java202.Service.SanPhamService;
+import com.example.th06876_java202.Entity.*;
+import com.example.th06876_java202.Service.*;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -27,12 +22,18 @@ public class SanPhamChiTietController {
     private final DanhMucSanPhamService danhMucSanPhamService;
     private final SanPhamService sanPhamService;
     private final SanPhamHinhAnhService sanPhamHinhAnhService;
+    private final MauSacService mauSacService;
+    private final KichThuocService kichThuocService;
 
-    public SanPhamChiTietController( SanPhamChiTietService sanPhamChiTietService, DanhMucSanPhamService danhMucSanPhamService, SanPhamService sanPhamService, SanPhamHinhAnhService sanPhamHinhAnhService ) {
+    public SanPhamChiTietController( SanPhamChiTietService sanPhamChiTietService, DanhMucSanPhamService danhMucSanPhamService,
+                                     SanPhamService sanPhamService, SanPhamHinhAnhService sanPhamHinhAnhService,
+                                     MauSacService mauSacService, KichThuocService kichThuocService) {
         this.sanPhamChiTietService = sanPhamChiTietService;
         this.danhMucSanPhamService = danhMucSanPhamService;
         this.sanPhamService = sanPhamService;
         this.sanPhamHinhAnhService = sanPhamHinhAnhService;
+        this.mauSacService = mauSacService;
+        this.kichThuocService = kichThuocService;
     }
 
     @GetMapping("/image/{id}")
@@ -52,8 +53,8 @@ public class SanPhamChiTietController {
         model.addAttribute("listspct", listspct);
         model.addAttribute("listsp", Listsp);
         model.addAttribute("listdmsp", listdmsp);
-        model.addAttribute("listms", sanPhamChiTietService.getMsac());
-        model.addAttribute("lists", sanPhamChiTietService.getSize());
+        model.addAttribute("listms", mauSacService.findAll());
+        model.addAttribute("lists", kichThuocService.getAllKichThuoc());
         model.addAttribute("sanphamct", new SanPhamChiTiet());
         model.addAttribute("isEdit", null);
         return "sanphamct/index";
@@ -69,54 +70,105 @@ public class SanPhamChiTietController {
         model.addAttribute("listspct", listspct);
         model.addAttribute("listsp", Listsp);
         model.addAttribute("listdmsp", listdmsp);
-        model.addAttribute("listms", sanPhamChiTietService.getMsac());
-        model.addAttribute("listms", sanPhamChiTietService.getSize());
+        model.addAttribute("listms", mauSacService.findAll());
+        model.addAttribute("lists", kichThuocService.getAllKichThuoc());
         model.addAttribute("showModal", true);
         model.addAttribute("isEdit", true);
         return "sanphamct/index";
     }
 
     @PostMapping("/add")
-    public String add (@ModelAttribute("sanphamct")@Valid SanPhamChiTiet sanPhamChiTiet, Errors errors, Model model) {
-        if(errors.hasErrors()) {
+    public String add(@ModelAttribute("sanphamct") @Valid SanPhamChiTiet sanPhamChiTiet,
+                      Errors errors,
+                      Model model) {
+
+        if (errors.hasErrors()) {
             List<SanPhamChiTiet> listspct = sanPhamChiTietService.getall();
             List<SanPham> Listsp = sanPhamService.getAll();
             List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
+
             model.addAttribute("listspct", listspct);
             model.addAttribute("listsp", Listsp);
             model.addAttribute("listdmsp", listdmsp);
-            model.addAttribute("listms", sanPhamChiTietService.getMsac());
-            model.addAttribute("listms", sanPhamChiTietService.getSize());
+            model.addAttribute("listms", mauSacService.findAll());
+            model.addAttribute("lists", kichThuocService.getAllKichThuoc());
+
             return "sanphamct/index";
         }
+
+        SanPham sp = sanPhamService.findById(
+                sanPhamChiTiet.getSanPham().getMaSanPham()
+        ).orElseThrow();
+
+        KichThuoc kt = kichThuocService.getKichThuocById(
+                sanPhamChiTiet.getKichThuoc().getMaKichThuoc()
+        ).orElseThrow();
+
+        MauSac ms = mauSacService.findById(
+                sanPhamChiTiet.getMauSac().getMaMauSac()
+        ).orElseThrow();
+
+        sanPhamChiTiet.setSanPham(sp);
+        sanPhamChiTiet.setKichThuoc(kt);
+        sanPhamChiTiet.setMauSac(ms);
+
         sanPhamChiTietService.capNhatTrangThai(sanPhamChiTiet);
         sanPhamChiTiet.setNgayTao(LocalDate.now());
+
         sanPhamChiTietService.them(sanPhamChiTiet);
+
         return "redirect:/sanphamct/index";
     }
 
     @PostMapping("/update")
-    public String update(@ModelAttribute("sanphamct")@Valid SanPhamChiTiet sanPhamChiTiet, Errors errors, Model model){
-        if(errors.hasErrors()) {
+    public String update(@ModelAttribute("sanphamct") @Valid SanPhamChiTiet sanPhamChiTiet,
+                         Errors errors,
+                         Model model) {
+
+        if (errors.hasErrors()) {
             List<SanPhamChiTiet> listspct = sanPhamChiTietService.getall();
             List<SanPham> Listsp = sanPhamService.getAll();
             List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
+
             model.addAttribute("listspct", listspct);
             model.addAttribute("listsp", Listsp);
             model.addAttribute("listdmsp", listdmsp);
-            model.addAttribute("listms", sanPhamChiTietService.getMsac());
-            model.addAttribute("listms", sanPhamChiTietService.getSize());
+            model.addAttribute("listms", mauSacService.findAll());
+            model.addAttribute("lists", kichThuocService.getAllKichThuoc());
+
             return "sanphamct/index";
         }
-        sanPhamChiTietService.capNhatTrangThai(sanPhamChiTiet);
-        sanPhamChiTiet.setNgayCapNhat(LocalDate.now());
-        sanPhamChiTietService.them(sanPhamChiTiet);
-        return "redirect:/sanphamct/index";
-    }
 
-    @GetMapping("/delete/{id}")
-    public String delete(@PathVariable("id") int id, Model model) {
-        sanPhamChiTietService.suaSanPham(id);
+        SanPhamChiTiet old = sanPhamChiTietService
+                .findbyId(sanPhamChiTiet.getMaSanPhamChiTiet())
+                .orElseThrow();
+
+        old.setSanPham(
+                sanPhamService.findById(
+                        sanPhamChiTiet.getSanPham().getMaSanPham()
+                ).orElseThrow()
+        );
+
+        old.setKichThuoc(
+                kichThuocService.getKichThuocById(
+                        sanPhamChiTiet.getKichThuoc().getMaKichThuoc()
+                ).orElseThrow()
+        );
+
+        old.setMauSac(
+                mauSacService.findById(
+                        sanPhamChiTiet.getMauSac().getMaMauSac()
+                ).orElseThrow()
+        );
+
+        old.setGiaBan(sanPhamChiTiet.getGiaBan());
+        old.setSoLuongTon(sanPhamChiTiet.getSoLuongTon());
+        old.setTrangThai(sanPhamChiTiet.getTrangThai());
+        old.setNgayCapNhat(LocalDate.now());
+
+        sanPhamChiTietService.capNhatTrangThai(old);
+        sanPhamChiTietService.them(old);
+
         return "redirect:/sanphamct/index";
     }
 
@@ -128,8 +180,8 @@ public class SanPhamChiTietController {
         List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
         model.addAttribute("listsp", Listsp);
         model.addAttribute("listdmsp", listdmsp);
-        model.addAttribute("listms", sanPhamChiTietService.getMsac());
-        model.addAttribute("lists", sanPhamChiTietService.getSize());
+        model.addAttribute("listms", mauSacService.findAll());
+        model.addAttribute("lists", kichThuocService.getAllKichThuoc());
         model.addAttribute("sanphamct", new SanPhamChiTiet());
         return "sanphamct/index";
     }
@@ -142,8 +194,8 @@ public class SanPhamChiTietController {
         List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
         model.addAttribute("listsp", Listsp);
         model.addAttribute("listdmsp", listdmsp);
-        model.addAttribute("listms", sanPhamChiTietService.getMsac());
-        model.addAttribute("lists", sanPhamChiTietService.getSize());
+        model.addAttribute("listms", mauSacService.findAll());
+        model.addAttribute("lists", kichThuocService.getAllKichThuoc());
         model.addAttribute("sanphamct", new SanPhamChiTiet());
         return "sanphamct/index";
     }
@@ -156,8 +208,8 @@ public class SanPhamChiTietController {
         List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
         model.addAttribute("listsp", Listsp);
         model.addAttribute("listdmsp", listdmsp);
-        model.addAttribute("listms", sanPhamChiTietService.getMsac());
-        model.addAttribute("lists", sanPhamChiTietService.getSize());
+        model.addAttribute("listms", mauSacService.findAll());
+        model.addAttribute("lists", kichThuocService.getAllKichThuoc());
         model.addAttribute("sanphamct", new SanPhamChiTiet());
         return "sanphamct/index";
     }
@@ -174,8 +226,8 @@ public class SanPhamChiTietController {
         List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
         model.addAttribute("listsp", Listsp);
         model.addAttribute("listdmsp", listdmsp);
-        model.addAttribute("listms", sanPhamChiTietService.getMsac());
-        model.addAttribute("lists", sanPhamChiTietService.getSize());
+        model.addAttribute("listms", mauSacService.findAll());
+        model.addAttribute("lists", kichThuocService.getAllKichThuoc());
         model.addAttribute("sanphamct", new SanPhamChiTiet());
         return "sanphamct/index";
     }

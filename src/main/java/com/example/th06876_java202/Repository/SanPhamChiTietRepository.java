@@ -13,10 +13,24 @@ import java.util.List;
 
 @Repository
 public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, Integer> {
+
     @Modifying
     @Transactional
-    @Query("UPDATE SanPhamChiTiet spct SET spct.trangThai = 'Ngừng bán' WHERE spct.maSanPhamChiTiet = :id")
-    int updateTrangThaiNgungBan(@Param("id") int maSanPhamChiTiet);
+    @Query(value = "update SanPhamChiTiet set TrangThai = N'Ngừng bán', NgayCapNhat = GETDATE() where MaSanPham = ?", nativeQuery = true)
+    int updateTrangThai(int maSanPham);
+
+
+
+
+
+    @Modifying
+    @Transactional
+    @Query(value = "update SanPhamChiTiet set TrangThai = case when SoLuongTon = 0 then N'Hết hàng' when SoLuongTon <= 10 then N'Sắp hết' else N'Còn hàng' end, NgayCapNhat = GETDATE() where MaSanPham = ?", nativeQuery = true)
+    int updateTrangThaiii(int maSanPham);
+
+
+
+
 
     List<SanPhamChiTiet> findBySanPham_MaSanPhamAndMauSac(
             Integer maSP,

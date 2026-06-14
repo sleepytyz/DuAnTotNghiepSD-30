@@ -339,9 +339,9 @@
 
                         <td th:text="'HD' + ${hd.maHoaDon}"></td>
 
-                        <td th:text="${hd.maNhanVien}"></td>
+                        <td th:text="${hd.maNhanVien.maNhanVien}"></td>
 
-                        <td th:text="${hd.maKhachHang}"></td>
+                        <td th:text="${hd.maKhachHang != null ? hd.maKhachHang.maKH : 'Khách lẻ'}"></td>
 
                         <td th:text="${#numbers.formatDecimal(hd.tongTien, 0, 'COMMA', 0, 'POINT')}"></td>
 
@@ -362,8 +362,8 @@
                                     data-bs-target="#hoaDonModal"
 
                                     th:data-mahd="${hd.maHoaDon}"
-                                    th:data-manv="${hd.maNhanVien}"
-                                    th:data-makh="${hd.maKhachHang}"
+                                    th:data-manv="${hd.maNhanVien.maNhanVien}"
+                                    th:data-makh="${hd.maKhachHang != null ? hd.maKhachHang.maKH : ''}"
                                     th:data-tongtien="${hd.tongTien}"
                                     th:data-thanhtoan="${hd.phuongThucThanhToan}"
                                     th:data-trangthai="${hd.trangThai}"
