@@ -7,21 +7,16 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "[TaiKhoan]", schema = "dbo")
+@Table(name = "TaiKhoan")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Account {
-
+public class TaiKhoan {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MaTaiKhoan")
     private Integer maTaiKhoan;
-
-    @ManyToOne
-    @JoinColumn(name = "MaNhanVien")
-    private NhanVien maNhanVien;
 
     @Column(name = "TenDangNhap")
     private String tenDangNhap;
@@ -34,7 +29,4 @@ public class Account {
 
     @Column(name = "TrangThai")
     private Boolean trangThai;
-
-    @Column(name = "Email")
-    private String email;
 }

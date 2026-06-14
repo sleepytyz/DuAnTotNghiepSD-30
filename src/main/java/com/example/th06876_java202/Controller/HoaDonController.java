@@ -81,7 +81,7 @@ public class HoaDonController {
             @RequestParam Integer maHoaDon,
             @RequestParam String trangThai){
 
-        HoaDon hd = service.findById(maHoaDon);
+        HoaDon hd = service.findById(maHoaDon).get();
 
         hd.setTrangThai(trangThai);
 

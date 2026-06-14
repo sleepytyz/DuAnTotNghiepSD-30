@@ -1,7 +1,6 @@
 package com.example.th06876_java202.Controller;
 
 import com.example.th06876_java202.Entity.*;
-import com.example.th06876_java202.Repository.HoaDonChiTietRepository;
 import com.example.th06876_java202.Service.*;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
@@ -93,15 +92,15 @@ public class BanHangController {
 
 
 
-    @PostMapping("/taohd")
-    public String taohd(@ModelAttribute("hoadon") HoaDon hoaDon, Model model, HttpSession session) {
-        hoaDon.setNgayTao(LocalDate.now());
-        Account account = (Account) session.getAttribute("user");
-        hoaDon.setMaNhanVien(account.getMaNhanVien());
-        hoaDon.setTrangThai("Đang xử lý");
-        hoaDonService.save(hoaDon);
-        return "redirect:/banhang/index";
-    }
+//    @PostMapping("/taohd")
+//    public String taohd(@ModelAttribute("hoadon") HoaDon hoaDon, Model model, HttpSession session) {
+//        hoaDon.setNgayTao(LocalDate.now());
+//        TaiKhoan account = (TaiKhoan) session.getAttribute("user");
+//        hoaDon.setMaNhanVien(account.getMaNhanVien());
+//        hoaDon.setTrangThai("Đang xử lý");
+//        hoaDonService.save(hoaDon);
+//        return "redirect:/banhang/index";
+//    }
 
     @GetMapping("/sanpham")
     public String sp(Model model){
