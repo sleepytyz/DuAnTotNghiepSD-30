@@ -57,4 +57,8 @@ public class NhanVien {
 
     @Column(name = "GhiChu", length = 500)
     private String ghiChu;
+
+    @OneToOne
+    @JoinColumn(name = "MaTaiKhoan")
+    private TaiKhoan taiKhoan;
 }

@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/tai-khoan")
-public class AccountController {
+public class TaiKhoanController {
 
 //    private final AccountServiceImpl serviceac;
 //    private final NhanVienRepository nhanVienRepo;

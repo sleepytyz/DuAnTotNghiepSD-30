@@ -18,7 +18,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Controller
-@RequestMapping("/sanpham")
+@RequestMapping("/staff/sanpham")
 public class SanPhamController {
 
     private final DanhMucSanPhamService danhMucSanPhamService;

@@ -1,10 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Quản Lý Khách Hàng</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
+
 <body>
-    Đây là home cho staff
+
+<div class="wrapper">
+
+    <!-- Sidebar -->
+    <div th:replace="fragments/sidebar :: sidebar"></div>
+
+    <div class="content-body">
+        <div th:replace="fragments/header :: header('Quản lý khách hàng', 'Khách hàng') "></div>
+        đây là trang staff
+    </div>
+</div>
+
 </body>
 </html>

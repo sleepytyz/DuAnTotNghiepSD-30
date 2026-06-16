@@ -2,7 +2,11 @@ package com.example.th06876_java202.Service;
 
 
 
+import com.example.th06876_java202.Entity.KhachHang;
+import com.example.th06876_java202.Entity.NhanVien;
 import com.example.th06876_java202.Entity.TaiKhoan;
+import com.example.th06876_java202.Repository.KhachHangRepository;
+import com.example.th06876_java202.Repository.NhanVienRepository;
 import com.example.th06876_java202.Repository.TaiKhoanRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -66,7 +70,8 @@ public class TaiKhoanService {
 //    public TaiKhoan findByTenDangNhap(String tendn) {
 //        return repo.findByTenDangNhap(tendn);
 //    }
-
+    private final KhachHangRepository khachHangRepository;
+    private final NhanVienRepository nhanVienRepository;
     private final TaiKhoanRepository taiKhoanRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -80,7 +85,10 @@ public class TaiKhoanService {
         taiKhoan.setVaiTro("USER");
         taiKhoan.setTrangThai(true);
         taiKhoanRepository.save(taiKhoan);
+    }
 
+    public void save(TaiKhoan taiKhoan) {
+        taiKhoanRepository.save(taiKhoan);
     }
 
     public TaiKhoan findUserById(int id) {
@@ -111,5 +119,21 @@ public class TaiKhoanService {
         taiKhoan.setVaiTro("USER");
 
         taiKhoanRepository.save(taiKhoan);
+    }
+
+    public TaiKhoan findByEmail(String email) {
+        // Tìm trong khách hàng trước
+        Optional<KhachHang> khachHang = khachHangRepository.findByEmail(email);
+        if (khachHang.isPresent() && khachHang.get().getTaiKhoan() != null) {
+            return khachHang.get().getTaiKhoan();
+        }
+
+        // Tìm trong nhân viên
+        Optional<NhanVien> nhanVien = nhanVienRepository.findByEmail(email);
+        if (nhanVien.isPresent() && nhanVien.get().getTaiKhoan() != null) {
+            return nhanVien.get().getTaiKhoan();
+        }
+
+        return null;
     }
 }

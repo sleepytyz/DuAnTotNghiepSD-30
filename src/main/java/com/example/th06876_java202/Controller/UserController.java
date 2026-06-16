@@ -25,7 +25,7 @@ public class UserController {
                     .anyMatch(a -> a.getAuthority().equals("ROLE_STAFF"));
 
             if (isAdmin) {
-                return "account/staff/home";
+                return "account/admin/home";
             } else if (isStaff) {
                 return "account/staff/home";
             }
@@ -57,12 +57,7 @@ public class UserController {
             return "account/user/register";
         }
         taiKhoanService.createUser(taiKhoan);
-        return "redirect:/login";
-    }
-
-    @GetMapping("/logout")
-    public String logout() {
-        return "account/user/login";
+        return "redirect:/login?registered";
     }
 
     @GetMapping("/accessDenied")

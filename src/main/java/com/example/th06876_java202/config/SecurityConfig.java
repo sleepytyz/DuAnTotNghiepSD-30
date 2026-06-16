@@ -37,7 +37,7 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests((requests) -> requests
                 //ai cũng vào đc, ko cần đăng nhập
-                .requestMatchers("/", "/login", "/register").permitAll()
+                .requestMatchers("/", "/login", "/register", "/forgot").permitAll()
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
 
                 //đăng nhập rồi mới vào đc
