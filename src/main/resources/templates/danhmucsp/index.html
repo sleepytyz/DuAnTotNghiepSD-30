@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -9,151 +8,99 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .form-control:focus, .form-select:focus {
+            border-color: #c92327 !important;
+            box-shadow: 0 0 0 0.25rem rgba(201, 35, 39, 0.15) !important;
+        }
+    </style>
 </head>
 
 <body>
 
 <div class="wrapper">
 
-    <!-- Sidebar -->
     <div th:replace="fragments/sidebar :: sidebar"></div>
 
-    <!-- Content -->
     <div class="content-body">
 
-        <!-- Header -->
         <div th:replace="fragments/header :: header('Danh mục sản phẩm','Danh mục sản phẩm')"></div>
 
-        <div class="page-content">
+        <div class="page-content px-3">
 
-            <div th:if="${mess}"
-                 class="alert alert-warning alert-dismissible fade show">
-                <span th:text="${mess}"></span>
-                <button class="btn-close"
-                        data-bs-dismiss="alert">
-                </button>
+            <div th:if="${mess}" class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${mess}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
 
-            <div class="card card-custom ">
-
-                <div class="card-header text-white"
-                     style="background:#c92327;">
-                    <h5 class="mb-0">
-                        <i class="bi bi-pencil-square me-2"></i>
-                        Thông tin danh mục
+            <div class="card card-custom mb-4 shadow-sm border-0 mt-3">
+                <div class="card-header text-white" style="background:#c92327;">
+                    <h5 class="mb-0 d-flex align-items-center gap-2 py-1">
+                        <i class="bi bi-pencil-square"></i>
+                        <span>Thông tin danh mục</span>
                     </h5>
                 </div>
 
-                <div class="card-body">
-
-                    <form method="post"
-                          th:object="${danhmuc}">
-
+                <div class="card-body bg-white p-4">
+                    <form method="post" th:object="${danhmuc}">
                         <div class="row g-3">
 
-                            <div class="col-md-3">
-                                <label class="form-label fw-bold">
-                                    Mã danh mục
-                                </label>
+                            <div class="col-md-2">
+                                <label class="form-label fw-semibold text-dark small">Mã danh mục</label>
+                                <input type="text" class="form-control bg-light border-secondary-subtle" th:field="*{maDanhMuc}" readonly placeholder="Tự động tăng">
+                            </div>
 
-                                <input type="text"
-                                       class="form-control bg-light"
-                                       th:field="*{maDanhMuc}"
-                                       readonly>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold text-dark small">Tên danh mục <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control border-secondary-subtle" th:field="*{tenDanhMuc}" placeholder="Nhập tên danh mục...">
+                                <div class="text-danger small mt-1" th:errors="*{tenDanhMuc}"></div>
                             </div>
 
                             <div class="col-md-4">
-                                <label class="form-label fw-bold">
-                                    Tên danh mục
-                                </label>
-
-                                <input type="text"
-                                       class="form-control"
-                                       th:field="*{tenDanhMuc}">
-
-                                <div class="text-danger"
-                                     th:errors="*{tenDanhMuc}" >
-                                </div>
+                                <label class="form-label fw-semibold text-dark small">Mô tả</label>
+                                <input type="text" class="form-control border-secondary-subtle" th:field="*{moTa}" placeholder="Nhập mô tả ngắn...">
+                                <div class="text-danger small mt-1" th:errors="*{moTa}"></div>
                             </div>
 
-                            <div class="col-md-5">
-                                <label class="form-label fw-bold">
-                                    Mô tả
-                                </label>
-
-                                <input type="text"
-                                       class="form-control"
-                                       th:field="*{moTa}">
-
-                                <div class="text-danger"
-                                     th:errors="*{moTa}">
-                                </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold text-dark small">Trạng thái hoạt động</label>
+                                <select class="form-select border-secondary-subtle" th:field="*{trangThai}">
+                                    <option th:value="true">Hoạt động</option>
+                                    <option th:value="false">Ngừng hoạt động</option>
+                                </select>
                             </div>
-
-                            <select class="form-select"
-                                    th:field="*{trangThai}">
-
-                                <option th:value="true">
-                                    Hoạt động
-                                </option>
-
-                                <option th:value="false">
-                                    Ngừng hoạt động
-                                </option>
-
-                            </select>
 
                         </div>
 
-                        <hr>
+                        <hr class="text-secondary-subtle my-4">
 
-                        <div class="d-flex gap-2">
-
-                            <button class="btn "
-                                    type="submit"
-                                    formaction="/danhmucsp/add" style="background:#c92327; color: white">
-                                <i class="bi bi-plus-circle"></i>
-                                Thêm
+                        <div class="d-flex gap-2 justify-content-start">
+                            <button class="btn fw-semibold text-white px-4 d-flex align-items-center gap-1" type="submit" formaction="/danhmucsp/add" style="background:#c92327;">
+                                <i class="bi bi-plus-circle"></i> Thêm mới
                             </button>
 
-                            <button class="btn btn-warning text-white"
-                                    type="submit"
-                                    formaction="/danhmucsp/update">
-                                <i class="bi bi-pencil"></i>
-                                Cập nhật
+                            <button class="btn btn-warning text-white fw-semibold px-4 d-flex align-items-center gap-1" type="submit" formaction="/danhmucsp/update">
+                                <i class="bi bi-pencil"></i> Cập nhật
                             </button>
 
-                            <button type="button"
-                                    class="btn btn-secondary"
-                                    onclick="resetForm()">
-                                <i class="bi bi-arrow-clockwise"></i>
-                                Reset
+                            <button type="button" class="btn btn-outline-secondary fw-semibold px-4 d-flex align-items-center gap-1" onclick="resetForm()">
+                                <i class="bi bi-arrow-clockwise"></i> Reset
                             </button>
-
                         </div>
-
                     </form>
-
                 </div>
-
             </div>
 
-            <!-- TABLE -->
-            <div class="table-card">
-
-                <div class="table-header">
-
-                    <h5 class="mb-0 fw-bold">
-                        <i class="bi bi-list-ul me-2"></i>
-                        Danh sách danh mục sản phẩm
+            <div class="card card-custom border-0 shadow-sm mt-4">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+                        <i class="bi bi-list-ul text-danger"></i>
+                        <span>Danh sách danh mục sản phẩm</span>
                     </h5>
-
                 </div>
 
-                <div class="table-responsive">
-
-                    <table class="table table-hover align-middle">
-
+                <div class="table-card p-3">
+                    <table class="table-custom">
                         <thead>
                         <tr>
                             <th style="width:80px">STT</th>
@@ -161,90 +108,53 @@
                             <th>Tên danh mục</th>
                             <th>Mô tả</th>
                             <th>Trạng thái</th>
-                            <th>Hành động</th>
+                            <th style="width:150px">Hành động</th>
                         </tr>
                         </thead>
 
                         <tbody>
-
                         <tr th:each="dm,row : ${listdmsp}">
-
                             <td th:text="${row.count}"></td>
-
                             <td>
-                                <span class="fw-bold text-primary"
-                                      th:text="${dm.maDanhMuc}">
-                                </span>
+                                <span class="fw-bold text-dark" th:text="${'DM' + dm.maDanhMuc}"></span>
                             </td>
-
-                            <td th:text="${dm.tenDanhMuc}"></td>
-
+                            <td class="fw-medium" th:text="${dm.tenDanhMuc}"></td>
                             <td th:text="${dm.moTa}"></td>
-
                             <td>
-
-    <span th:if="${dm.trangThai}"
-          class="badge bg-success">
-        Hoạt động
-    </span>
-
-                                <span th:unless="${dm.trangThai}"
-                                      class="badge bg-danger">
-        Ngừng hoạt động
-    </span>
-
+                                <span th:if="${dm.trangThai}" class="badge-active">Hoạt động</span>
+                                <span th:unless="${dm.trangThai}" class="badge-locked">Ngừng hoạt động</span>
                             </td>
-
                             <td>
-
-                                <a class="btn btn-outline-primary btn-sm"
-                                   th:href="@{/danhmucsp/edit/{id}(id=${dm.maDanhMuc})}">
-                                    <i class="bi bi-eye-fill"></i>
+                                <a class="btn-action-lock" th:href="@{/danhmucsp/edit/{id}(id=${dm.maDanhMuc})}">
+                                    Xem
                                 </a>
-
-                                <a class="btn btn-outline-danger btn-sm"
-                                   onclick="return confirm('Bạn có chắc muốn xóa?')"
-                                   th:href="@{/danhmucsp/delete/{id}(id=${dm.maDanhMuc})}">
-                                    <i class="bi bi-trash-fill"></i>
+                                <a class="btn-trash ms-2" onclick="return confirm('Bạn có chắc muốn xóa danh mục này?')" th:href="@{/danhmucsp/delete/{id}(id=${dm.maDanhMuc})}">
+                                    <i class="bi bi-trash3"></i>
                                 </a>
-
                             </td>
-
                         </tr>
 
                         <tr th:if="${#lists.isEmpty(listdmsp)}">
-                            <td colspan="6"
-                                class="text-center text-muted">
-                                Chưa có dữ liệu
+                            <td colspan="6" class="text-center text-muted py-4">
+                                <i class="bi bi-inbox me-1"></i> Chưa có dữ liệu danh mục hiển thị
                             </td>
                         </tr>
-
                         </tbody>
-
                     </table>
-
                 </div>
-
             </div>
 
         </div>
-
     </div>
-
 </div>
 
 <script>
-
     function resetForm() {
-
         window.location.href = "/danhmucsp/index";
-
     }
-
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>
-```

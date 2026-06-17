@@ -5,175 +5,117 @@
     <title>Quản Lý Đợt Giảm Giá</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" th:href="@{/css/style.css}">
+
+    <style>
+        .modal-content {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            overflow: hidden; /* Giúp bo góc header không bị tràn màu */
+        }
+        /* ĐỒNG BỘ STYLE HEADER GIỐNG MẪU BẠN GỬI */
+        .modal-header-custom {
+            background: #c92327;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-bottom: none;
+        }
+        .modal-body {
+            padding: 2rem 1.5rem;
+            background-color: #f8f9fa;
+        }
+        .modal-footer {
+            background-color: #ffffff;
+            border-top: 1px solid #dee2e6;
+            padding: 1rem 1.5rem;
+        }
+        .form-label-custom {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 0.4rem;
+            font-size: 0.9rem;
+        }
+        .form-control, .form-select {
+            border-radius: 6px;
+            border: 1px solid #ced4da;
+            padding: 0.55rem 0.75rem;
+            transition: all 0.2s ease-in-out;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #c92327 !important;
+            box-shadow: 0 0 0 0.25rem rgba(201, 35, 39, 0.15) !important;
+        }
+        .radio-group {
+            background: #ffffff;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            padding: 0.55rem 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .radio-group input[type="radio"] {
+            accent-color: #c92327;
+        }
+    </style>
 </head>
 
 <body>
 
 <div class="wrapper">
-
     <div th:replace="fragments/sidebar :: sidebar"></div>
 
     <div class="content-body">
-
         <div th:replace="fragments/header :: header('Quản lý đợt giảm giá', 'Đợt giảm giá')"></div>
-
-
-        <div class="card card-custom mb-4">
-
-            <div class="card-header text-white"
-                 style="background:#c92327;">
-                <h5 class="mb-0">
-                    <i class="bi bi-pencil-square me-2"></i>
-                    Thông tin đợt giảm giá
+        <div class="card card-custom mt-3">
+            <div class="card-header text-white" style="background:#c92327;">
+                <h5 class="mb-0 d-flex align-items-center gap-2" style="font-size: 1rem; font-weight: 600;">
+                    <i class="bi bi-search"></i>
+                    <span>Bộ lọc tìm kiếm đợt giảm giá</span>
                 </h5>
             </div>
 
-            <form th:action="${dgg.maGiamGia == null}
-                    ? @{/dot-giam-gia/add}
-                    : @{/dot-giam-gia/update}"
-                  th:object="${dgg}"
-                  method="post" class="card-body">
+            <form th:action="@{/dot-giam-gia/loc}" method="get">
+                <div class="card-body bg-light p-3">
+                    <div class="row g-3 align-items-end">
 
-                <input type="hidden" th:field="*{maGiamGia}">
+                        <div class="col-md-5">
+                            <label class="form-label-custom mb-1 d-block" style="font-size: 0.85rem;">Tìm kiếm</label>
+                            <input type="text" name="searchKeyword" th:value="${searchKeyword}" class="form-control" placeholder="Tìm kiếm tên giảm giá, mã rồi ấn Enter...">
+                        </div>
 
-                <div class="row g-3">
+                        <div class="col-md-2">
+                            <label class="form-label-custom mb-1 d-block" style="font-size: 0.85rem;">Trạng thái</label>
+                            <select name="searchTrangThai" class="form-select" onchange="this.form.submit()">
+                                <option value="" th:selected="${searchTrangThai == null || searchTrangThai == ''}">Tất cả</option>
+                                <option value="true" th:selected="${searchTrangThai == 'true'}">Hoạt động</option>
+                                <option value="false" th:selected="${searchTrangThai == 'false'}">Ngừng hoạt động</option>
+                            </select>
+                        </div>
 
-                    <div class="col-md-4">
-                        <label class="filter-label">Tên giảm giá</label>
-                        <input type="text" class="form-control" th:field="*{tenGiamGia}">
+                        <div class="col-md-2">
+                            <label class="form-label-custom mb-1 d-block" style="font-size: 0.85rem;">Loại giảm</label>
+                            <select name="searchLoaiGiam" class="form-select" onchange="this.form.submit()">
+                                <option value="" th:selected="${searchLoaiGiam == null || searchLoaiGiam == ''}">Tất cả</option>
+                                <option value="Phần trăm" th:selected="${searchLoaiGiam == 'Phần trăm'}">Phần trăm</option>
+                                <option value="Cố định" th:selected="${searchLoaiGiam == 'Cố định'}">Cố định</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3 text-end">
+                            <button type="button" class="btn w-100 py-2 fw-semibold" style="background:#c92327; color:white;" data-bs-toggle="modal" data-bs-target="#dotGiamGiaModal" onclick="openAddModal()">
+                                <i class="bi bi-plus-lg"></i> Thêm mới đợt giảm giá
+                            </button>
+                        </div>
                     </div>
-
-                    <div class="col-md-4">
-                        <label class="filter-label">Loại giảm giá</label>
-                        <select class="form-select" th:field="*{loaiGiamGia}">
-                            <option value="Phần trăm">Phần trăm</option>
-                            <option value="Tiền mặt">Tiền mặt</option>
-                        </select>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="filter-label">Giá trị giảm</label>
-                        <input type="number" class="form-control" th:field="*{giaTriGiam}">
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="filter-label">Giảm tối đa</label>
-                        <input type="number" class="form-control" th:field="*{giamToiDa}">
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="filter-label">Ngày bắt đầu</label>
-                        <input type="date" class="form-control" th:field="*{ngayBatDau}">
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="filter-label">Ngày kết thúc</label>
-                        <input type="date" class="form-control" th:field="*{ngayKetThuc}">
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="filter-label">Trạng thái</label>
-                        <select class="form-select" th:field="*{trangThai}">
-                            <option th:value="true">Hoạt động</option>
-                            <option th:value="false">Ngừng hoạt động</option>
-                        </select>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="filter-label">Mã nhân viên</label>
-                        <input type="number" class="form-control" th:field="*{maNhanVienTao}">
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="filter-label">Ngày tạo</label>
-                        <input type="date" class="form-control" th:field="*{ngayTao}">
-                    </div>
-
-                    <div class="col-md-12">
-                        <label class="filter-label">Mô tả</label>
-                        <textarea class="form-control" rows="3" th:field="*{moTa}"></textarea>
-                    </div>
-
                 </div>
-
-                <!-- BUTTON -->
-                <div class="d-flex gap-2 mt-3">
-
-                    <button type="submit" class="btn-add-account">
-                        <i class="bi bi-plus-lg"></i> Lưu
-                    </button>
-
-                    <a href="/dot-giam-gia/hien-thi" class="btn btn-secondary">
-                        <i class="bi bi-arrow-clockwise"></i> Làm mới
-                    </a>
-
-                </div>
-
             </form>
         </div>
 
-        <!-- SEARCH CARD -->
-        <div class="filter-card mt-3">
-
-            <div class="row g-3 align-items-end">
-
-                <div class="col-md-4">
-                    <label class="filter-label">Tìm kiếm</label>
-                    <input type="text"
-                           class="form-control"
-                           placeholder="Tìm kiếm tên giảm giá, mã...">
-                </div>
-
-                <div class="col-md-2">
-                    <label class="filter-label">Trạng thái</label>
-                    <select class="form-select">
-                        <option>Tất cả</option>
-                        <option>Hoạt động</option>
-                        <option>Ngừng hoạt động</option>
-                    </select>
-                </div>
-
-                <div class="col-md-2">
-                    <label class="filter-label">Loại giảm</label>
-                    <select class="form-select">
-                        <option>Tất cả</option>
-                        <option>Phần trăm</option>
-                        <option>Tiền mặt</option>
-                    </select>
-                </div>
-
-                <div class="col-md-2">
-                    <label class="filter-label">Mã nhân viên</label>
-                    <select class="form-select" name="maNhanVien">
-                        <option value="">Tất cả</option>
-
-                        <option th:each="nv : ${listNhanVien}"
-                                th:value="${nv.maNhanVien}"
-                                th:text="${nv.maNhanVien}">
-                        </option>
-                    </select>
-                </div>
-
-                <div class="col-md-2">
-                    <button class="btn btn-primary w-100">
-                        <i class="bi bi-funnel-fill"></i> Lọc
-                    </button>
-                </div>
-
-            </div>
-
-        </div>
-
-        <!-- TABLE -->
         <div class="table-card mt-3">
-
             <table class="table-custom">
-
                 <thead>
                 <tr>
                     <th>STT</th>
@@ -185,53 +127,176 @@
                     <th>Bắt đầu</th>
                     <th>Kết thúc</th>
                     <th>Trạng thái</th>
-                    <th>Nhân viên</th>
                     <th>Hành động</th>
                 </tr>
                 </thead>
-
                 <tbody>
                 <tr th:each="dgg,stt : ${listDGG}">
-
                     <td th:text="${stt.count}"></td>
-                    <td th:text="${dgg.maGiamGia}"></td>
+                    <td th:text="${ 'DGG' + dgg.maGiamGia}"></td>
                     <td th:text="${dgg.tenGiamGia}"></td>
                     <td th:text="${dgg.loaiGiamGia}"></td>
                     <td th:text="${dgg.giaTriGiam}"></td>
                     <td th:text="${dgg.giamToiDa}"></td>
-
-                    <td th:text="${#dates.format(dgg.ngayBatDau,'dd/MM/yyyy')}"></td>
-                    <td th:text="${#dates.format(dgg.ngayKetThuc,'dd/MM/yyyy')}"></td>
-
+                    <td th:text="${#temporals.format(dgg.ngayBatDau,'dd/MM/yyyy')}"></td>
+                    <td th:text="${#temporals.format(dgg.ngayKetThuc,'dd/MM/yyyy')}"></td>
                     <td>
                         <span th:if="${dgg.trangThai}" class="badge-active">Hoạt động</span>
                         <span th:unless="${dgg.trangThai}" class="badge-locked">Ngừng</span>
                     </td>
-
-                    <td th:text="${dgg.maNhanVienTao}"></td>
-
                     <td>
-                        <a class="btn-action-lock"
-                           th:href="@{/dot-giam-gia/detail/{id}(id=${dgg.maGiamGia})}">
-                            Sửa
+                        <a class="btn-action-lock" th:href="@{/dot-giam-gia/detail/{id}(id=${dgg.maGiamGia})}">
+                            <i class="bi bi-pencil-square"></i> Sửa
                         </a>
-
-                        <a class="btn-trash ms-2"
-                           th:href="@{/dot-giam-gia/delete/{id}(id=${dgg.maGiamGia})}"
-                           onclick="return confirm('Bạn có chắc muốn xóa?')">
+                        <a class="btn-trash ms-2" th:href="@{/dot-giam-gia/delete/{id}(id=${dgg.maGiamGia})}" onclick="return confirm('Bạn có chắc muốn xóa?')">
                             <i class="bi bi-trash3"></i>
                         </a>
                     </td>
-
                 </tr>
                 </tbody>
-
             </table>
-
         </div>
+    </div>
 
+    <div class="modal fade" id="dotGiamGiaModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header-custom d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 d-flex align-items-center gap-2">
+                        <i class="bi bi-plus-circle"></i>
+                        <span>Thông Tin Đợt Giảm Giá</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <form th:object="${dgg}" method="post">
+                    <div class="modal-body">
+                        <input type="hidden" th:field="*{maGiamGia}">
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Tên đợt giảm giá <span class="text-danger">*</span></label>
+                                <input type="text" th:field="*{tenGiamGia}" placeholder="Nhập tên chương trình..." th:classappend="${#fields.hasErrors('tenGiamGia')} ? 'is-invalid' : ''" class="form-control">
+                                <div class="invalid-feedback d-block fw-bold small" th:if="${#fields.hasErrors('tenGiamGia')}" th:errors="*{tenGiamGia}"></div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Loại giảm giá <span class="text-danger">*</span></label>
+                                <select class="form-select" th:field="*{loaiGiamGia}" th:classappend="${#fields.hasErrors('loaiGiamGia')} ? 'is-invalid' : ''">
+                                    <option value="">-- Chọn loại giảm giá --</option>
+                                    <option value="Phần trăm">Phần trăm (%)</option>
+                                    <option value="Tiền mặt">Tiền mặt (VND)</option>
+                                </select>
+                                <div class="invalid-feedback d-block fw-bold small" th:if="${#fields.hasErrors('loaiGiamGia')}" th:errors="*{loaiGiamGia}"></div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Giá trị giảm <span class="text-danger">*</span></label>
+                                <input type="number" th:field="*{giaTriGiam}" placeholder="Ví dụ: 10 hoặc 50000" th:classappend="${#fields.hasErrors('giaTriGiam')} ? 'is-invalid' : ''" class="form-control">
+                                <div class="invalid-feedback d-block fw-bold small" th:if="${#fields.hasErrors('giaTriGiam')}" th:errors="*{giaTriGiam}"></div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Mức giảm tối đa <span class="text-danger">*</span></label>
+                                <input type="number" th:field="*{giamToiDa}" placeholder="Giới hạn số tiền giảm tối đa" th:classappend="${#fields.hasErrors('giamToiDa')} ? 'is-invalid' : ''" class="form-control">
+                                <div class="invalid-feedback d-block fw-bold small" th:if="${#fields.hasErrors('giamToiDa')}" th:errors="*{giamToiDa}"></div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Ngày bắt đầu <span class="text-danger">*</span></label>
+                                <input type="date" th:field="*{ngayBatDau}" th:classappend="${#fields.hasErrors('ngayBatDau')} ? 'is-invalid' : ''" class="form-control">
+                                <div class="invalid-feedback d-block fw-bold small" th:if="${#fields.hasErrors('ngayBatDau')}" th:errors="*{ngayBatDau}"></div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Ngày kết thúc <span class="text-danger">*</span></label>
+                                <input type="date" th:field="*{ngayKetThuc}" th:classappend="${#fields.hasErrors('ngayKetThuc')} ? 'is-invalid' : ''" class="form-control">
+                                <div class="invalid-feedback d-block fw-bold small" th:if="${#fields.hasErrors('ngayKetThuc')}" th:errors="*{ngayKetThuc}"></div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Ngày tạo hệ thống</label>
+                                <input type="date" class="form-control" th:field="*{ngayTao}" readonly style="background-color: #e9ecef;">
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label-custom">Trạng thái hoạt động <span class="text-danger">*</span></label>
+                                <div class="radio-group" th:classappend="${#fields.hasErrors('trangThai')} ? 'is-invalid border-danger' : ''">
+                                    <div class="form-check m-0">
+                                        <input type="radio" class="form-check-input" th:field="*{trangThai}" value="true" id="statusActive">
+                                        <label class="form-check-label" for="statusActive">Đang hoạt động</label>
+                                    </div>
+                                    <div class="form-check m-0">
+                                        <input type="radio" class="form-check-input" th:field="*{trangThai}" value="false" id="statusInactive">
+                                        <label class="form-check-label" for="statusInactive">Tạm ngừng hoạt động</label>
+                                    </div>
+                                </div>
+                                <div class="invalid-feedback d-block fw-bold small" th:if="${#fields.hasErrors('trangThai')}" th:errors="*{trangThai}"></div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label-custom">Mô tả ngắn gọn</label>
+                                <textarea class="form-control" rows="3" th:field="*{moTa}" placeholder="Nhập nội dung ghi chú chi tiết về đợt giảm giá này..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle"></i> Đóng
+                        </button>
+                        <button type="submit" id="btn-add-submit" formaction="/dot-giam-gia/add" class="btn px-4" style="background:#c92327;color:white">
+                            <i class="bi bi-plus-circle-fill"></i> Lưu thông tin (Thêm)
+                        </button>
+                        <button type="submit" id="btn-update-submit" formaction="/dot-giam-gia/update" class="btn btn-warning px-4" style="display: none;">
+                            <i class="bi bi-check-circle-fill"></i> Lưu cập nhật
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script th:inline="javascript">
+    document.addEventListener("DOMContentLoaded", function () {
+        /*[Th:inline]*/
+        var showModalValue = /*[[${showModal != null ? showModal : false}]]*/ false;
+
+        if (showModalValue) {
+            var myModal = new bootstrap.Modal(document.getElementById('dotGiamGiaModal'));
+            myModal.show();
+
+            var maGiamGia = document.querySelector("[name='maGiamGia']").value;
+            if (maGiamGia) {
+                document.getElementById("btn-add-submit").style.display = "none";
+                document.getElementById("btn-update-submit").style.display = "block";
+            } else {
+                document.getElementById("btn-add-submit").style.display = "block";
+                document.getElementById("btn-update-submit").style.display = "none";
+            }
+        }
+    });
+
+    function openAddModal() {
+        document.querySelector("[name='maGiamGia']").value = "";
+        document.querySelector("[name='tenGiamGia']").value = "";
+        document.querySelector("[name='giaTriGiam']").value = "";
+        document.querySelector("[name='giamToiDa']").value = "";
+        document.querySelector("[name='ngayBatDau']").value = "";
+        document.querySelector("[name='ngayKetThuc']").value = "";
+        document.querySelector("[name='ngayTao']").value = "";
+        document.querySelector("[name='moTa']").value = "";
+        document.querySelector("[name='loaiGiamGia']").selectedIndex = 0;
+
+        document.querySelectorAll("input[name='trangThai']").forEach(r => r.checked = false);
+
+        document.getElementById("btn-add-submit").style.display = "block";
+        document.getElementById("btn-update-submit").style.display = "none";
+    }
+</script>
 </body>
 </html>

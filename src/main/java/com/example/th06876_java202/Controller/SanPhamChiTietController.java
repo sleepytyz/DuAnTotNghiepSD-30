@@ -173,9 +173,16 @@ public class SanPhamChiTietController {
     }
 
     @GetMapping("/locsize")
-    public String locsize(@RequestParam("size") String size,Model model) {
+    public String locsize(@RequestParam(value = "size", required = false) String size, Model model) {
+        if (size == null || size.trim().isEmpty()) {
+            return "redirect:/sanphamct/index";
+        }
+
         List<SanPhamChiTiet> listspct = sanPhamChiTietService.getBySize(size);
         model.addAttribute("listspct", listspct);
+
+        model.addAttribute("selectedSize", size);
+
         List<SanPham> Listsp = sanPhamService.getAll();
         List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
         model.addAttribute("listsp", Listsp);
@@ -187,9 +194,16 @@ public class SanPhamChiTietController {
     }
 
     @GetMapping("/locmsac")
-    public String locmsac(@RequestParam("msac") String msac,Model model) {
+    public String locmsac(@RequestParam(value = "msac", required = false) String msac, Model model) {
+        if (msac == null || msac.trim().isEmpty()) {
+            return "redirect:/sanphamct/index";
+        }
+
         List<SanPhamChiTiet> listspct = sanPhamChiTietService.getByMauSac(msac);
         model.addAttribute("listspct", listspct);
+
+        model.addAttribute("selectedMauSac", msac);
+
         List<SanPham> Listsp = sanPhamService.getAll();
         List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
         model.addAttribute("listsp", Listsp);
@@ -201,9 +215,16 @@ public class SanPhamChiTietController {
     }
 
     @GetMapping("/loctt")
-    public String loctt(@RequestParam("tt") String tt,Model model) {
+    public String loctt(@RequestParam(value = "tt", required = false) String tt, Model model) {
+        if (tt == null || tt.trim().isEmpty()) {
+            return "redirect:/sanphamct/index";
+        }
+
         List<SanPhamChiTiet> listspct = sanPhamChiTietService.getByTT(tt);
         model.addAttribute("listspct", listspct);
+
+        model.addAttribute("selectedStatus", tt);
+
         List<SanPham> Listsp = sanPhamService.getAll();
         List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
         model.addAttribute("listsp", Listsp);

@@ -8,10 +8,13 @@
 
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <style>
-        .content-wrapper{
+        .content-wrapper {
             width: calc(100% - 250px);
         }
-
+        .form-control:focus, .form-select:focus {
+            border-color: #c92327 !important;
+            box-shadow: 0 0 0 0.25rem rgba(201, 35, 39, 0.15) !important;
+        }
     </style>
 </head>
 
@@ -24,346 +27,234 @@
 
         <div th:replace="fragments/header :: header('Quản lý sản phẩm', 'Sản phẩm')"></div>
 
-        <div class="content-body">
-
-        <div th:if="${mess}" class="alert alert-danger"><span th:text="${mess}"></span></div>
-
-            <div class="card card-custom mb-4">
-
-                <div class="card-header text-white"
-                     style="background:#c92327;">
-                    <h5 class="mb-0">
-                        <i class="bi bi-pencil-square me-2"></i>
-                        Bộ lọc & tìm kiếm sản phẩm
-                    </h5>
-                </div>
-
-                <div class="card-body">
-
-                    <div class="row g-3 align-items-end">
-
-                        <div class="col-md-3">
-                            <form action="/sanpham/locdmsp" method="get">
-                                <label class="form-label fw-bold">
-                                    <i class="bi bi-tags"></i> Danh mục
-                                </label>
-
-                                <select name="maDanhMuc"
-                                        class="form-select"
-                                        onchange="this.form.submit()">
-
-                                    <option value="">Tất cả danh mục</option>
-
-                                    <option th:each="c : ${listdmsp}"
-                                            th:value="${c.maDanhMuc}"
-                                            th:text="${c.maDanhMuc + ' - ' + c.tenDanhMuc}">
-                                    </option>
-
-                                </select>
-                            </form>
-                        </div>
-
-                        <div class="col-md-3">
-                            <form action="/sanpham/loctt" method="get">
-
-                                <label class="form-label fw-bold">
-                                    <i class="bi bi-check-circle"></i> Trạng thái
-                                </label>
-
-                                <div class="mt-2">
-                                    <input class="form-check-input"
-                                           type="radio"
-                                           name="tt"
-                                           value="true"
-                                           onchange="this.form.submit()">
-                                    Còn bán
-
-                                    <input class="form-check-input ms-3"
-                                           type="radio"
-                                           name="tt"
-                                           value="false"
-                                           onchange="this.form.submit()">
-                                    Ngừng bán
-                                </div>
-
-                            </form>
-                        </div>
-
-                        <div class="col-md-4">
-                            <form action="/sanpham/timkiem"
-                                  method="get">
-
-                                <label class="form-label fw-bold">
-                                    <i class="bi bi-search"></i> Tìm kiếm
-                                </label>
-
-                                <div class="input-group">
-
-                                    <input type="text"
-                                           class="form-control"
-                                           placeholder="Nhập mã hoặc tên sản phẩm"
-                                           name="t">
-
-                                    <button class="btn btn-primary"
-                                            type="submit">
-                                        <i class="bi bi-search"></i>
-                                    </button>
-
-                                </div>
-
-                            </form>
-                        </div>
-
-                        <div class="col-md-2 text-end">
-
-                            <button type="button"
-                                    class="btn  me-2"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#sanPhamModal" onclick="openAddModal()" style="background:#c92327; color: white">
-
-                                <i class="bi bi-plus-lg"></i>
-                                Thêm
-
-                            </button>
-
-                            <a th:href="@{/sanpham/index}"
-                               class="btn btn-secondary">
-
-                                <i class="bi bi-arrow-clockwise"></i>
-                                Reset
-
-                            </a>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-        <div class="table-card mt-4">
-
-            <table class="table-custom">
-
-                <thead>
-                <tr>
-                    <th>STT</th>
-                    <th>Mã SP</th>
-                    <th>Danh mục</th>
-                    <th>Tên SP</th>
-                    <th>Mô tả</th>
-                    <th>Chất liệu</th>
-                    <th>Ngày tạo</th>
-                    <th>Ngày cập nhật</th>
-                    <th>Trạng thái</th>
-                    <th>Hành động</th>
-                </tr>
-                </thead>
-
-                <tbody>
-                <tr th:each="c,count : ${listsp}">
-
-                    <td th:text="${count.count}"></td>
-                    <td th:text="${c.maSanPham}"></td>
-                    <td th:text="${c.danhMucSanPham.maDanhMuc + '-' + c.danhMucSanPham.tenDanhMuc}"></td>
-                    <td th:text="${c.tenSanPham}"></td>
-                    <td th:text="${c.moTa}"></td>
-                    <td th:text="${c.chatLieu.tenChatLieu}"></td>
-                    <td th:text="${c.ngayTao}"></td>
-                    <td th:text="${c.ngayCapNhat}"></td>
-
-                    <td>
-                        <span th:if="${c.trangThai}" class="badge-active">Còn bán</span>
-                        <span th:if="${!c.trangThai}" class="badge-locked">Ngừng bán</span>
-                    </td>
-
-                    <td>
-                        <a class="btn-action-lock"
-                           th:href="@{/sanpham/edit/{id}(id=${c.maSanPham})}">
-                            Xem
-                        </a>
-
-                        <a class="btn-trash ms-2"
-                           th:href="@{/sanpham/delete/{id}(id=${c.maSanPham})}"
-                           onclick="return confirm('Xóa sản phẩm này?')">
-                            <i class="bi bi-trash3"></i>
-                        </a>
-                    </td>
-
-                </tr>
-                </tbody>
-
-            </table>
-
-        </div>
-
-    </div>
-</div>
-<script>
-    function resetForm(){
-        document.querySelectorAll("form input").forEach(i => {
-            if(i.type !== "radio" && i.type !== "submit") i.value = "";
-        });
-
-        document.querySelectorAll("input[type=radio]").forEach(r => r.checked = false);
-    }
-</script>
-    <div class="modal fade" id="sanPhamModal" tabindex="-1">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">
-                        <i class="bi bi-plus-circle"></i>
-                        Thêm & Sửa sản phẩm
-                    </h5>
-
-                    <button type="button"
-                            class="btn-close btn-close-white"
-                            data-bs-dismiss="modal">
-                    </button>
-                </div>
-
-                <form method="post"
-                      th:action="@{/sanpham/add}"
-                      th:object="${sanpham}">
-
-                    <div class="modal-body">
-
-                        <div class="row g-3">
-                            <input type="hidden" th:field="*{maSanPham}">
-
-                            <div class="col-md-6">
-                                <label>Tên sản phẩm</label>
-                                <input type="text"
-                                       th:field="*{tenSanPham}"
-                                       class="form-control">
-
-                                <div class="text-danger"
-                                     th:if="${#fields.hasErrors('tenSanPham')}"
-                                     th:text="${#fields.errors('tenSanPham')[0]}">
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label>Mô tả</label>
-                                <input type="text"
-                                       th:field="*{moTa}"
-                                       class="form-control">
-
-                                <div class="text-danger"
-                                     th:if="${#fields.hasErrors('moTa')}"
-                                     th:text="${#fields.errors('moTa')[0]}">
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label>Chất liệu</label>
-                                <select class="form-control" th:field="*{chatLieu.maChatLieu}">
-                                    <option th:each="c : ${listcl}" th:value="${c.maChatLieu}" th:text="${c.tenChatLieu}"></option>
-                                </select>
-
-                                <div class="text-danger"
-                                     th:if="${#fields.hasErrors('chatLieu')}"
-                                     th:text="${#fields.errors('chatLieu')[0]}">
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label>Danh mục</label>
-
-                                <select th:field="*{danhMucSanPham.maDanhMuc}"
-                                        class="form-select">
-
-                                    <option th:each="c : ${listdmsp}"
-                                            th:value="${c.maDanhMuc}"
-                                            th:text="${c.tenDanhMuc}">
-                                    </option>
-
-                                </select>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label>Trạng thái</label>
-
-                                <div>
-                                    <input type="radio"
-                                           th:field="*{trangThai}"
-                                           value="true">
-                                    Còn bán
-
-                                    <input type="radio"
-                                           th:field="*{trangThai}"
-                                           value="false"
-                                           class="ms-3">
-                                    Ngừng bán
-                                </div>
-
-                                <div class="text-danger"
-                                     th:if="${#fields.hasErrors('trangThai')}"
-                                     th:text="${#fields.errors('trangThai')[0]}">
-                                </div>
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <div class="modal-footer">
-
-                        <button type="button"
-                                class="btn btn-secondary"
-                                data-bs-dismiss="modal">
-                            <i class="bi bi-x-circle"></i> Đóng
-                        </button>
-
-                        <button type="submit"
-                                formaction="/sanpham/add"
-                                class="btn "
-                                th:if="${isEdit == null}" style="background:#c92327; color: white">
-                            <i class="bi bi-plus-circle"></i> Thêm
-                        </button>
-
-                        <button type="submit"
-                                formaction="/sanpham/update"
-                                class="btn btn-warning"
-                                th:if="${isEdit != null}">
-                            <i class="bi bi-pencil-square"></i> Sửa
-                        </button>
-
-                    </div>
-
-                </form>
-
+        <div class="content-body px-3">
+
+            <div th:if="${mess}" class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${mess}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
+
+            <div class="card card-custom mb-4 shadow-sm border-0">
+                <div class="card-header text-white" style="background:#c92327;">
+                    <h5 class="mb-0 d-flex align-items-center gap-2 py-1">
+                        <i class="bi bi-sliders"></i>
+                        <span>Bộ lọc & Tìm kiếm sản phẩm</span>
+                    </h5>
+                </div>
+
+                <div class="card-body bg-white p-4">
+                    <form th:action="@{/sanpham/timkiem}" method="get">
+                        <div class="row g-3 align-items-center">
+
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label fw-semibold text-dark small mb-2">
+                                    <i class="bi bi-tags-fill text-danger me-1"></i> Danh mục
+                                </label>
+                                <select name="maDanhMuc" class="form-select py-2 border-secondary-subtle" onchange="this.form.submit()">
+                                    <option value="">Tất cả danh mục</option>
+                                    <option th:each="c : ${listdmsp}"
+                                            th:value="${c.maDanhMuc}"
+                                            th:text="${c.maDanhMuc + ' - ' + c.tenDanhMuc}"
+                                            th:selected="${param.maDanhMuc != null && #strings.toString(c.maDanhMuc) == #strings.toString(param.maDanhMuc)}">
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label fw-semibold text-dark small mb-2">
+                                    <i class="bi bi-toggle-on text-danger me-1"></i> Trạng thái
+                                </label>
+                                <div class="d-flex align-items-center border rounded py-2 px-3 bg-light-subtle border-secondary-subtle" style="height: 41px;">
+                                    <div class="form-check form-check-inline m-0 me-4">
+                                        <input class="form-check-input" type="radio" name="tt" id="ttConBan" value="true" onchange="this.form.submit()" th:checked="${param.tt != null && #strings.toString(param.tt) == 'true'}">
+                                        <label class="form-check-label small fw-medium" for="ttConBan" style="cursor: pointer;">Còn bán</label>
+                                    </div>
+                                    <div class="form-check form-check-inline m-0">
+                                        <input class="form-check-input" type="radio" name="tt" id="ttNgungBan" value="false" onchange="this.form.submit()" th:checked="${param.tt != null && #strings.toString(param.tt) == 'false'}">
+                                        <label class="form-check-label small fw-medium" for="ttNgungBan" style="cursor: pointer;">Ngừng bán</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-4 col-md-8">
+                                <label class="form-label fw-semibold text-dark small mb-2">
+                                    <i class="bi bi-search text-danger me-1"></i> Từ khóa
+                                </label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control py-2 border-secondary-subtle" placeholder="Nhập mã hoặc tên sản phẩm..." name="t" th:value="${param.t}">
+                                    <button class="btn btn-primary px-3 fw-semibold d-flex align-items-center gap-1" type="submit">
+                                        <i class="bi bi-search"></i> Tìm
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-2 col-md-4 text-end d-flex gap-2 justify-content-end align-self-end" style="height: 41px;">
+                                <button type="button" class="btn fw-semibold text-white px-3 w-50 d-flex align-items-center justify-content-center gap-1" data-bs-toggle="modal" data-bs-target="#sanPhamModal" onclick="openAddModal()" style="background:#c92327;">
+                                    <i class="bi bi-plus-lg"></i> Thêm
+                                </button>
+
+                                <a th:href="@{/sanpham/index}" class="btn btn-outline-secondary fw-semibold px-3 w-50 d-flex align-items-center justify-content-center gap-1">
+                                    <i class="bi bi-arrow-clockwise"></i> Reset
+                                </a>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="table-card mt-3">
+                <table class="table-custom">
+                    <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Mã SP</th>
+                        <th>Danh mục</th>
+                        <th>Tên SP</th>
+                        <th>Mô tả</th>
+                        <th>Chất liệu</th>
+                        <th>Ngày tạo</th>
+                        <th>Ngày cập nhật</th>
+                        <th>Trạng thái</th>
+                        <th>Hành động</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="c,count : ${listsp}">
+                        <td th:text="${count.count}"></td>
+                        <td th:text="${c.maSanPham}"></td>
+                        <td th:text="${c.danhMucSanPham.maDanhMuc + ' - ' + c.danhMucSanPham.tenDanhMuc}"></td>
+                        <td th:text="${c.tenSanPham}"></td>
+                        <td th:text="${c.moTa}"></td>
+                        <td th:text="${c.chatLieu.tenChatLieu}"></td>
+                        <td th:text="${c.ngayTao}"></td>
+                        <td th:text="${c.ngayCapNhat}"></td>
+                        <td>
+                            <span th:if="${c.trangThai}" class="badge-active">Còn bán</span>
+                            <span th:if="${!c.trangThai}" class="badge-locked">Ngừng bán</span>
+                        </td>
+                        <td>
+                            <a class="btn-action-lock" th:href="@{/sanpham/edit/{id}(id=${c.maSanPham})}">
+                                Xem
+                            </a>
+                            <a class="btn-trash ms-2" th:href="@{/sanpham/delete/{id}(id=${c.maSanPham})}" onclick="return confirm('Xóa sản phẩm này?')">
+                                <i class="bi bi-trash3"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(listsp)}">
+                        <td colspan="10" class="text-center text-muted py-3">Không có dữ liệu hiển thị</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="sanPhamModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered"> <div class="modal-content border-0 shadow-lg">
+
+        <div class="modal-header text-white" style="background: #c92327;">
+            <h5 class="modal-title d-flex align-items-center gap-2">
+                <i class="bi bi-box-seam-fill"></i>
+                <span>Thông tin chi tiết sản phẩm</span>
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form method="post" th:action="@{/sanpham/add}" th:object="${sanpham}">
+            <div class="modal-body p-4 bg-light-subtle">
+                <div class="row g-3">
+                    <input type="hidden" th:field="*{maSanPham}" id="modalMaSanPham">
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold small text-secondary">Tên sản phẩm <span class="text-danger">*</span></label>
+                        <input type="text" th:field="*{tenSanPham}" class="form-control border-secondary-subtle" id="modalTenSanPham" placeholder="Ví dụ: Nike Air Force 1">
+                        <div class="text-danger small mt-1" th:if="${#fields.hasErrors('tenSanPham')}" th:text="${#fields.errors('tenSanPham')[0]}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold small text-secondary">Danh mục sản phẩm</label>
+                        <select th:field="*{danhMucSanPham.maDanhMuc}" class="form-select border-secondary-subtle" id="modalDanhMuc">
+                            <option th:each="c : ${listdmsp}" th:value="${c.maDanhMuc}" th:text="${c.tenDanhMuc}"></option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold small text-secondary">Chất liệu chính</label>
+                        <select class="form-select border-secondary-subtle" th:field="*{chatLieu.maChatLieu}" id="modalChatLieu">
+                            <option value="">-- Chọn chất liệu --</option>
+                            <option th:each="c : ${listcl}" th:value="${c.maChatLieu}" th:text="${c.tenChatLieu}"></option>
+                        </select>
+                        <div class="text-danger small mt-1" th:if="${#fields.hasErrors('chatLieu')}" th:text="${#fields.errors('chatLieu')[0]}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold small text-secondary d-block mb-2">Trạng thái kinh doanh</label>
+                        <div class="d-flex align-items-center border rounded border-secondary-subtle bg-white px-3" style="height: 38px;">
+                            <div class="form-check form-check-inline m-0 me-4">
+                                <input type="radio" class="form-check-input" th:field="*{trangThai}" value="true" id="modalRadioTrue">
+                                <label class="form-check-label small fw-medium" for="modalRadioTrue">Còn bán</label>
+                            </div>
+                            <div class="form-check form-check-inline m-0">
+                                <input type="radio" class="form-check-input" th:field="*{trangThai}" value="false" id="modalRadioFalse">
+                                <label class="form-check-label small fw-medium" for="modalRadioFalse">Ngừng bán</label>
+                            </div>
+                        </div>
+                        <div class="text-danger small mt-1" th:if="${#fields.hasErrors('trangThai')}" th:text="${#fields.errors('trangThai')[0]}"></div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label fw-semibold small text-secondary">Mô tả chi tiết</label>
+                        <textarea th:field="*{moTa}" class="form-control border-secondary-subtle" id="modalMoTa" rows="3" placeholder="Nhập đặc điểm nổi bật, phong cách phối đồ..."></textarea>
+                        <div class="text-danger small mt-1" th:if="${#fields.hasErrors('moTa')}" th:text="${#fields.errors('moTa')[0]}"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer bg-light border-top p-3">
+                <button type="button" class="btn btn-outline-secondary fw-semibold px-4" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i> Đóng
+                </button>
+
+                <button type="submit" id="btnThem" formaction="/sanpham/add" class="btn fw-semibold text-white px-4" th:style="${isEdit == null ? 'background:#c92327;' : 'display:none;'}">
+                    <i class="bi bi-check-circle-fill me-1"></i> Xác nhận thêm
+                </button>
+
+                <button type="submit" id="btnSua" formaction="/sanpham/update" class="btn btn-warning fw-semibold px-4" th:style="${isEdit != null ? 'display:inline-block;' : 'display:none;'}">
+                    <i class="bi bi-pencil-square me-1"></i> Lưu thay đổi
+                </button>
+            </div>
+        </form>
+    </div>
+    </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
 <script th:if="${showModal}">
     document.addEventListener("DOMContentLoaded", function () {
-        new bootstrap.Modal(
-            document.getElementById('sanPhamModal')
-        ).show();
+        new bootstrap.Modal(document.getElementById('sanPhamModal')).show();
     });
 </script>
+
 <script>
+    // 👉 ĐÃ SỬA: Sửa lại hàm reset form chuẩn xác các ID trường dữ liệu
     function openAddModal() {
+        document.getElementById("modalMaSanPham").value = "";
+        document.getElementById("modalTenSanPham").value = "";
+        document.getElementById("modalMoTa").value = "";
+        document.getElementById("modalChatLieu").value = "";
+        document.getElementById("modalDanhMuc").selectedIndex = 0;
 
-        document.querySelector("[name='maSanPham']").value = "";
-        document.querySelector("[name='tenSanPham']").value = "";
-        document.querySelector("[name='moTa']").value = "";
-        document.querySelector("[name='chatLieu']").value = "";
+        document.getElementById("modalRadioTrue").checked = false;
+        document.getElementById("modalRadioFalse").checked = false;
 
-        document.querySelectorAll("input[name='trangThai']")
-            .forEach(r => r.checked = false);
-
-        document.getElementById("btnThem").classList.remove("d-none");
-        document.getElementById("btnSua").classList.add("d-none");
-
-        bootstrap.Modal.getOrCreateInstance(
-            document.getElementById("sanPhamModal")
-        ).show();
+        // Hoán đổi trạng thái hiển thị của 2 nút Thêm/Sửa
+        document.getElementById("btnThem").style.display = "inline-block";
+        document.getElementById("btnSua").style.display = "none";
     }
 </script>
 </body>

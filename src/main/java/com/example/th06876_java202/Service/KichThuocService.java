@@ -29,7 +29,7 @@ public class KichThuocService {
     }
 
     public boolean existsKichThuocByTenKichThuoc(String ten) {
-        return existsKichThuocByTenKichThuoc(ten);
+        return kichThuocRepository.existsByTenKichThuoc(ten);
     }
 
 }

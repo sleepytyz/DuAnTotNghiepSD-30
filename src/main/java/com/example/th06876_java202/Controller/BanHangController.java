@@ -39,6 +39,26 @@ public class BanHangController {
     public String index( @RequestParam(value = "mahd", required = false) Integer mahd, Model model){
         List<HoaDonChiTiet> hdct = hoaDonChiTietService.findById(mahd);
 
+        HoaDon hoadonHienTai = null;
+        BigDecimal tongTienGioHang = BigDecimal.ZERO;
+
+        if (mahd != null) {
+            hoadonHienTai = hoaDonService.findById(mahd).orElse(null);
+
+            if (hdct != null && !hdct.isEmpty()) {
+                for (HoaDonChiTiet dc : hdct) {
+                    if (dc.getThanhTien() != null) {
+                        tongTienGioHang = tongTienGioHang.add(dc.getThanhTien());
+                    }
+                }
+            }
+        }
+
+        // Đẩy 2 biến quan trọng này ra ngoài View
+        model.addAttribute("hoadonHienTai", hoadonHienTai);
+        model.addAttribute("tongTienGioHang", tongTienGioHang);
+        // -----------------------------
+
         model.addAttribute("listhdct", hdct);
         model.addAttribute("hoadonct", new HoaDonChiTiet());
         model.addAttribute("kh", new KhachHang());
@@ -81,26 +101,78 @@ public class BanHangController {
     }
 
     @PostMapping("/themkh")
-    public String themkhachhang(@ModelAttribute("kh") KhachHang kh, Model model , RedirectAttributes redirectAttributes) {
+    public String themkhachhang(
+            @ModelAttribute("kh") KhachHang kh,
+            @RequestParam(value = "mahd", required = false) Integer mahd, // Đón mã hóa đơn từ giao diện gửi lên
+            Model model,
+            RedirectAttributes redirectAttributes) {
 
+        // 1. Kiểm tra trùng số điện thoại
         if (khachHangService.existsBySoDienThoai(kh.getSdt())){
-            redirectAttributes.addFlashAttribute("kh", "Số điện thoại đã tồn tại");
-            return "redirect:/banhang/index";
+            redirectAttributes.addFlashAttribute("mess", "Số điện thoại đã tồn tại");
+
+            // Nếu có hóa đơn thì quay lại đúng hóa đơn đó, không thì về index chung
+            return mahd != null ? "redirect:/banhang/index?mahd=" + mahd : "redirect:/banhang/index";
         }
-        khachHangService.save(kh);
+
+        // 2. Thêm mới khách hàng vào database bằng hàm của bạn
+        khachHangService.them(kh);
+
+        // Vì hàm 'them(kh)' thường không trả về đối tượng có ID, ta sẽ dùng SĐT vừa thêm để tìm lại khách hàng này từ DB
+        List<KhachHang> danhSachTimDuoc = khachHangService.findBySdt(kh.getSdt());
+
+        // 3. Nếu tìm thấy khách hàng vừa tạo và đang có hóa đơn thao tác, tiến hành gán luôn
+        if (mahd != null && danhSachTimDuoc != null && !danhSachTimDuoc.isEmpty()) {
+            KhachHang khachHangVuaThem = danhSachTimDuoc.get(0); // Lấy khách hàng vừa tạo
+
+            HoaDon hd = hoaDonService.findById(mahd).orElse(null);
+            if (hd != null) {
+                hd.setMaKhachHang(khachHangVuaThem); // Gán khách hàng vào hóa đơn
+                hoaDonService.save(hd);             // Lưu cập nhật hóa đơn
+                redirectAttributes.addFlashAttribute("mess", "Thêm mới và áp dụng khách hàng thành công!");
+            }
+
+            // Quay trở lại đúng hóa đơn hiện tại để không bị mất dữ liệu màn hình
+            return "redirect:/banhang/index?mahd=" + mahd;
+        }
+
+        redirectAttributes.addFlashAttribute("mess", "Thêm khách hàng thành công!");
         return "redirect:/banhang/index";
     }
 
+    @GetMapping("/inhoadon/{id}")
+    public String inHoaDon(@PathVariable("id") Integer id, Model model) {
+        // 1. Tìm hóa đơn theo mã hóa đơn (thay đổi Method tìm kiếm tùy thuộc vào Repository/Service của bạn)
+        HoaDon hoaDon = hoaDonService.findById(id).orElse(null);
 
+        // 2. Lấy danh sách sản phẩm chi tiết của hóa đơn này (Hàm vừa viết ở trên)
+        List<HoaDonChiTiet> listHdct = hoaDonChiTietService.findByHoaDOn(hoaDon);
+
+// 3. Tính tổng tiền bằng BigDecimal (Chuẩn, không lỗi convert, không sai số)
+        BigDecimal tongTien = listHdct.stream()
+                .map(item -> item.getThanhTien() != null ? item.getThanhTien() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+// 4. Đẩy dữ liệu ra giao diện Thymeleaf
+        model.addAttribute("hd", hoaDon);
+        model.addAttribute("listHdct", listHdct);
+        model.addAttribute("tongTien", tongTien); // Thymeleaf vẫn nhận và hiển thị bình thường
+
+        // 5. Trả về file HTML giao diện bản in (nằm trong thư mục src/main/resources/templates/inhoadon.html)
+        return "inhoadon";
+    }
 
     @PostMapping("/taohd")
     public String taohd(@ModelAttribute("hoadon") HoaDon hoaDon, Model model, HttpSession session) {
         hoaDon.setNgayTao(LocalDate.now());
         Account account = (Account) session.getAttribute("user");
-        hoaDon.setMaNhanVien(account.getMaNhanVien());
+        if (account != null) {
+            hoaDon.setMaNhanVien(account.getMaNhanVien());
+        }
         hoaDon.setTrangThai("Đang xử lý");
-        hoaDonService.save(hoaDon);
-        return "redirect:/banhang/index";
+        HoaDon hdVuaLuu = hoaDonService.save(hoaDon);
+
+        return "redirect:/banhang/index?mahd=" + hdVuaLuu.getMaHoaDon();
     }
 
     @GetMapping("/sanpham")
@@ -144,14 +216,18 @@ public class BanHangController {
     }
 
     @PostMapping("/themsphd")
-    public String tsphd(@RequestParam("mahd") Integer mahd, @RequestParam("mactsp") Integer mactsp, @RequestParam("sluong") Integer sluong,
-            @RequestParam("masp") Integer masp ,Model model, RedirectAttributes redirectAttributes){
+    public String tsphd(@RequestParam("mahd") Integer mahd,
+                        @RequestParam("mactsp") Integer mactsp,
+                        @RequestParam("sluong") Integer sluong,
+                        @RequestParam("masp") Integer masp,
+                        Model model,
+                        RedirectAttributes redirectAttributes) {
 
         HoaDon hdd = hoaDonService.findById(mahd).orElse(null);
         SanPhamChiTiet spct = sanPhamChiTietService.findbyId(mactsp).orElse(null);
 
-
-        if(hdd == null){
+        // 1. Kiểm tra các điều kiện đầu vào
+        if (hdd == null) {
             redirectAttributes.addFlashAttribute("mess", "Vui lòng tạo hoá đơn");
             return "redirect:/banhang/index";
         }
@@ -161,76 +237,79 @@ public class BanHangController {
             return "redirect:/banhang/index";
         }
 
-        if(sluong <= 0){
+        if (sluong <= 0) {
             redirectAttributes.addFlashAttribute("mess", "Số lượng phải lớn hơn 0");
             return "redirect:/banhang/index";
         }
 
-        if (sluong > spct.getSoLuongTon()){
+        if (sluong > spct.getSoLuongTon()) {
             redirectAttributes.addFlashAttribute("mess", "Số lượng tồn không đủ");
             return "redirect:/banhang/index";
         }
 
-        HoaDonChiTiet hdct = hoaDonChiTietService.findAll(mahd,mactsp);
-        if (hdct == null){
-            hdct =  new HoaDonChiTiet();
+        // 2. Xử lý cộng dồn số lượng nếu sản phẩm đã có trong giỏ hàng
+        HoaDonChiTiet hdct = hoaDonChiTietService.findAll(mahd, mactsp);
+        if (hdct == null) {
+            hdct = new HoaDonChiTiet();
             hdct.setMaHoaDon(hdd);
             hdct.setSanPhamChiTiet(spct);
             hdct.setSoLuong(sluong);
             hdct.setDonGia(spct.getGiaBan());
-        }else{
+        } else {
             int sluongm = hdct.getSoLuong() + sluong;
 
-            if (sluongm > spct.getSoLuongTon()){
+            if (sluongm > spct.getSoLuongTon()) {
                 redirectAttributes.addFlashAttribute("mess", "Số lượng vượt quá tồn kho");
-                return "redirect:/banhang/index";
+                return "redirect:/banhang/index?mahd=" + mahd;
             }
             hdct.setSoLuong(sluongm);
         }
 
+        // 3. LOGIC TÍNH TOÁN GIẢM GIÁ VÀ THÀNH TIỀN THEO SỐ LƯỢNG
+
+        // Tính tổng tiền gốc trước giảm giá (Đơn giá x Tổng số lượng mới)
         BigDecimal thanhtiengoc = hdct.getDonGia().multiply(BigDecimal.valueOf(hdct.getSoLuong()));
 
-        BigDecimal giamlonnhat = BigDecimal.ZERO;
-
+        // Tìm số tiền giảm giá LỚN NHẤT tính trên 1 SẢN PHẨM
+        BigDecimal giamLonNhatCuaMotSp = BigDecimal.ZERO;
         List<DotGiamGia> listdgg = dotGiamGiaService.getBymasp(spct.getSanPham().getMaSanPham());
 
-        hdct.setThanhTien(hdct.getDonGia().multiply(java.math.BigDecimal.valueOf(hdct.getSoLuong())));
-
         for (DotGiamGia dg : listdgg) {
-            BigDecimal tiengiam = BigDecimal.ZERO;
+            BigDecimal tienGiamCuaMotSp = BigDecimal.ZERO;
 
-            if (dg.getLoaiGiamGia().equalsIgnoreCase("Phần trăm")){
+            if (dg.getLoaiGiamGia().equalsIgnoreCase("Phần trăm")) {
+                // Tiền giảm 1 SP = Đơn giá gốc x % Giảm / 100
+                tienGiamCuaMotSp = hdct.getDonGia().multiply(dg.getGiaTriGiam()).divide(BigDecimal.valueOf(100));
 
-                tiengiam = thanhtiengoc.multiply(dg.getGiaTriGiam()).divide(BigDecimal.valueOf(100));
-
-                if(dg.getGiamToiDa() != null){
-
-                    BigDecimal giamtoida = (dg.getGiamToiDa());
-
-                    if(tiengiam.compareTo(giamtoida) > 0){
-                        tiengiam = giamtoida;
+                // Kiểm tra điều kiện giảm tối đa của 1 sản phẩm nếu có cấu hình
+                if (dg.getGiamToiDa() != null) {
+                    BigDecimal giamtoida = dg.getGiamToiDa();
+                    if (tienGiamCuaMotSp.compareTo(giamtoida) > 0) {
+                        tienGiamCuaMotSp = giamtoida;
                     }
-
                 }
-            }else {
-                tiengiam = dg.getGiaTriGiam();
+            } else {
+                // Nếu giảm theo số tiền mặt cố định (Ví dụ: Giảm thẳng 20k/sản phẩm)
+                tienGiamCuaMotSp = dg.getGiaTriGiam();
             }
 
-            if (tiengiam.compareTo(giamlonnhat) > 0) {
-                giamlonnhat = tiengiam;
+            // Giữ lại chương trình ưu đãi lớn nhất cho 1 sản phẩm
+            if (tienGiamCuaMotSp.compareTo(giamLonNhatCuaMotSp) > 0) {
+                giamLonNhatCuaMotSp = tienGiamCuaMotSp;
             }
-
         }
 
-        hdct.setTienGiam(giamlonnhat);
+        // Tổng tiền giảm thực tế = Tiền giảm của 1 SP x Tổng số lượng khách mua
+        BigDecimal soLuongBd = BigDecimal.valueOf(hdct.getSoLuong());
+        BigDecimal tongTienGiam = giamLonNhatCuaMotSp.multiply(soLuongBd);
 
-        hdct.setThanhTien(
-                thanhtiengoc.subtract(giamlonnhat)
-        );
+        // 4. Đồng bộ dữ liệu xuống Entity và lưu vào database
+        hdct.setTienGiam(tongTienGiam);
+        hdct.setThanhTien(thanhtiengoc.subtract(tongTienGiam));
 
         hoaDonChiTietService.luu(hdct);
 
-        return "redirect:/banhang/index";
+        return "redirect:/banhang/index?mahd=" + mahd;
     }
 
     @PostMapping("/huyhd")
@@ -336,9 +415,62 @@ public class BanHangController {
 
         hoaDonService.save(hd);
 
-        return "redirect:/banhang/index";
+        return "redirect:/banhang/index?mahd=" + mahd;
     }
 
+    @PostMapping("/giamsp")
+    public String giamSanPham(@RequestParam("mahd") Integer mahd, @RequestParam("mactsp") Integer mactsp, RedirectAttributes redirectAttributes) {
 
+        HoaDonChiTiet hdct = hoaDonChiTietService.findAll(mahd, mactsp);
+
+        if (hdct == null) {
+            redirectAttributes.addFlashAttribute("mess", "Không tìm thấy sản phẩm trong hóa đơn");
+            return "redirect:/banhang/index?mahd=" + mahd;
+        }
+
+        int slMoi = hdct.getSoLuong() - 1;
+
+        if (slMoi <= 0) {
+            hoaDonChiTietService.xoa(hdct);
+        } else {
+            // Tính lại tiền giảm bình quân trên 1 sản phẩm trước đó
+            BigDecimal slCu = BigDecimal.valueOf(hdct.getSoLuong());
+            BigDecimal tienGiamMotSp = hdct.getTienGiam().divide(slCu, 2, java.math.RoundingMode.HALF_UP);
+
+            // Gán số lượng mới
+            hdct.setSoLuong(slMoi);
+            BigDecimal slMoiBd = BigDecimal.valueOf(slMoi);
+
+            // Tính toán lại tổng tiền gốc và tổng tiền giảm mới
+            BigDecimal tongTienGocMoi = hdct.getDonGia().multiply(slMoiBd);
+            BigDecimal tongTienGiamMoi = tienGiamMotSp.multiply(slMoiBd);
+
+            hdct.setTienGiam(tongTienGiamMoi);
+            hdct.setThanhTien(tongTienGocMoi.subtract(tongTienGiamMoi));
+
+            hoaDonChiTietService.luu(hdct);
+        }
+
+        return "redirect:/banhang/index?mahd=" + mahd;
+    }
+
+    @PostMapping("/xoasp")
+    public String xoaSanPham(
+            @RequestParam("mahd") Integer mahd,
+            @RequestParam("mactsp") Integer mactsp,
+            RedirectAttributes redirectAttributes
+    ) {
+
+        HoaDonChiTiet hdct = hoaDonChiTietService.findAll(mahd, mactsp);
+
+        if (hdct == null) {
+            redirectAttributes.addFlashAttribute("mess", "Không tìm thấy sản phẩm");
+            return "redirect:/banhang/index?mahd=" + mahd;
+        }
+
+        hoaDonChiTietService.xoa(hdct);
+
+        return "redirect:/banhang/index?mahd=" + mahd;
+    }
 
 }

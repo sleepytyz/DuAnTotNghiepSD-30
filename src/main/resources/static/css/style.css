@@ -772,6 +772,149 @@
         word-break:break-word;
     }
 
+    /* --- CSS BỔ SUNG CHO GIAO DIỆN BÁN HÀNG TẠI QUẦY (POS) --- */
+
+    /* Khung card bo tròn màu trắng chứa giỏ hàng */
+    .pos-left-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        min-height: 620px;
+    }
+
+    /* Các khung card bên phải */
+    .pos-right-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    }
+
+    /* Nút phụ màu xám nhạt (Tạo HĐ, Chọn, Quét SP) */
+    .btn-pos-secondary {
+        background-color: #e9ecef;
+        color: #212529;
+        border: none;
+        font-size: 13px;
+        border-radius: 8px;
+        padding: 10px 12px;
+        transition: all 0.2s;
+    }
+    .btn-pos-secondary:hover {
+        background-color: #dee2e6;
+    }
+
+    /* Nút nhỏ màu đỏ (Chọn KH, Thêm KH) */
+    .btn-pos-danger {
+        background-color: #c92327;
+        color: #ffffff;
+        border: none;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 6px;
+    }
+    .btn-pos-danger:hover {
+        background-color: #b01e21;
+    }
+
+    /* Thanh chuyển đổi Tại quầy / Giao hàng */
+    .pos-delivery-tabs {
+        display: flex;
+        background-color: #e9ecef;
+        padding: 4px;
+        border-radius: 8px;
+    }
+    .pos-delivery-tabs .tab-btn {
+        flex: 1;
+        border: none;
+        background: transparent;
+        padding: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #495057;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+    .pos-delivery-tabs .tab-btn.active {
+        background-color: #ffffff;
+        color: #000000;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    /* Hiệu ứng tab giao hàng có vạch đỏ nhỏ đầu cạnh như ảnh */
+    .pos-delivery-tabs .tab-btn.active:last-child {
+        border-right: 4px solid #c92327;
+    }
+
+    /* Định dạng Input Form phần khách hàng */
+    .pos-form-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .pos-form-group label {
+        width: 110px;
+        font-size: 13px;
+        color: #495057;
+        font-weight: 500;
+        flex-shrink: 0;
+    }
+    .pos-form-group .form-control {
+        background-color: #e9ecef !important;
+        border: none;
+        height: 36px;
+        font-size: 13px;
+    }
+
+    /* Hàng tính toán thông tin tiền nong */
+    .pos-calc-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 14px;
+        font-size: 13.5px;
+    }
+    .pos-calc-row .label {
+        color: #495057;
+        font-weight: 500;
+    }
+    .pos-calc-row .value {
+        font-weight: 500;
+    }
+
+    /* Hai nút Giao hàng và Huỷ hoá đơn màu xám to dưới cùng */
+    .btn-pos-action-gray {
+        background-color: #ced4da;
+        color: #212529;
+        font-weight: 600;
+        font-size: 14px;
+        border: none;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+    .btn-pos-action-gray:hover {
+        background-color: #adb5bd;
+    }
+
+    /* Tùy biến thanh bảng giỏ hàng riêng cho màn hình này */
+    .pos-table-container .table thead tr th {
+        background-color: #c92327 !important;
+        color: white !important;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 12px 8px;
+        border: none;
+    }
+    .pos-table-container .table tbody tr td {
+        padding: 14px 8px;
+        border-bottom: 1px solid #f1f3f5;
+        font-size: 13.5px;
+    }
+    .search-pos-group .form-control:focus {
+        box-shadow: none;
+        border-color: #e2e8f0;
+    }
+
     .sidebar-header { padding: 24px; text-align: center;  }
     .sidebar-header img { max-width: 110px; height: auto; object-fit: contain; }
 

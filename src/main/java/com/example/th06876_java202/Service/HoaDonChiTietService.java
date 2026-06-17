@@ -1,6 +1,7 @@
 package com.example.th06876_java202.Service;
 
 
+import com.example.th06876_java202.Entity.HoaDon;
 import com.example.th06876_java202.Entity.HoaDonChiTiet;
 import com.example.th06876_java202.Repository.HoaDonChiTietRepository;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,14 @@ public class HoaDonChiTietService {
 
     public List<HoaDonChiTiet> findById(Integer id) {
         return hoaDonChiTietRepository.getallsphd(id);
+    }
+
+    public void xoa(HoaDonChiTiet hdct) {
+        hoaDonChiTietRepository.delete(hdct);
+    }
+
+    public List<HoaDonChiTiet> findByHoaDOn(HoaDon hoaDon) {
+        return hoaDonChiTietRepository.findByMaHoaDon(hoaDon);
     }
 
 }

@@ -44,6 +44,13 @@ public class KhachHangService {
          khachHangRepo.updateTrangThai(makh);
     }
 
+    public void them(KhachHang kh) {
+        khachHangRepo.saveee(
+                kh.getHoTen(),
+                kh.getSdt(),
+                kh.getDiaChi()
+        );
+    }
 
 
 }

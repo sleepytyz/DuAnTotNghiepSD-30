@@ -30,12 +30,6 @@ public class KichThuocController {
         return "kichthuoc/index";
     }
 
-//    @GetMapping("/edit/{id}")
-//    public String edit(@PathVariable("makt") int id, Model model) {
-//        KichThuoc listkt = kichThuocService.getKichThuocById(id).orElse(null);
-//        model.addAttribute("listk", listkt);
-//        return "kichthuoc/index";
-//    }
 
     @PostMapping("/add")
     public String add(@ModelAttribute("kichthuoc")@Valid KichThuoc kichThuoc, Errors errors, RedirectAttributes redirectAttributes, Model model) {
@@ -46,7 +40,7 @@ public class KichThuocController {
         }
         if (kichThuocService.existsKichThuocByTenKichThuoc(kichThuoc.getTenKichThuoc())) {
             redirectAttributes.addFlashAttribute("mess", "Kích thước này đã tồn tại");
-            return "kichthuoc/index";
+            return "redirect:/kichthuoc/index";
         }
         kichThuocService.add(kichThuoc);
         return "redirect:/kichthuoc/index";

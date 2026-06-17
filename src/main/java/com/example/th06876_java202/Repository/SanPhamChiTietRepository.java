@@ -20,16 +20,10 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
     int updateTrangThai(int maSanPham);
 
 
-
-
-
     @Modifying
     @Transactional
     @Query(value = "update SanPhamChiTiet set TrangThai = case when SoLuongTon = 0 then N'Hết hàng' when SoLuongTon <= 10 then N'Sắp hết' else N'Còn hàng' end, NgayCapNhat = GETDATE() where MaSanPham = ?", nativeQuery = true)
     int updateTrangThaiii(int maSanPham);
-
-
-
 
 
     List<SanPhamChiTiet> findBySanPham_MaSanPhamAndMauSac(
@@ -39,16 +33,16 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
     @Query( value = "SELECT MIN(ct.maSanPhamChiTiet) FROM SanPhamChiTiet ct JOIN SanPhamHinhAnh ha ON ct.maSanPhamChiTiet = ha.sanPhamChiTiet.maSanPhamChiTiet WHERE ha.laAnhChinh = true GROUP BY ct.sanPham, ct.mauSac")
     List<SanPhamChiTiet> findAllSanPham();
 
-    @Query( value = "select * from SanPhamChiTiet where MauSac = ?", nativeQuery = true)
+    @Query( value = "select * from SanPhamChiTiet where MaMauSac = ?", nativeQuery = true)
     List<SanPhamChiTiet> findByMauSac(String mauSac);
 
-    @Query( value = "select * from SanPhamChiTiet where Size = ?", nativeQuery = true)
+    @Query( value = "select * from SanPhamChiTiet where MaKichThuoc = ?", nativeQuery = true)
     List<SanPhamChiTiet> findBySize(String size);
 
-    @Query( value = "select distinct MauSac from SanPhamChiTiet order by MauSac", nativeQuery = true)
+    @Query( value = "select distinct ms.TenMauSac from SanPhamChiTiet spct inner join MauSac ms on spct.MaMauSac = ms.MaMauSac order by ms.TenMauSac", nativeQuery = true)
     List<String> findAllMauSac();
 
-    @Query( value = "select distinct Size from SanPhamChiTiet order by Size", nativeQuery = true)
+    @Query( value = "select distinct kt.TenKichThuoc from SanPhamChiTiet spct inner join KichThuoc kt on spct.MaKichThuoc = kt.MaKichThuoc order by kt.TenKichThuoc", nativeQuery = true)
     List<String> findAllSize();
 
     @Query( value = "select * from SanPhamChiTiet where TrangThai = ?", nativeQuery = true)

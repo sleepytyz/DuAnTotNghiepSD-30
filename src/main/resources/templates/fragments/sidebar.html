@@ -14,7 +14,7 @@
     <div class="sidebar-menu-wrapper">
       <div class="menu-heading">Chính</div>
       <a href="#"><i class="bi bi-house-door"></i> Trang Chủ</a>
-      <a href="#"><i class="bi bi-cart3"></i> Bán hàng</a>
+      <a href="/banhang/index"><i class="bi bi-cart3"></i> Bán hàng</a>
       <a href="#"
          class="menu-parent"
          onclick="toggleSubMenu(event)">
@@ -64,11 +64,33 @@
         </a>
 
       </div>
-      <a href="/hoa-don"
-         th:classappend="${activeMenu == 'hoadon'} ? ' active'">
-        <i class="bi bi-file-earmark-text"></i>
-        Hóa đơn
+
+      <a href="#"
+         class="menu-parent"
+         onclick="toggleSubMenu(event)">
+
+        <div>
+          <i class="bi bi-receipt-cutoff me-2"></i>
+          Hóa đơn
+        </div>
+
+        <i class="bi bi-chevron-down arrow"></i>
+
       </a>
+
+      <div class="submenu">
+
+        <a href="/donhang/index">
+          <i class="bi bi-truck"></i>
+          Danh sách đơn hàng
+        </a>
+
+        <a href="/hoa-don/index">
+          <i class="bi bi-receipt"></i>
+          Danh sách hóa đơn
+        </a>
+
+      </div>
 
       <div class="menu-heading">Quản Lý</div>
       <a href="/nhan-vien"

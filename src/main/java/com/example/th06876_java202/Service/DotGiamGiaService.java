@@ -34,4 +34,12 @@ public class DotGiamGiaService {
         return dotGiamGiaRepo.findBySanPham(masp);
     }
 
+    public void suaa(Integer id) {
+        dotGiamGiaRepo.updateTrangThai(id);
+    }
+
+    public List<DotGiamGia> filter(String tenGiam, String trangThai, String loaiGiam) {
+        return dotGiamGiaRepo.filterDotGiamGia(tenGiam, trangThai, loaiGiam);
+    }
+
 }

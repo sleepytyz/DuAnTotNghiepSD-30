@@ -28,8 +28,9 @@ public class HoaDon {
     @JoinColumn(name = "MaNhanVien")
     private NhanVien maNhanVien;
 
-    @Column(name = "MaGiamGia")
-    private Integer maGiamGia;
+    @ManyToOne
+    @JoinColumn(name = "MaGiamGia")
+    private DotGiamGia maGiamGia;
 
     @Column(name = "TongTien")
     private BigDecimal tongTien;
@@ -54,4 +55,7 @@ public class HoaDon {
 
     @Column( name = "NgayTao")
     private LocalDate ngayTao;
+
+    @Column( name = "LoaiBan")
+    private String loaiBan;
 }

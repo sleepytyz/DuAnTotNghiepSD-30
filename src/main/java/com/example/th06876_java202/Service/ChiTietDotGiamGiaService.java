@@ -2,6 +2,8 @@ package com.example.th06876_java202.Service;
 import com.example.th06876_java202.Entity.ChiTietDotGiamGia;
 import com.example.th06876_java202.Repository.ChiTietDotGiamGiaRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -35,5 +37,13 @@ public class ChiTietDotGiamGiaService {
                         maGiamGia,
                         maSanPham
                 );
+    }
+
+    public Page<ChiTietDotGiamGia> getAllPage(Pageable pageable) {
+        return repo.findAll(pageable);
+    }
+
+    public List<ChiTietDotGiamGia> filterByMaGiamGia(String maGiamGia) {
+        return repo.filterByDotGiamGia(maGiamGia);
     }
 }

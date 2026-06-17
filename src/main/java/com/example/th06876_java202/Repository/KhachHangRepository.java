@@ -25,6 +25,11 @@ public interface KhachHangRepository extends JpaRepository<KhachHang, Integer> {
 
     boolean existsBySdt(String sdt);
 
+    @Modifying
+    @Transactional
+    @Query(value = " INSERT INTO KhachHang(HoTen, SoDienThoai, DiaChi, TrangThai, HangKhachHang) VALUES (?1, ?2, ?3, 1, N'Mới')", nativeQuery = true)
+    int saveee(String hoTen, String soDienThoai, String diaChi);
+
 
 
 }
