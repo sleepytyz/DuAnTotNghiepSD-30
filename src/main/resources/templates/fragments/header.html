@@ -1,7 +1,7 @@
     <header class="main-header" th:fragment="header(pageTitle, breadcrumb)">
 
         <div class="breadcrumb-box">
-            <a th:href="@{/}">Trang chủ</a>
+            <a th:href="@{/static}">Trang chủ</a>
 
             <span th:if="${breadcrumb != null}">
                 / <span th:text="${breadcrumb}"></span>

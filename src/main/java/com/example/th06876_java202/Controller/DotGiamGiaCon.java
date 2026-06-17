@@ -1,7 +1,6 @@
 package com.example.th06876_java202.Controller;
 
 import com.example.th06876_java202.Entity.DotGiamGia;
-import com.example.th06876_java202.Repository.DotGiamGiaRepo;
 import com.example.th06876_java202.Service.DotGiamGiaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;

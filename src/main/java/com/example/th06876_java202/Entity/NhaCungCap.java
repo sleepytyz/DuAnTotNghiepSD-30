@@ -2,7 +2,6 @@ package com.example.th06876_java202.Entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.util.List;
 
 @Getter
 @Setter

@@ -436,7 +436,7 @@
                                 <th:block th:each="anh : ${c.danhSachAnh}">
 
                                     <img th:if="${anh.laAnhChinh}"
-                                         th:src="@{/sanphamct/image/{id}(id=${anh.maHinhAnh})}"
+                                         th:src="@{/templates/sanphamct/image/{id}(id=${anh.maHinhAnh})}"
                                          width="80"
                                          height="80"
                                          class="shadow-sm rounded"
@@ -449,7 +449,7 @@
                             <td>
 
                                 <a class="btn btn-outline-primary btn-sm"
-                                   th:href="@{/sanphamct/edit/{id}(id=${c.maSanPhamChiTiet})}">
+                                   th:href="@{/templates/sanphamct/edit/{id}(id=${c.maSanPhamChiTiet})}">
                                     <i class="bi bi-eye-fill"></i>
                                 </a>
 

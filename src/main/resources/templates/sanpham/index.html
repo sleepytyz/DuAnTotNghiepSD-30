@@ -126,7 +126,7 @@
 
                             </button>
 
-                            <a th:href="@{/sanpham/index}"
+                            <a th:href="@{/templates/sanpham/index}"
                                class="btn btn-secondary">
 
                                 <i class="bi bi-arrow-clockwise"></i>
@@ -178,12 +178,12 @@
 
                     <td>
                         <a class="btn-action-lock"
-                           th:href="@{/sanpham/edit/{id}(id=${c.maSanPham})}">
+                           th:href="@{/templates/sanpham/edit/{id}(id=${c.maSanPham})}">
                             Xem
                         </a>
 
                         <a class="btn-trash ms-2"
-                           th:href="@{/sanpham/delete/{id}(id=${c.maSanPham})}"
+                           th:href="@{/templates/sanpham/delete/{id}(id=${c.maSanPham})}"
                            onclick="return confirm('Xóa sản phẩm này?')">
                             <i class="bi bi-trash3"></i>
                         </a>
@@ -224,7 +224,7 @@
                 </div>
 
                 <form method="post"
-                      th:action="@{/sanpham/add}"
+                      th:action="@{/templates/sanpham/add}"
                       th:object="${sanpham}">
 
                     <div class="modal-body">

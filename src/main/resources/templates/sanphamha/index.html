@@ -45,7 +45,7 @@
 
                     <form method="post"
                           enctype="multipart/form-data"
-                          th:action="@{/sanphamha/add}">
+                          th:action="@{/templates/sanphamha/add}">
 
                         <div class="row g-3 align-items-end">
 
@@ -155,7 +155,7 @@
 
                             <td>
 
-                                <img th:src="@{/sanphamha/image/{id}(id=${anh.maHinhAnh})}"
+                                <img th:src="@{/templates/sanphamha/image/{id}(id=${anh.maHinhAnh})}"
                                      class="shadow rounded"
                                      width="300"
                                      height="300"
@@ -204,14 +204,14 @@
                             <td>
 
                                 <a class="btn btn-outline-warning btn-sm"
-                                   th:href="@{/sanphamha/set-main/{id}(id=${anh.maHinhAnh})}">
+                                   th:href="@{/templates/sanphamha/set-main/{id}(id=${anh.maHinhAnh})}">
 
                                     <i class="bi bi-star-fill"></i>
 
                                 </a>
 
                                 <a class="btn btn-outline-danger btn-sm"
-                                   th:href="@{/sanphamha/delete/{id}(id=${anh.maHinhAnh})}"
+                                   th:href="@{/templates/sanphamha/delete/{id}(id=${anh.maHinhAnh})}"
                                    onclick="return confirm('Bạn có chắc muốn xóa ảnh này?')">
 
                                     <i class="bi bi-trash-fill"></i>
