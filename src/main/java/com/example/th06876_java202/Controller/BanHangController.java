@@ -2,8 +2,6 @@ package com.example.th06876_java202.Controller;
 
 import com.example.th06876_java202.Entity.*;
 import com.example.th06876_java202.Service.*;
-import com.example.th06876_java202.Entity.*;
-import com.example.th06876_java202.Service.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +11,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Controller
-@RequestMapping("/banhang")
+@RequestMapping("/staff/banhang")
 public class BanHangController {
 
     private final SanPhamService sanPhamService;
@@ -34,42 +32,42 @@ public class BanHangController {
         this.sanPhamService = sanPhamService;
     }
 
-    @GetMapping("/index")
-    public String index( @RequestParam(value = "mahd", required = false) Integer mahd, Model model){
-        List<HoaDonChiTiet> hdct = hoaDonChiTietService.findById(mahd);
+//    @GetMapping("/index")
+//    public String index( @RequestParam(value = "mahd", required = false) Integer mahd, Model model){
+//        List<HoaDonChiTiet> hdct = hoaDonChiTietService.findById(mahd);
+//
+//        model.addAttribute("listhdct", hdct);
+//        model.addAttribute("hoadonct", new HoaDonChiTiet());
+//        model.addAttribute("kh", new KhachHang());
+//        model.addAttribute("hoadon", new HoaDon());
+//
+//        model.addAttribute("listkh", khachHangService.getAllKhachHang());
+//
+//        model.addAttribute("listsanpham",
+//                sanPhamChiTietService.getall());
+//
+//        model.addAttribute("listsanphamms",
+//                sanPhamChiTietService.getMsac());
+//
+//        model.addAttribute("listsanphams",
+//                sanPhamChiTietService.getSize());
+//
+//        return "banhang/index";
+//    }
 
-        model.addAttribute("listhdct", hdct);
-        model.addAttribute("hoadonct", new HoaDonChiTiet());
-        model.addAttribute("kh", new KhachHang());
-        model.addAttribute("hoadon", new HoaDon());
-
-        model.addAttribute("listkh", khachHangService.getKhachHang());
-
-        model.addAttribute("listsanpham",
-                sanPhamChiTietService.getall());
-
-        model.addAttribute("listsanphamms",
-                sanPhamChiTietService.getMsac());
-
-        model.addAttribute("listsanphams",
-                sanPhamChiTietService.getSize());
-
-        return "banhang/index";
-    }
-
-    @GetMapping("/khachhang")
-    public String khachhang(@RequestParam("sdt") String sdt, Model model) {
-        List<KhachHang> kh;
-
-        if (sdt == null || sdt.trim().isEmpty()) {
-            kh = khachHangService.getKhachHang();
-        }else {
-            kh = khachHangService.findBySdt(sdt);
-        }
-        model.addAttribute("listkh", kh);
-        model.addAttribute("kh", new KhachHang());
-        return "banhang/index";
-    }
+//    @GetMapping("/khachhang")
+//    public String khachhang(@RequestParam("sdt") String sdt, Model model) {
+//        List<KhachHang> kh;
+//
+//        if (sdt == null || sdt.trim().isEmpty()) {
+//            kh = khachHangService.getAllKhachHang();
+//        }else {
+//            kh = khachHangService.findBySdt(sdt);
+//        }
+//        model.addAttribute("listkh", kh);
+//        model.addAttribute("kh", new KhachHang());
+//        return "banhang/index";
+//    }
 
     @GetMapping("/hang")
     public String hangkhachhang(@RequestParam("hang") String hang, Model model) {

@@ -155,6 +155,15 @@
             <i class="bi bi-clock-fill"></i>
             Phiên đăng nhập đã hết hạn.
         </div>
+        <div th:if="${param.registered}" class="alert alert-success">
+            <i class="bi bi-check-circle-fill"></i>
+            Bạn đã đăng kí thành công.
+        </div>
+
+        <div th:if="${param.resetSuccess}" class="alert alert-success">
+            <i class="bi bi-check-circle-fill"></i>
+            Đặt lại mật khẩu thành công! Vui lòng đăng nhập.
+        </div>
 
         <form th:action="@{/login}" method="post">
 
@@ -188,6 +197,8 @@
 
         <div class="form-footer">
             Chưa có tài khoản? <a href="/register">Đăng ký ngay</a>
+            <br>
+            <a th:href="@{/forgot}" class="forgot">Quên mật khẩu?</a>
         </div>
     </div>
 

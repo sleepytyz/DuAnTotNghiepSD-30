@@ -29,4 +29,10 @@ public class TaiKhoan {
 
     @Column(name = "TrangThai")
     private Boolean trangThai;
+
+    @OneToOne(mappedBy = "taiKhoan")
+    private KhachHang khachHang;
+
+    @OneToOne(mappedBy = "taiKhoan")
+    private NhanVien nhanVien;
 }

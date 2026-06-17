@@ -54,7 +54,9 @@ public class KhachHang {
     private String ghiChu;
 
     @Column(name = "TrangThai")
-    private Boolean trangThai;
+    private Boolean trangThai = true;
 
-
+    @OneToOne
+    @JoinColumn(name = "MaTaiKhoan")
+    private TaiKhoan taiKhoan;
 }
