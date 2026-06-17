@@ -83,6 +83,19 @@ public class HoaDonController {
     }
 
 
+    @PostMapping("/cap-nhat-trang-thai")
+    @ResponseBody
+    public String capNhatTrangThai(
+            @RequestParam Integer maHoaDon,
+            @RequestParam String trangThai){
 
+        HoaDon hd = service.findById(maHoaDon).get();
+
+        hd.setTrangThai(trangThai);
+
+        service.save(hd);
+
+        return "OK";
+    }
 
 }

@@ -1,7 +1,6 @@
 package com.example.th06876_java202.Repository;
 
 import com.example.th06876_java202.Entity.SanPham;
-import com.example.th06876_java202.Entity.SanPhamChiTiet;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

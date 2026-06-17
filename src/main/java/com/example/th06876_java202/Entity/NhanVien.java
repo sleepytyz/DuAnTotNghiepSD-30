@@ -44,7 +44,7 @@ public class NhanVien {
     @Column(name = "ChucVu", length = 50)
     private String chucVu;
 
-    @Column(name = "LuongCoBan")
+    @Column(name = "LuongCoBan", precision = 18, scale = 2)
     private BigDecimal luongCoBan;
 
     @Column(name = "NgayVaoLam")
@@ -53,8 +53,13 @@ public class NhanVien {
     private Date ngayVaoLam;
 
     @Column(name = "TrangThai")
-    private Boolean trangThai = true;
+    private Boolean trangThai;
 
-    @Column(name = "GhiChu", length = 500)
+    @Column(name = "GhiChu", length = 255)
     private String ghiChu;
+
+    // === THÊM ĐOẠN ĐƯỢC KẾT NỐI NÀY VÀO ===
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "MaTaiKhoan", referencedColumnName = "MaTaiKhoan")
+    private TaiKhoan taiKhoan;
 }

@@ -1,6 +1,9 @@
 package com.example.th06876_java202.Service;
 
-import com.example.th06876_java202.Entity.*;
+import com.example.th06876_java202.Entity.ChiTietNhapHangDTO;
+import com.example.th06876_java202.Entity.PhieuNhapHang;
+import com.example.th06876_java202.Entity.PhieuNhapHangDTO;
+import com.example.th06876_java202.Entity.SanPhamDetailDTO;
 import com.example.th06876_java202.Repository.ChiTietNhapHangRepository;
 import com.example.th06876_java202.Repository.PhieuNhapHangRepository;
 import lombok.RequiredArgsConstructor;
