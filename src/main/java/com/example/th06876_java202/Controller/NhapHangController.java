@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 
 @Controller
-@RequestMapping("/admin/nhap-hang")
+@RequestMapping("/nhap-hang")
 @RequiredArgsConstructor
 public class NhapHangController {
     private final NhapHangService nhapHangService;

@@ -20,7 +20,7 @@ public class ChatLieu {
     private Integer maChatLieu;
 
     @NotBlank(message = "Không bỏ trống tên chất liệu")
-    @Pattern( regexp = "^[\\p{L}\\d\\s]*$", message = "Chất liệu chỉ chứa chữ cái số và khoảng trắng")
+    @Pattern(regexp = "^[\\p{L}\\s]+$", message = "Chất liệu chỉ chứa chữ cái số và khoảng trắng")
     @Column(name = "TenChatLieu")
     private String tenChatLieu;
 

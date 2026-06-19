@@ -11,11 +11,13 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.thymeleaf.extras.springsecurity6.dialect.SpringSecurityDialect; // Thêm import này
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -26,6 +28,12 @@ public class SecurityConfig {
         return new CustomUserDetailsService(taiKhoanService);
     }
 
+    // ĐĂNG KÝ DIALECT ĐỂ THYMELEAF ĐỌC ĐƯỢC #authentication VÀ sec:authorize
+    @Bean
+    public SpringSecurityDialect springSecurityDialect() {
+        return new SpringSecurityDialect();
+    }
+
     @Bean
     DaoAuthenticationProvider daoAuthenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
         DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider(userDetailsService);
@@ -34,29 +42,29 @@ public class SecurityConfig {
     }
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http, UserDetailsService userDetailsService) throws Exception {
+    // Thêm userDetailsService vào tham số ở đây
         http.authorizeHttpRequests((requests) -> requests
-                //ai cũng vào đc, ko cần đăng nhập
+                // ai cũng vào đc, ko cần đăng nhập
                 .requestMatchers("/", "/login", "/register", "/forgot").permitAll()
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
 
-                //đăng nhập rồi mới vào đc
-//                .requestMatchers("/san-pham/**").authenticated()
-
-                //chỉ user mới vào đc
+                // chỉ user mới vào đc
                 .requestMatchers("/user/**").hasRole("USER")
 
-                //admin và staff mới vào đc
+                // admin và staff mới vào đc
                 .requestMatchers("/staff/**").hasAnyRole("ADMIN", "STAFF")
 
-                //chỉ admin mới vào đc
+                // chỉ admin mới vào đc
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated());
+
         http.formLogin(form -> form
                 .loginPage("/login")
                 .defaultSuccessUrl("/", true)
                 .failureUrl("/login?error")
                 .permitAll());
+
         // Cấu hình LOGOUT
         http.logout(logout -> logout
                 .logoutUrl("/logout")
@@ -65,20 +73,22 @@ public class SecurityConfig {
                 .deleteCookies("JSESSIONID", "remember-me")
                 .permitAll()
         );
+
         http.exceptionHandling(exception -> exception.accessDeniedPage("/accessDenied"));
-        //
+
         http.sessionManagement(session -> session
                 .maximumSessions(1)
                 .maxSessionsPreventsLogin(false)
                 .expiredUrl("/login?expired"));
-//        http.httpBasic(withDefaults());
+
         http.rememberMe(r -> r
-                .key("mySecretKey_12345")                    // BẮT BUỘC
-                .rememberMeParameter("remember-me")          // Tên checkbox
-                .tokenValiditySeconds(30 * 24 * 60 * 60)     // 30 ngày
-                .userDetailsService(userDetailsService(null)) // Dùng UserDetailsService
-                .useSecureCookie(false)                      // false vì dùng HTTP
+                .key("mySecretKey_12345")                     // BẮT BUỘC
+                .rememberMeParameter("remember-me")           // Tên checkbox
+                .tokenValiditySeconds(30 * 24 * 60 * 60)      // 30 ngày
+                .userDetailsService(userDetailsService)       // SỬA TẠI ĐÂY: Truyền trực tiếp bean đã được Inject vào hệ thống
+                .useSecureCookie(false)                       // false vì dùng HTTP
         );
+
         return http.build();
     }
 }

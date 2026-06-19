@@ -9,9 +9,92 @@
 
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <style>
-        .form-control:focus, .form-select:focus {
-            border-color: #c92327 !important;
-            box-shadow: 0 0 0 0.25rem rgba(201, 35, 39, 0.15) !important;
+        .pagination-bar {
+            padding: 12px 16px;
+            border-top: 1px solid #E5E7EB;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12.5px;
+            color: #6B7280;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .page-btns {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .page-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            border: 1.5px solid #E5E7EB;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12.5px;
+            font-weight: 500;
+            color: #1A1A1A;
+            text-decoration: none;
+            transition: background .12s, border-color .12s, color .12s;
+            cursor: pointer;
+        }
+
+        .page-btn:hover {
+            background: #F5F6FA;
+            border-color: #9CA3AF;
+        }
+
+        .page-btn.active {
+            background: #E53935;
+            border-color: #E53935;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .page-btn.disabled {
+            opacity: .4;
+            pointer-events: none;
+            cursor: default;
+        }
+
+        .badge-active {
+            background: #10B981;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+        }
+
+        .badge-locked {
+            background: #EF4444;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+        }
+
+        .btn-action-lock {
+            background: #F59E0B;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 12px;
+        }
+
+        .btn-action-lock:hover {
+            background: #D97706;
+            color: white;
+        }
+
+        .btn-trash {
+            color: #EF4444;
+            font-size: 16px;
         }
     </style>
 </head>
@@ -20,228 +103,361 @@
 
 <div class="wrapper">
 
-    <div th:replace="fragments/sidebar :: sidebar"></div>
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
     <div class="content-body">
 
-        <div th:replace="fragments/header :: header('Quản lý khách hàng', 'Khách hàng') "></div>
+        <div th:replace="~{fragments/header :: header('Quản lý khách hàng', 'Khách hàng')}"></div>
 
         <div class="card card-custom mb-4">
+
             <div class="card-header text-white" style="background:#c92327;">
-                <h5 class="mb-0 d-flex align-items-center gap-2">
-                    <i class="bi bi-person-lines-fill"></i>
-                    <span>Danh sách khách hàng</span>
+                <h5 class="mb-0">
+                    <i class="bi bi-pencil-square me-2"></i>
+                    Thông tin khách hàng
                 </h5>
             </div>
 
-            <div class="card-body bg-light border-bottom">
-                <div class="row g-3 align-items-center">
+            <div class="card p-3 mb-3">
+                <div class="row g-2">
+                    <form th:action="@{/khach-hang/locsdt}" method="get" class="col-md-6 row g-2">
+                        <input type="hidden" name="page" value="0">
+                        <div class="col-md-8">
+                            <input type="text" name="sdt" th:value="${sdt}" class="form-control" placeholder="Tìm theo số điện thoại">
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-primary w-100">Tìm SĐT</button>
+                        </div>
+                    </form>
 
-                    <div class="col-xl-5 col-md-6">
-                        <form th:action="@{/khach-hang/locsdt}" method="get">
-                            <div class="input-group">
-                                <span class="input-group-text bg-white text-muted"><i class="bi bi-telephone"></i></span>
-                                <input type="text" name="sdt" class="form-control" placeholder="Tìm theo số điện thoại...">
-                                <button type="submit" class="btn btn-primary px-3 fw-semibold">
-                                    <i class="bi bi-search me-1"></i> Tìm SĐT
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+                    <form th:action="@{/khach-hang/lochang}" method="get" class="col-md-6 row g-2">
+                        <input type="hidden" name="page" value="0">
+                        <div class="col-md-8">
+                            <select name="hang" class="form-select">
+                                <option value="">-- Chọn hạng --</option>
+                                <option value="Mới" th:selected="${hang == 'Mới'}">Mới</option>
+                                <option value="Thành viên" th:selected="${hang == 'Thành viên'}">Thành viên</option>
+                                <option value="VIP" th:selected="${hang == 'VIP'}">VIP</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-success w-100">Lọc</button>
+                        </div>
+                    </form>
+                </div>
 
-                    <div class="col-xl-5 col-md-4">
-                        <form th:action="@{/khach-hang/lochang}" method="get">
-                            <div class="input-group">
-                                <span class="input-group-text bg-white text-muted"><i class="bi bi-award"></i></span>
-                                <select name="hang" class="form-select">
-                                    <option value="">-- Chọn hạng khách hàng --</option>
-                                    <option value="Mới">Mới</option>
-                                    <option value="Thành viên">Thành viên</option>
-                                    <option value="Vip">Vip</option>
-                                </select>
-                                <button type="submit" class="btn btn-success px-3 fw-semibold">
-                                    <i class="bi bi-funnel me-1"></i> Lọc
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-
-                    <div class="col-xl-2 col-md-2 text-md-end">
-                        <a th:href="@{/khach-hang/hien-thi}" class="btn btn-outline-secondary w-100 fw-semibold">
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <a th:href="@{/khach-hang/hien-thi}" class="btn btn-secondary">
                             <i class="bi bi-arrow-clockwise"></i> Reset
                         </a>
                     </div>
-
+<!--                    <div class="col-md-6 text-end">-->
+<!--                        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalThem">-->
+<!--                            <i class="bi bi-plus-circle"></i> Thêm khách hàng-->
+<!--                        </button>-->
+<!--                    </div>-->
                 </div>
             </div>
 
-            <div class="table-card p-3">
+            <div class="table-card mt-4">
                 <table class="table-custom">
                     <thead>
                     <tr>
                         <th>STT</th>
-                        <th>Mã KH</th>
                         <th>Họ tên</th>
+                        <th>Tài khoản</th>
                         <th>SĐT</th>
                         <th>Email</th>
-                        <th>Địa chỉ</th>
-                        <th>Ngày sinh</th>
-                        <th>Giới tính</th>
                         <th>Hạng KH</th>
-                        <th>Ngày đăng ký</th>
+                        <th>Điểm</th>
                         <th>Trạng thái</th>
                         <th>Hành động</th>
                     </tr>
                     </thead>
-
                     <tbody>
-                    <tr th:each="ok,row : ${khachHang}">
-                        <td th:text="${row.count}"></td>
-                        <td th:text="${ok.maKH}"></td>
+                    <tr th:each="ok, row : ${khachHangs}">
+                        <td th:text="${row.count + (currentPage * size)}"></td>
                         <td th:text="${ok.hoTen}"></td>
+                        <td th:text="${ok.taiKhoan != null ? ok.taiKhoan.tenDangNhap : 'Chưa có'}"></td>
                         <td th:text="${ok.sdt}"></td>
                         <td th:text="${ok.email}"></td>
-                        <td th:text="${ok.diaChi}"></td>
-                        <td th:text="${ok.ngaySinh}"></td>
-                        <td th:text="${ok.gioiTinh == true ? 'Nam' : (ok.gioiTinh == false ? 'Nữ' : 'Chưa cập nhật')}"></td>
-                        <td th:text="${ok.hangKhachHang}"></td>
-                        <td th:text="${ok.ngayDangKy}"></td>
                         <td>
-                            <span th:if="${ok.trangThai}" class="badge-active">Hoạt động</span>
-                            <span th:if="${!ok.trangThai}" class="badge-locked">Ngừng hoạt động</span>
+                            <span th:if="${ok.hangKhachHang == 'VIP'}" class="badge bg-warning text-dark">VIP</span>
+                            <span th:if="${ok.hangKhachHang == 'Thành viên'}" class="badge bg-info">Thành viên</span>
+                            <span th:if="${ok.hangKhachHang == 'Mới'}" class="badge bg-secondary">Mới</span>
                         </td>
+                        <td th:text="${ok.diemTichLuy}"></td>
                         <td>
-                            <a class="btn-action-lock" th:href="@{/khach-hang/edit/{id}(id=${ok.maKH})}">
-                                Xem
-                            </a>
-                            <a class="btn-trash ms-2" th:href="@{'/khach-hang/delete/' + ${ok.maKH}}" onclick="return confirm('Bạn có chắc xóa không?')">
-                                <i class="bi bi-trash3"></i>
-                            </a>
+                            <span th:if="${ok.trangThai == true}" class="badge-active">Hoạt động</span>
+                            <span th:if="${ok.trangThai == false}" class="badge-locked">Ngừng hoạt động</span>
+                        </td>
+                        <td class="text-center align-middle">
+                            <div class="btn-group" role="group" aria-label="Hành động">
+                                <!-- Nút Xem/Sửa -->
+                                <a class="btn btn-sm btn-outline-primary"
+                                   th:href="@{/khach-hang/edit/{id}(id=${ok.maKH})}"
+                                   title="Xem chi tiết">
+                                    <i class="bi bi-eye-fill"></i>
+                                </a>
+
+                                <!-- Nút Khóa (Hiển thị khi đang hoạt động) -->
+                                <a th:if="${ok.trangThai}"
+                                   class="btn btn-sm btn-outline-danger"
+                                   th:href="@{/khach-hang/lock/{id}(id=${ok.maKH})}"
+                                   onclick="return confirm('Bạn có chắc chắn muốn KHÓA tài khoản khách hàng này?')"
+                                   title="Khóa tài khoản">
+                                    <i class="bi bi-lock-fill"></i>
+                                </a>
+
+                                <!-- Nút Mở khóa (Hiển thị khi đang bị khóa) -->
+                                <a th:if="${!ok.trangThai}"
+                                   class="btn btn-sm btn-outline-success"
+                                   th:href="@{/khach-hang/unlock/{id}(id=${ok.maKH})}"
+                                   onclick="return confirm('Bạn có chắc chắn muốn MỞ KHÓA tài khoản khách hàng này?')"
+                                   title="Mở khóa tài khoản">
+                                    <i class="bi bi-unlock-fill"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
-                    <tr th:if="${#lists.isEmpty(khachHang)}">
-                        <td colspan="12" class="text-center text-muted py-3">
+                    <tr th:if="${khachHangs == null or khachHangs.isEmpty()}">
+                        <td colspan="12" class="text-center py-4" style="color:#9CA3AF">
+                            <i class="bi bi-inbox" style="font-size:24px;display:block;margin-bottom:6px"></i>
                             Không có dữ liệu khách hàng
                         </td>
                     </tr>
                     </tbody>
                 </table>
-            </div>
 
+                <!-- PAGINATION -->
+                <div class="pagination-bar" th:if="${khachHangPage != null and totalPages > 0}">
+                    <span th:text="${'Hiển thị ' + ((currentPage * size) + 1) + ' – ' + ((currentPage * size) + khachHangs.size()) + ' của ' + totalItems + ' khách hàng'}"></span>
+
+                    <div class="page-btns">
+                        <th:block th:with="
+            isSdt=${sdt != null},
+            isHang=${hang != null},
+            targetUrl=${isSdt ? '/khach-hang/locsdt' : (isHang ? '/khach-hang/lochang' : '/khach-hang/hien-thi')}">
+
+                            <a class="page-btn" th:classappend="${currentPage == 0} ? 'disabled'"
+                               th:href="@{{url}(url=${targetUrl}, page=0, size=${size}, sdt=${sdt}, hang=${hang})}">
+                                <i class="bi bi-chevron-bar-left"></i>
+                            </a>
+
+                            <a class="page-btn" th:classappend="${currentPage == 0} ? 'disabled'"
+                               th:href="@{{url}(url=${targetUrl}, page=${currentPage - 1}, size=${size}, sdt=${sdt}, hang=${hang})}">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+
+                            <th:block th:with="cur=${currentPage}, tot=${totalPages}, from=${T(java.lang.Math).max(0, cur - 2)}, to=${T(java.lang.Math).min(tot - 1, cur + 2)}">
+                                <a class="page-btn" th:each="i : ${#numbers.sequence(from, to)}"
+                                   th:text="${i + 1}" th:classappend="${i == cur} ? 'active'"
+                                   th:href="@{{url}(url=${targetUrl}, page=${i}, size=${size}, sdt=${sdt}, hang=${hang})}"></a>
+                            </th:block>
+
+                            <a class="page-btn" th:classappend="${currentPage == totalPages - 1} ? 'disabled'"
+                               th:href="@{{url}(url=${targetUrl}, page=${currentPage + 1}, size=${size}, sdt=${sdt}, hang=${hang})}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+
+                            <a class="page-btn" th:classappend="${currentPage == totalPages - 1} ? 'disabled'"
+                               th:href="@{{url}(url=${targetUrl}, page=${totalPages - 1}, size=${size}, sdt=${sdt}, hang=${hang})}">
+                                <i class="bi bi-chevron-bar-right"></i>
+                            </a>
+
+                        </th:block>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <form action=""></form>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
-<div class="modal fade" id="khachHangModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+
+<div class="modal fade" id="modalThem" tabindex="-1">
+    <div class="modal-dialog" style="max-width: 650px;">
         <div class="modal-content">
+
             <div class="modal-header" style="background:#c92327; color:white;">
-                <h5 class="modal-title">Thông tin khách hàng</h5>
+                <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i>Thêm khách hàng</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
 
-            <form th:object="${kh}" method="post">
+            <form th:action="@{/khach-hang/add}" method="post" class="w-100 mx-auto">
                 <div class="modal-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Mã khách hàng</label>
-                            <input class="form-control bg-light" th:field="*{maKH}" readonly>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Họ tên</label>
-                            <input class="form-control" th:field="*{hoTen}" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Số điện thoại</label>
-                            <input class="form-control" th:field="*{sdt}" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Email</label>
-                            <input class="form-control" th:field="*{email}" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Địa chỉ</label>
-                            <input class="form-control" th:field="*{diaChi}" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Ngày sinh</label>
-                            <input type="date" class="form-control" th:field="*{ngaySinh}">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold mb-2 d-block">Giới tính</label>
-                            <div class="form-check form-check-inline">
-                                <input type="radio" class="form-check-input" th:field="*{gioiTinh}" value="true" id="gtNam">
-                                <label class="form-check-label" for="gtNam">Nam</label>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Họ tên <span class="text-danger">*</span></label>
+                        <input type="text" name="hoTen" class="form-control" placeholder="Nhập họ tên" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Số điện thoại <span class="text-danger">*</span></label>
+                        <input type="text" name="sdt" class="form-control" placeholder="Nhập số điện thoại" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Email</label>
+                        <input type="email" name="email" class="form-control" placeholder="Nhập email">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Địa chỉ</label>
+                        <input type="text" name="diaChi" class="form-control" placeholder="Nhập địa chỉ">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Ngày sinh</label>
+                        <input type="date" name="ngaySinh" class="form-control">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold d-block">Giới tính</label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="gioiTinh" value="true" id="themNam">
+                                <label class="form-check-label" for="themNam">Nam</label>
                             </div>
-                            <div class="form-check form-check-inline">
-                                <input type="radio" class="form-check-input" th:field="*{gioiTinh}" value="false" id="gtNu">
-                                <label class="form-check-label" for="gtNu">Nữ</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="gioiTinh" value="false" id="themNu">
+                                <label class="form-check-label" for="themNu">Nữ</label>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold mb-2 d-block">Trạng thái</label>
-                            <div class="form-check form-check-inline">
-                                <input type="radio" class="form-check-input" th:field="*{trangThai}" value="true" id="ttHoatDong">
-                                <label class="form-check-label" for="ttHoatDong">Hoạt động</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input type="radio" class="form-check-input" th:field="*{trangThai}" value="false" id="ttNgung">
-                                <label class="form-check-label" for="ttNgung">Ngừng</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Điểm tích lũy</label>
-                            <input type="number" class="form-control" th:field="*{diemTichLuy}">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Hạng khách hàng</label>
-                            <input class="form-control" th:field="*{hangKhachHang}">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Ngày đăng ký</label>
-                            <input type="date" class="form-control bg-light" th:field="*{ngayDangKy}" readonly>
-                        </div>
-                        <div class="col-md-12">
-                            <label class="form-label fw-semibold">Ghi chú</label>
-                            <input class="form-control" th:field="*{ghiChu}">
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
+
+                <div class="modal-footer justify-content-center">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-danger">Lưu</button>
                 </div>
             </form>
+
         </div>
     </div>
 </div>
 
-<script th:if="${showModal}">
+
+<!-- ══════════════════════════════════════════
+     MODAL 2 — XEM KHÁCH HÀNG (readonly, hiện đủ)
+     Mở từ server khi isEdit=true
+═══════════════════════════════════════════ -->
+<div class="modal fade" id="modalXem" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header" style="background:#c92327; color:white;">
+                <h5 class="modal-title"><i class="bi bi-person-lines-fill me-2"></i>Thông tin khách hàng</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body" th:object="${kh}">
+                <div class="row g-3">
+
+                    <!-- Mã KH -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted">Mã khách hàng</label>
+                        <input class="form-control bg-light" th:value="*{maKH}" readonly>
+                    </div>
+
+                    <!-- Họ tên -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted">Họ tên</label>
+                        <input class="form-control bg-light" th:value="*{hoTen}" readonly>
+                    </div>
+
+                    <!-- SĐT -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted">Số điện thoại</label>
+                        <input class="form-control bg-light" th:value="*{sdt}" readonly>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted">Email</label>
+                        <input class="form-control bg-light" th:value="*{email}" readonly>
+                    </div>
+
+                    <!-- Địa chỉ -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted">Địa chỉ</label>
+                        <input class="form-control bg-light" th:value="*{diaChi}" readonly>
+                    </div>
+
+                    <!-- Ngày sinh -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted">Ngày sinh</label>
+                        <input type="date" class="form-control bg-light" th:value="*{ngaySinh}" readonly>
+                    </div>
+
+                    <!-- Giới tính -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted d-block">Giới tính</label>
+                        <div class="d-flex align-items-center gap-4 mt-1">
+                            <div class="form-check mb-0">
+                                <input class="form-check-input" type="radio" disabled
+                                       th:checked="*{gioiTinh == true}" id="xemNam">
+                                <label class="form-check-label" for="xemNam">Nam</label>
+                            </div>
+                            <div class="form-check mb-0">
+                                <input class="form-check-input" type="radio" disabled
+                                       th:checked="*{gioiTinh == false}" id="xemNu">
+                                <label class="form-check-label" for="xemNu">Nữ</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trạng thái -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted d-block">Trạng thái</label>
+                        <span th:if="*{trangThai == true}" class="badge-active">Hoạt động</span>
+                        <span th:if="*{trangThai == false}" class="badge-locked">Ngừng hoạt động</span>
+                    </div>
+
+                    <!-- Hạng KH -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted">Hạng khách hàng</label>
+                        <input class="form-control bg-light" th:value="*{hangKhachHang}" readonly>
+                    </div>
+
+                    <!-- Điểm tích lũy -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted">Điểm tích lũy</label>
+                        <input class="form-control bg-light" th:value="*{diemTichLuy}" readonly>
+                    </div>
+
+                    <!-- Ngày đăng ký -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted">Ngày đăng ký</label>
+                        <input type="date" class="form-control bg-light" th:value="*{ngayDangKy}" readonly>
+                    </div>
+
+                    <!-- Ghi chú -->
+                    <div class="col-md-12">
+                        <label class="form-label fw-semibold text-muted">Ghi chú</label>
+                        <input class="form-control bg-light" th:value="*{ghiChu}" readonly>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<script th:if="${showModal == true and isEdit == true}">
     document.addEventListener("DOMContentLoaded", function () {
-        new bootstrap.Modal(document.getElementById('khachHangModal')).show();
+        new bootstrap.Modal(document.getElementById('modalXem')).show();
     });
 </script>
-<script>
-    function openAddKhachHang() {
-        const form = document.querySelector("#khachHangModal form");
-        form.querySelector("[name='maKH']").value = "";
-        form.querySelector("[name='hoTen']").value = "";
-        form.querySelector("[name='sdt']").value = "";
-        form.querySelector("[name='email']").value = "";
-        form.querySelector("[name='diaChi']").value = "";
-        form.querySelector("[name='ngaySinh']").value = "";
-        form.querySelector("[name='diemTichLuy']").value = "";
-        form.querySelector("[name='hangKhachHang']").value = "";
-        form.querySelector("[name='ngayDangKy']").value = "";
-        form.querySelector("[name='ghiChu']").value = "";
 
-        form.querySelectorAll("input[name='gioiTinh']").forEach(r => r.checked = false);
-        form.querySelectorAll("input[name='trangThai']").forEach(r => r.checked = false);
-
-        document.querySelector("button[formaction='/khach-hang/add']").style.display = "inline-block";
-        document.querySelector("button[formaction='/khach-hang/update']").style.display = "none";
-    }
-</script>
 </body>
 </html>

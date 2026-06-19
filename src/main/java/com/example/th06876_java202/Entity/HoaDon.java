@@ -30,7 +30,7 @@ public class HoaDon {
 
     @ManyToOne
     @JoinColumn(name = "MaGiamGia")
-    private DotGiamGia maGiamGia;
+    private GiamGia maGiamGia;
 
     @Column(name = "TongTien")
     private BigDecimal tongTien;

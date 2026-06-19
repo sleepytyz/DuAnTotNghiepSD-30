@@ -1,6 +1,8 @@
 package com.example.th06876_java202.Entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -35,14 +37,17 @@ public class SanPhamChiTiet {
     private MauSac mauSac;
 
     @NotNull(message = "Giá nhập không được để trống")
+    @DecimalMin(value = "0", message = "Giá nhập phải lớn hơn 0")
     @Column(name = "GiaNhap")
     private BigDecimal giaNhap;
 
     @NotNull(message = "Giá bán không được để trống")
+    @DecimalMin(value = "0", message = "Giá bán phải lớn hơn 0")
     @Column(name = "GiaBan")
     private BigDecimal giaBan;
 
     @NotNull(message = "Số lượng tồn không được để trống")
+    @Min(value = 0, message = "Số lượng không được âm")
     @Column(name = "SoLuongTon")
     private Integer soLuongTon;
 
@@ -58,20 +63,5 @@ public class SanPhamChiTiet {
     @OneToMany(mappedBy = "sanPhamChiTiet")
     private List<SanPhamHinhAnh> danhSachAnh;
 
-    public String getTrangThaiHienThi() {
 
-        if ("Ngừng bán".equals(this.trangThai)) {
-            return "Ngừng bán";
-        }
-
-        if (this.soLuongTon == null || this.soLuongTon == 0) {
-            return "Hết hàng";
-        }
-
-        if (this.soLuongTon < 10) {
-            return "Sắp hết";
-        }
-
-        return "Còn hàng";
-    }
 }

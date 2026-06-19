@@ -3,10 +3,9 @@ package com.example.th06876_java202.Controller;
 import com.example.th06876_java202.Entity.ChatLieu;
 import com.example.th06876_java202.Entity.DanhMucSanPham;
 import com.example.th06876_java202.Entity.SanPham;
-import com.example.th06876_java202.Service.ChatLieuService;
-import com.example.th06876_java202.Service.DanhMucSanPhamService;
-import com.example.th06876_java202.Service.SanPhamChiTietService;
-import com.example.th06876_java202.Service.SanPhamService;
+import com.example.th06876_java202.Entity.TaiKhoan;
+import com.example.th06876_java202.Repository.TaiKhoanRepository;
+import com.example.th06876_java202.Service.*;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,29 +13,32 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.security.Principal;
 import java.time.LocalDate;
 import java.util.List;
 
 @Controller
-@RequestMapping("/staff/sanpham")
+@RequestMapping("/sanpham")
 public class SanPhamController {
 
     private final DanhMucSanPhamService danhMucSanPhamService;
     private final SanPhamService sanPhamService;
     private final ChatLieuService chatLieuService;
     private final SanPhamChiTietService sanPhamChiTietService;
+    private final TaiKhoanRepository taiKhoanRepository;
 
     public SanPhamController( DanhMucSanPhamService danhMucSanPhamService, SanPhamService sanPhamService, ChatLieuService chatLieuService,
-                              SanPhamChiTietService sanPhamChiTietService) {
+                              SanPhamChiTietService sanPhamChiTietService, TaiKhoanRepository taiKhoanRepository) {
         this.danhMucSanPhamService = danhMucSanPhamService;
         this.sanPhamService = sanPhamService;
         this.chatLieuService = chatLieuService;
         this.sanPhamChiTietService = sanPhamChiTietService;
+        this.taiKhoanRepository = taiKhoanRepository;
     }
 
 
     @GetMapping("/index")
-    public String index(Model model) {
+    public String index(Model model, Principal principal) {
         model.addAttribute("activeMenu", "sanpham");
         List<SanPham> Listsp = sanPhamService.getAll();
         List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();

@@ -21,7 +21,7 @@ public class MauSac {
 
     @NotBlank(message = "Không bỏ trống màu sắc")
     @Pattern(
-            regexp = "^[\\p{L}\\d\\s\\+]*$",
+            regexp = "^[\\p{L}\\s]+$",
             message = "Màu sắc chỉ chứa chữ cái, số, khoảng trắng và dấu +"
     )
     @Column(name = "TenMauSac")

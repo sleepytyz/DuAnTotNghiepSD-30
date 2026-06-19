@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Quản Lý Nhân Viên</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
@@ -17,119 +17,117 @@
         <div th:replace="fragments/header :: header('Quản lý nhân viên', 'Nhân viên')"></div>
 
         <div class="page-content">
-            <div class="card card-custom mb-4">
+            <div class="card card-custom mb-4 shadow-sm">
                 <div class="card-header text-white" style="background:#c92327;">
                     <h5 class="mb-0">
-                        <i class="bi bi-pencil-square me-2"></i>
-                        Bộ lọc tìm kiếm
+                        <i class="bi bi-funnel-fill me-2"></i>Bộ lọc tìm kiếm
                     </h5>
                 </div>
 
-                <form method="GET" th:action="@{/nhan-vien}" class="card-body">
-                    <div class="filter-row">
-                        <div class="form-group">
-                            <label>Từ khóa</label>
-                            <input type="text" class="form-control" name="keyword" placeholder="Tên hoặc số điện thoại">
+                <form method="GET" th:action="@{/nhan-vien}" id="filterForm" class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">Từ khóa</label>
+                            <input type="text" class="form-control" name="keyword" th:value="${keyword}" placeholder="Tên hoặc số điện thoại...">
                         </div>
-                        <div class="form-group">
-                            <label>Chức vụ</label>
-                            <select class="form-select" name="role">
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-medium">Chức vụ</label>
+                            <select class="form-select" name="role" onchange="this.form.submit()">
                                 <option value="">Tất cả</option>
-                                <option value="Quản lý">Quản lý</option>
-                                <option value="Nhân viên">Nhân viên</option>
+                                <option value="Quản lý" th:selected="${role == 'Quản lý'}">Quản lý</option>
+                                <option value="Nhân viên" th:selected="${role == 'Nhân viên'}">Nhân viên</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Trạng thái</label>
-                            <select class="form-select" name="status">
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-medium">Trạng thái</label>
+                            <select class="form-select" name="status" onchange="this.form.submit()">
                                 <option value="">Tất cả</option>
-                                <option value="true">Đang làm việc</option>
-                                <option value="false">Đã nghỉ việc</option>
+                                <option value="1" th:selected="${status == '1'}">Đang làm việc</option>
+                                <option value="0" th:selected="${status == '0'}">Đã nghỉ việc</option>
                             </select>
                         </div>
-                        <div class="filter-actions">
-                            <button type="submit" class="btn-search">
-                                <i class="bi bi-search"></i>
-                                Tìm kiếm
+
+                        <div class="col-md-2 d-flex align-items-end gap-2">
+                            <button type="submit" class="btn btn-danger w-100">
+                                <i class="bi bi-search me-1"></i> Lọc
                             </button>
-                            <a th:href="@{/nhan-vien}" class="btn-reset">
-                                <i class="bi bi-arrow-clockwise"></i>
-                                Reset
+                            <a th:href="@{/nhan-vien}" class="btn btn-outline-secondary w-100">
+                                <i class="bi bi-arrow-clockwise"></i> Clear
                             </a>
                         </div>
                     </div>
                 </form>
             </div>
 
-            <div class="table-card">
-                <div class="table-responsive">
-                    <table class="table table-nhanvien">
-                        <thead>
-                        <tr>
-                            <th>Mã NV</th>
-                            <th>Họ và tên</th>
-                            <th>SĐT</th>
-                            <th>Email</th>
-                            <th>Chức vụ</th>
-                            <th>Tên tài khoản</th>
-                            <th>Trạng thái</th>
-                            <th width="100">Thao tác</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="nv : ${list}">
-                            <td th:text="${nv.maNhanVien}"></td>
-                            <td class="fw-semibold" th:text="${nv.hoTen}"></td>
-                            <td th:text="${nv.soDienThoai}"></td>
-                            <td th:text="${nv.email}"></td>
-                            <td th:text="${nv.chucVu}"></td>
-                            <td class="fw-bold text-primary" th:text="${nv.taiKhoan != null ? nv.taiKhoan.tenDangNhap : 'Chưa cấp'}"></td>
-                            <td>
-                                <span th:if="${nv.trangThai}" class="badge bg-success-subtle text-success">
-                                    Đang làm việc
-                                </span>
-                                <span th:if="${!nv.trangThai}" class="badge bg-danger-subtle text-danger">
-                                    Nghỉ việc
-                                </span>
-                            </td>
-                            <td class="action-cell">
-                                <button type="button"
-                                        class="btn-detail"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#nhanVienModal"
-                                        th:data-id="${nv.maNhanVien}"
-                                        th:data-hoten="${nv.hoTen}"
-                                        th:data-sdt="${nv.soDienThoai}"
-                                        th:data-email="${nv.email}"
-                                        th:data-chucvu="${nv.chucVu}"
-                                        th:data-tentaikhoan="${nv.taiKhoan != null ? nv.taiKhoan.tenDangNhap : ''}"
-                                        th:data-diachi="${nv.diaChi}"
-                                        th:data-ghichu="${nv.ghiChu}"
-                                        th:data-gioitinh="${nv.gioiTinh}"
-                                        th:data-trangthai="${nv.trangThai}"
-                                        th:data-ngaysinh="${nv.ngaySinh}"
-                                        th:data-ngayvaolam="${nv.ngayVaoLam}"
-                                        onclick="openEditModal(this)">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                            </td>
-                        </tr>
-                        <tr th:if="${#lists.isEmpty(list)}">
-                            <td colspan="8" class="text-center py-5 text-muted">
-                                Không có dữ liệu nhân viên
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                        <h5 class="mb-0 fw-bold text-secondary">Danh Sách Nhân Viên</h5>
+                        <button type="button" class="btn btn-success btn-sm px-3" data-bs-toggle="modal" data-bs-target="#nhanVienModal" onclick="clearForm()">
+                            <i class="bi bi-plus-circle me-1"></i> Thêm nhân viên
+                        </button>
+                    </div>
 
-                    <button type="button"
-                            class="btn-add-account"
-                            data-bs-toggle="modal"
-                            data-bs-target="#nhanVienModal"
-                            onclick="clearForm()">
-                        <i class="bi bi-plus-circle"></i>
-                        Thêm nhân viên
-                    </button>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light text-uppercase fs-7">
+                            <tr>
+                                <th class="ps-3">Mã NV</th>
+                                <th>Họ và tên</th>
+                                <th>SĐT / Email</th>
+                                <th>Chức vụ</th>
+                                <th>Tài khoản</th>
+                                <th>Trạng thái</th>
+                                <th width="80" class="text-center">Hành động</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="nv : ${list}">
+                                <td class="ps-3 fw-bold" th:text="${nv.maNhanVien}"></td>
+                                <td>
+                                    <div th:text="${nv.hoTen}" class="fw-semibold text-dark"></div>
+                                    <small class="text-muted" th:text="${nv.gioiTinh ? 'Nam' : 'Nữ'}"></small>
+                                </td>
+                                <td>
+                                    <div th:text="${nv.soDienThoai}"></div>
+                                    <small class="text-muted" th:text="${nv.email}"></small>
+                                </td>
+                                <td><span class="badge bg-secondary-subtle text-secondary" th:text="${nv.chucVu}"></span></td>
+                                <td class="fw-bold text-primary" th:text="${nv.taiKhoan != null ? nv.taiKhoan.tenDangNhap : 'Chưa cấp'}"></td>
+                                <td>
+                                    <span th:if="${nv.trangThai}" class="badge bg-success-subtle text-success">Đang làm việc</span>
+                                    <span th:if="${!nv.trangThai}" class="badge bg-danger-subtle text-danger">Nghỉ việc</span>
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-outline-primary btn-sm"
+                                            data-bs-toggle="modal" data-bs-target="#nhanVienModal"
+                                            th:data-id="${nv.maNhanVien}"
+                                            th:data-hoten="${nv.hoTen}"
+                                            th:data-sdt="${nv.soDienThoai}"
+                                            th:data-email="${nv.email}"
+                                            th:data-chucvu="${nv.chucVu}"
+                                            th:data-tentaikhoan="${nv.taiKhoan != null ? nv.taiKhoan.tenDangNhap : ''}"
+                                            th:data-diachi="${nv.diaChi}"
+                                            th:data-ghichu="${nv.ghiChu}"
+                                            th:data-gioitinh="${nv.gioiTinh}"
+                                            th:data-trangthai="${nv.trangThai}"
+                                            th:data-ngaysinh="${nv.ngaySinh}"
+                                            th:data-ngayvaolam="${nv.ngayVaoLam}"
+                                            onclick="openEditModal(this)">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(list)}">
+                                <td colspan="7" class="text-center py-5 text-muted">
+                                    <i class="bi bi-inbox fs-2 d-block mb-2"></i> Không tìm thấy dữ liệu nhân viên
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -138,10 +136,10 @@
 
 <div class="modal fade" id="nhanVienModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 12px;">
-            <div class="modal-header bg-light">
-                <h5 class="modal-title fw-bold text-dark" id="modalTitle">Thông Tin Nhân Viên</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fw-bold" id="modalTitle">Thông Tin Nhân Viên</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form th:action="@{/nhan-vien/save}" th:object="${nhanVien}" method="POST">
                 <div class="modal-body p-4">
@@ -150,59 +148,98 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Họ và Tên <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="modalHoTen" th:field="*{hoTen}" required placeholder="Nguyễn Văn A">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Số Điện Thoại</label>
-                            <input type="text" class="form-control" id="modalSoDienThoai" th:field="*{soDienThoai}" placeholder="0987654321">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Email</label>
-                            <input type="email" class="form-control" id="modalEmail" th:field="*{email}" placeholder="example@gmail.com">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Ngày Sinh</label>
-                            <input type="date" class="form-control" id="modalNgaySinh" th:field="*{ngaySinh}">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Giới Tính</label>
-                            <select class="form-select" id="modalGioiTinh" th:field="*{gioiTinh}">
-                                <option th:value="true">Nam</option>
-                                <option th:value="false">Nữ</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Chức Vụ</label>
-                            <input type="text" class="form-control" id="modalChucVu" th:field="*{chucVu}" placeholder="Nhân viên / Quản lý">
+                            <input type="text" id="modalHoTen" class="form-control" th:field="*{hoTen}" placeholder="Nguyễn Văn A">
+                            <span class="text-danger small" th:if="${#fields.hasErrors('hoTen')}" th:errors="*{hoTen}"></span>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Tên Tài Khoản (Đăng nhập)</label>
-                            <input type="text" class="form-control" id="modalTenTaiKhoan" th:field="*{taiKhoan.tenDangNhap}" placeholder="Nhập tên tài khoản">
+                            <label class="form-label fw-semibold">Số Điện Thoại</label>
+                            <input type="tel" id="modalSoDienThoai" class="form-control" th:field="*{soDienThoai}" placeholder="0987654321">
+                            <span class="text-danger small" th:if="${#fields.hasErrors('soDienThoai')}" th:errors="*{soDienThoai}"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Email</label>
+                            <input type="email" id="modalEmail" class="form-control" th:field="*{email}">
+                            <div class="text-danger"
+                                 th:if="${#fields.hasErrors('email')}"
+                                 th:errors="*{email}">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Ngày Sinh</label>
+                            <input type="date" id="modalNgaySinh" class="form-control" th:field="*{ngaySinh}">
+                            <div class="text-danger"
+                                 th:if="${#fields.hasErrors('ngaySinh')}"
+                                 th:errors="*{ngaySinh}">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Giới Tính</label>
+                            <select class="form-select" id="modalGioiTinh" th:field="*{gioiTinh}">
+                                <option value="true">Nam</option>
+                                <option value="false">Nữ</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Chức Vụ</label>
+                            <select class="form-select" id="modalChucVu" th:field="*{chucVu}">
+                                <option value="Nhân viên">Nhân viên</option>
+                                <option value="Quản lý">Quản lý</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="p-3 bg-light rounded-2 border">
+                                <h6 class="fw-bold mb-3 text-secondary text-uppercase fs-7"><i class="bi bi-shield-lock me-1"></i> Tài khoản hệ thống</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-medium">Tên đăng nhập</label>
+                                        <input type="text" id="modalTenTaiKhoan" class="form-control" th:field="*{taiKhoan.tenDangNhap}">
+                                    </div>
+                                    <div class="col-md-6" id="passwordWrapper">
+                                        <label class="form-label fw-medium">Mật khẩu</label>
+                                        <input type="text"
+                                               id="modalMatKhau"
+                                               class="form-control"
+                                               th:field="*{taiKhoan.matKhau}">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Ngày Vào Làm</label>
-                            <input type="date" class="form-control" id="modalNgayVaoLam" th:field="*{ngayVaoLam}">
+                            <input type="date" id="modalNgayVaoLam" class="form-control" th:field="*{ngayVaoLam}" readonly>
                         </div>
+
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Trạng Thái Làm Việc</label>
                             <select class="form-select" id="modalTrangThai" th:field="*{trangThai}">
-                                <option th:value="true">Đang làm việc</option>
-                                <option th:value="false">Đã nghỉ việc</option>
+                                <option value="true">Đang làm việc</option>
+                                <option value="false">Đã nghỉ việc</option>
                             </select>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Ghi Chú</label>
-                            <input type="text" class="form-control" id="modalGhiChu" th:field="*{ghiChu}">
-                        </div>
+
                         <div class="col-md-12">
                             <label class="form-label fw-semibold">Địa Chỉ</label>
-                            <input type="text" class="form-control" id="modalDiaChi" th:field="*{diaChi}" placeholder="Số nhà, Tên đường...">
+                            <input type="text" id="modalDiaChi" class="form-control" th:field="*{diaChi}">
+                            <div class="text-danger"
+                                 th:if="${#fields.hasErrors('diaChi')}"
+                                 th:errors="*{diaChi}">
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label  fw-semibold">Ghi Chú</label>
+                            <textarea class="form-control" id="modalGhiChu" th:field="*{ghiChu}" rows="2"></textarea>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer bg-light">
+                <div class="modal-footer bg-light border-top">
                     <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Hủy</button>
                     <button type="submit" class="btn btn-danger px-4">Lưu Lại</button>
                 </div>
@@ -211,24 +248,26 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // Hàm reset form khi nhấn nút thêm mới nhân viên
     function clearForm() {
-        document.getElementById('modalTitle').innerText = "Thêm Nhân Viên Mới";
-        document.getElementById('modalMaNhanVien').value = "";
-        document.getElementById('modalHoTen').value = "";
-        document.getElementById('modalSoDienThoai').value = "";
-        document.getElementById('modalEmail').value = "";
-        document.getElementById('modalNgaySinh').value = "";
-        document.getElementById('modalGioiTinh').value = "true";
-        document.getElementById('modalChucVu').value = "";
-        document.getElementById('modalTenTaiKhoan').value = ""; // Đã đổi từ lương cơ bản sang tên tài khoản
-        document.getElementById('modalNgayVaoLam').value = "";
-        document.getElementById('modalTrangThai').value = "true";
-        document.getElementById('modalDiaChi').value = "";
-        document.getElementById('modalGhiChu').value = "";
+
+        document.querySelector("#nhanVienModal form").reset();
+
+        document.getElementById("modalTitle").innerText =
+            "Thêm Nhân Viên Mới";
+
+        document.querySelectorAll(".text-danger").forEach(el => {
+            if (!el.querySelector("*")) {
+                el.textContent = "";
+            }
+        });
     }
+
+    document.getElementById('nhanVienModal')
+        .addEventListener('hidden.bs.modal', function () {
+            clearForm();
+        });
 
     // Hàm load dữ liệu nhân viên cũ lên form modal khi ấn nút Sửa
     function openEditModal(button) {
@@ -238,25 +277,32 @@
         document.getElementById('modalHoTen').value = button.getAttribute('data-hoten') || '';
         document.getElementById('modalSoDienThoai').value = button.getAttribute('data-sdt') || '';
         document.getElementById('modalEmail').value = button.getAttribute('data-email') || '';
-        document.getElementById('modalChucVu').value = button.getAttribute('data-chucvu') || '';
-        document.getElementById('modalTenTaiKhoan').value = button.getAttribute('data-tentaikhoan') || ''; // Load tên tài khoản lên input
+        document.getElementById('modalChucVu').value = button.getAttribute('data-chucvu') || 'Nhân viên';
+        document.getElementById('modalTenTaiKhoan').value = button.getAttribute('data-tentaikhoan') || '';
+
+        // Khi sửa, khóa không cho đổi Tên đăng nhập trực tiếp (hoặc mở nếu muốn)
+        if(button.getAttribute('data-tentaikhoan')) {
+            document.getElementById('modalTenTaiKhoan').readOnly = true;
+        } else {
+            document.getElementById('modalTenTaiKhoan').readOnly = false;
+        }
+
         document.getElementById('modalDiaChi').value = button.getAttribute('data-diachi') || '';
         document.getElementById('modalGhiChu').value = button.getAttribute('data-ghichu') || '';
-
         document.getElementById('modalGioiTinh').value = button.getAttribute('data-gioitinh');
         document.getElementById('modalTrangThai').value = button.getAttribute('data-trangthai');
 
-        // Định dạng ngày tháng năm hợp lệ cho thẻ input date
-        let ngaySinhRaw = button.getAttribute('data-ngaysinh');
-        if (ngaySinhRaw) document.getElementById('modalNgaySinh').value = formatDateString(ngaySinhRaw);
-        else document.getElementById('modalNgaySinh').value = "";
+        // Ẩn ô mật khẩu khi sửa để tránh đè mật khẩu cũ (quá trình đổi mật khẩu nên làm ở trang riêng)
+        document.getElementById('passwordWrapper').style.display = "none";
+        document.getElementById('modalMatKhau').required = false;
 
-        let ngayVaoLamRaw = button.getAttribute('data-ngayvaolam');
-        if (ngayVaoLamRaw) document.getElementById('modalNgayVaoLam').value = formatDateString(ngayVaoLamRaw);
-        else document.getElementById('modalNgayVaoLam').value = "";
+        document.getElementById('modalNgaySinh').value =
+            button.getAttribute('data-ngaysinh') || '';
+
+        document.getElementById('modalNgayVaoLam').value =
+            button.getAttribute('data-ngayvaolam') || '';
     }
 
-    // Hàm chuyển đổi định dạng date chuẩn ISO (yyyy-MM-dd)
     function formatDateString(dateStr) {
         if(!dateStr) return "";
         let d = new Date(dateStr);
@@ -271,5 +317,20 @@
         return [year, month, day].join('-');
     }
 </script>
+
+<script th:inline="javascript">
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const showModal = /*[[${showModal}]]*/ false;
+
+        if(showModal){
+            new bootstrap.Modal(
+                document.getElementById('nhanVienModal')
+            ).show();
+        }
+    });
+    /*]]>*/
+</script>
+
 </body>
 </html>

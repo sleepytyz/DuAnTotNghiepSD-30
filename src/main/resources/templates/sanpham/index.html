@@ -21,11 +21,11 @@
 <body>
 <div class="wrapper">
 
-    <div th:replace="fragments/sidebar :: sidebar"></div>
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
     <div class="content-wrapper">
 
-        <div th:replace="fragments/header :: header('Quản lý sản phẩm', 'Sản phẩm')"></div>
+        <div th:replace="~{fragments/header :: header('Quản lý sản phẩm', 'Sản phẩm')}"></div>
 
         <div class="content-body px-3">
 
@@ -43,14 +43,14 @@
                 </div>
 
                 <div class="card-body bg-white p-4">
-                    <form th:action="@{/sanpham/timkiem}" method="get">
+                    <form id="filterForm" th:action="@{/sanpham/timkiem}" method="get">
                         <div class="row g-3 align-items-center">
 
                             <div class="col-lg-3 col-md-6">
                                 <label class="form-label fw-semibold text-dark small mb-2">
                                     <i class="bi bi-tags-fill text-danger me-1"></i> Danh mục
                                 </label>
-                                <select name="maDanhMuc" class="form-select py-2 border-secondary-subtle" onchange="this.form.submit()">
+                                <select name="maDanhMuc" class="form-select py-2 border-secondary-subtle" onchange="this.form.action='/sanpham/locdmsp'; this.form.submit()">
                                     <option value="">Tất cả danh mục</option>
                                     <option th:each="c : ${listdmsp}"
                                             th:value="${c.maDanhMuc}"
@@ -66,11 +66,11 @@
                                 </label>
                                 <div class="d-flex align-items-center border rounded py-2 px-3 bg-light-subtle border-secondary-subtle" style="height: 41px;">
                                     <div class="form-check form-check-inline m-0 me-4">
-                                        <input class="form-check-input" type="radio" name="tt" id="ttConBan" value="true" onchange="this.form.submit()" th:checked="${param.tt != null && #strings.toString(param.tt) == 'true'}">
+                                        <input class="form-check-input" type="radio" name="tt" id="ttConBan" value="true" onchange="this.form.action='/sanpham/loctt'; this.form.submit()" th:checked="${param.tt != null && #strings.toString(param.tt) == 'true'}">
                                         <label class="form-check-label small fw-medium" for="ttConBan" style="cursor: pointer;">Còn bán</label>
                                     </div>
                                     <div class="form-check form-check-inline m-0">
-                                        <input class="form-check-input" type="radio" name="tt" id="ttNgungBan" value="false" onchange="this.form.submit()" th:checked="${param.tt != null && #strings.toString(param.tt) == 'false'}">
+                                        <input class="form-check-input" type="radio" name="tt" id="ttNgungBan" value="false" onchange="this.form.action='/sanpham/loctt'; this.form.submit()" th:checked="${param.tt != null && #strings.toString(param.tt) == 'false'}">
                                         <label class="form-check-label small fw-medium" for="ttNgungBan" style="cursor: pointer;">Ngừng bán</label>
                                     </div>
                                 </div>
@@ -81,8 +81,11 @@
                                     <i class="bi bi-search text-danger me-1"></i> Từ khóa
                                 </label>
                                 <div class="input-group">
+                                    <span class="input-group-text bg-light text-secondary border-secondary-subtle fw-bold">SP</span>
+
                                     <input type="text" class="form-control py-2 border-secondary-subtle" placeholder="Nhập mã hoặc tên sản phẩm..." name="t" th:value="${param.t}">
-                                    <button class="btn btn-primary px-3 fw-semibold d-flex align-items-center gap-1" type="submit">
+
+                                    <button class="btn btn-primary px-3 fw-semibold d-flex align-items-center gap-1" type="submit" onclick="this.form.action='/sanpham/timkiem';">
                                         <i class="bi bi-search"></i> Tìm
                                     </button>
                                 </div>
@@ -92,7 +95,6 @@
                                 <button type="button" class="btn fw-semibold text-white px-3 w-50 d-flex align-items-center justify-content-center gap-1" data-bs-toggle="modal" data-bs-target="#sanPhamModal" onclick="openAddModal()" style="background:#c92327;">
                                     <i class="bi bi-plus-lg"></i> Thêm
                                 </button>
-
                                 <a th:href="@{/sanpham/index}" class="btn btn-outline-secondary fw-semibold px-3 w-50 d-flex align-items-center justify-content-center gap-1">
                                     <i class="bi bi-arrow-clockwise"></i> Reset
                                 </a>
@@ -185,8 +187,7 @@
                     <div class="col-md-6">
                         <label class="form-label fw-semibold small text-secondary">Chất liệu chính</label>
                         <select class="form-select border-secondary-subtle" th:field="*{chatLieu.maChatLieu}" id="modalChatLieu">
-                            <option value="">-- Chọn chất liệu --</option>
-                            <option th:each="c : ${listcl}" th:value="${c.maChatLieu}" th:text="${c.tenChatLieu}"></option>
+                            <option th:each="c : ${listcl}" th:value="${c.maChatLieu}" th:text="${'DM' + c.maChatLieu + ' - ' + c.tenChatLieu}"></option>
                         </select>
                         <div class="text-danger small mt-1" th:if="${#fields.hasErrors('chatLieu')}" th:text="${#fields.errors('chatLieu')[0]}"></div>
                     </div>
@@ -246,7 +247,7 @@
         document.getElementById("modalMaSanPham").value = "";
         document.getElementById("modalTenSanPham").value = "";
         document.getElementById("modalMoTa").value = "";
-        document.getElementById("modalChatLieu").value = "";
+        document.getElementById("modalChatLieu").selectedIndex = 0;
         document.getElementById("modalDanhMuc").selectedIndex = 0;
 
         document.getElementById("modalRadioTrue").checked = false;

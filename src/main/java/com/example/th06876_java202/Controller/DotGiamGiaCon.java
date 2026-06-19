@@ -1,6 +1,6 @@
 package com.example.th06876_java202.Controller;
 
-import com.example.th06876_java202.Entity.Account;
+
 import com.example.th06876_java202.Entity.DotGiamGia;
 import com.example.th06876_java202.Repository.DotGiamGiaRepo;
 import com.example.th06876_java202.Repository.NhanVienRepository;
@@ -35,7 +35,7 @@ public class DotGiamGiaCon {
         List<DotGiamGia> list = dotGiamGiaService.getAll();
         LocalDate homNay = LocalDate.now();
 
-        // Duyệt qua danh sách, nếu đợt nào hết hạn thì tự chuyển sang Ngừng hoạt động
+
         for (DotGiamGia dgg : list) {
             if (dgg.getNgayKetThuc() != null && dgg.getNgayKetThuc().isBefore(homNay)) {
                 if (dgg.getTrangThai() == null || dgg.getTrangThai()) {

@@ -22,8 +22,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
 
-
-
             <div class="row g-4">
 
                 <div class="col-lg-7 col-xl-8">
@@ -32,6 +30,9 @@
                             <h5 class="fw-bold mb-0 text-dark" style="font-size: 16px;">
                                 Hoá đơn:
                                 <span class="text-danger" th:text="${hoadonHienTai != null ? 'HD' + hoadonHienTai.maHoaDon : 'Chưa chọn'}"></span>
+                                <span th:if="${hoadonHienTai != null}" class="badge ms-2"
+                                      th:classappend="${hoadonHienTai.loaiBan == 'Online' ? 'bg-warning text-dark' : 'bg-info text-white'}"
+                                      th:text="${hoadonHienTai.loaiBan}"></span>
                             </h5>
                             <div class="d-flex gap-2">
                                 <button class="btn btn-danger px-3 py-2 fw-semibold rounded"
@@ -40,7 +41,12 @@
                                         th:disabled="${hoadonHienTai == null}">
                                     <i class="bi bi-plus-circle-fill me-1"></i> Chọn sản phẩm
                                 </button>
-                                <form th:action="@{/banhang/taohd}" method="post" th:object="${hoadon}">
+
+                                <form th:action="@{/banhang/taohd}" method="post" th:object="${hoadon}" class="d-flex gap-2">
+                                    <select name="loaiBan" class="form-select form-select-sm fw-semibold border-secondary" style="width: 130px;" required>
+                                        <option value="Tại quầy">Tại quầy</option>
+                                        <option value="Online">Online</option>
+                                    </select>
                                     <button type="submit" class="btn btn-dark px-3 py-2 fw-semibold rounded">Tạo hoá đơn</button>
                                 </form>
                             </div>
@@ -109,27 +115,42 @@
                             </button>
                         </div>
 
+                        <!-- Sử dụng th:object để hỗ trợ hứng lỗi Validation từ Backend -->
                         <form th:action="@{/banhang/themkh}" method="post" th:object="${kh}">
 
                             <input type="hidden" name="mahd" th:value="${hoadonHienTai != null ? hoadonHienTai.maHoaDon : ''}" />
 
                             <div class="mb-2.5">
                                 <label class="form-label text-muted mb-1 small">Tên khách hàng:</label>
-                                <input type="text" name="hoTen" class="form-control form-control-sm text-dark fw-semibold"
-                                       th:value="${hoadonHienTai != null && hoadonHienTai.maKhachHang != null ? hoadonHienTai.maKhachHang.hoTen : (hoadonHienTai != null ? 'Khách vãng lai' : '')}"
-                                       th:readonly="${hoadonHienTai != null && hoadonHienTai.maKhachHang != null}" required placeholder="Nhập tên khách mới...">
+                                <input type="text" th:field="*{hoTen}" class="form-control form-control-sm text-dark fw-semibold"
+                                       th:readonly="${hoadonHienTai != null && hoadonHienTai.maKhachHang != null}" placeholder="Nhập tên khách mới...">
+                                <div class="text-danger small fw-semibold mt-1" th:if="${#fields.hasErrors('hoTen')}" th:errors="*{hoTen}"></div>
                             </div>
+
                             <div class="mb-2.5">
                                 <label class="form-label text-muted mb-1 small">Số điện thoại:</label>
-                                <input type="text" name="sdt" class="form-control form-control-sm text-dark fw-semibold"
-                                       th:value="${hoadonHienTai != null && hoadonHienTai.maKhachHang != null ? hoadonHienTai.maKhachHang.sdt : ''}"
-                                       th:readonly="${hoadonHienTai != null && hoadonHienTai.maKhachHang != null}" required placeholder="Nhập SĐT khách mới...">
+                                <input type="text" th:field="*{sdt}" class="form-control form-control-sm text-dark fw-semibold"
+                                       th:readonly="${hoadonHienTai != null && hoadonHienTai.maKhachHang != null}" placeholder="Nhập SĐT khách mới...">
+                                <div class="text-danger small fw-semibold mt-1" th:if="${#fields.hasErrors('sdt')}" th:errors="*{sdt}"></div>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label text-muted mb-1 small">Địa chỉ:</label>
-                                <input type="text" name="diaChi" class="form-control form-control-sm text-dark fw-semibold"
-                                       th:value="${hoadonHienTai != null && hoadonHienTai.maKhachHang != null ? hoadonHienTai.maKhachHang.diaChi : ''}"
-                                       th:readonly="${hoadonHienTai != null && hoadonHienTai.maKhachHang != null}" placeholder="Nhập địa chỉ khách mới...">
+
+                            <div class="mb-2.5">
+                                <label class="form-label text-muted mb-1 small">
+                                    Địa chỉ: <span th:if="${hoadonHienTai != null && hoadonHienTai.loaiBan == 'Online'}" class="text-danger">*</span>
+                                </label>
+                                <input type="text" th:field="*{diaChi}" class="form-control form-control-sm text-dark fw-semibold"
+                                       th:readonly="${hoadonHienTai != null && hoadonHienTai.maKhachHang != null}"
+                                       th:required="${hoadonHienTai != null && hoadonHienTai.loaiBan == 'Online'}"
+                                       placeholder="Nhập địa chỉ giao hàng lẻ...">
+                                <div class="text-danger small fw-semibold mt-1" th:if="${#fields.hasErrors('diaChi')}" th:errors="*{diaChi}"></div>
+                            </div>
+
+                            <!-- ĐÂY RỒI: Ô Ghi chú giao hàng dành riêng cho đơn Online -->
+                            <div class="mb-3" th:if="${hoadonHienTai != null && hoadonHienTai.loaiBan == 'Online'}">
+                                <label class="form-label text-muted mb-1 small">Ghi chú giao hàng:</label>
+                                <textarea name="ghiChuGiaoHang" class="form-control form-control-sm" rows="2"
+                                          th:text="${hoadonHienTai != null ? hoadonHienTai.ghiChu : ''}"
+                                          placeholder="Ghi chú thời gian nhận, lưu ý ship hàng..."></textarea>
                             </div>
 
                             <div class="d-grid" th:if="${hoadonHienTai != null && hoadonHienTai.maKhachHang == null}">
@@ -159,23 +180,43 @@
                                 <span class="text-dark" th:text="${hoadonHienTai != null ? hoadonHienTai.ngayTao : ''}"></span>
                             </div>
 
-                            <div class="d-flex justify-content-between align-items-center mb-2.5">
-                                <span class="text-muted">Mã giảm giá:</span>
-                                <input type="text" class="form-control form-control-sm text-center bg-light border-0 fw-bold" value="0" style="width: 120px;" readonly>
+                            <div class="mb-2.5">
+                                <label class="form-label text-muted mb-1 small">Mã giảm giá áp dụng:</label>
+                                <div class="input-group">
+                                    <input type="text" id="idTenGiamGia" class="form-control form-control-sm bg-light fw-bold text-danger"
+                                           th:value="${hoadonHienTai != null && hoadonHienTai.maGiamGia != null ? hoadonHienTai.maGiamGia.tenGiamGia : 'Chưa áp dụng'}" readonly>
+                                    <button class="btn btn-sm btn-danger" type="button"
+                                            data-bs-toggle="modal" data-bs-target="#giamGiaModal"
+                                            th:disabled="${hoadonHienTai == null}">
+                                        <i class="bi bi-ticket-perforated"></i> Chọn
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="d-flex justify-content-between align-items-center mb-2.5 border-top pt-2">
-                                <span class="text-muted fw-bold">Tổng tiền:</span>
-                                <span id="tongTienSpan" class="fw-bold text-danger fs-5"
-                                      th:text="${#numbers.formatDecimal(tongTienGioHang, 0, 'COMMA', 0, 'POINT') + 'đ'}"
-                                      th:data-tongtien="${tongTienGioHang}">0đ</span>
+                                <span class="text-muted">Tiền hàng:</span>
+                                <span class="fw-semibold text-dark"
+                                      th:text="${#numbers.formatDecimal(tongTienGioHang, 0, 'COMMA', 0, 'POINT') + 'đ'}">0đ</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-2.5">
+                                <span class="text-muted">Giảm giá voucher:</span>
+                                <span class="fw-semibold text-danger"
+                                      th:text="${'-' + #numbers.formatDecimal((tienGiamVoucher != null ? tienGiamVoucher : 0), 0, 'COMMA', 0, 'POINT') + 'đ'}">0đ</span>
                             </div>
 
                             <div class="d-flex justify-content-between mb-2.5">
                                 <span class="text-muted">Tiền ship:</span>
-                                <span id="tienShipSpan" class="text-dark fw-semibold"
-                                      th:text="${hoadonHienTai != null && hoadonHienTai.tienShip != null ? #numbers.formatDecimal(hoadonHienTai.tienShip, 0, 'COMMA', 0, 'POINT') + 'đ' : '0đ'}"
-                                      th:data-tienship="${hoadonHienTai != null && hoadonHienTai.tienShip != null ? hoadonHienTai.tienShip : 0}">0đ</span>
+                                <span id="tienShipSpan" class="text-danger fw-bold"
+                                      th:text="${#numbers.formatDecimal((tienShip != null ? tienShip : 0), 0, 'COMMA', 0, 'POINT') + 'đ'}"
+                                      th:data-tienship="${tienShip != null ? tienShip : 0}">0đ</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-3 border-top pt-2">
+                                <span class="text-muted fw-bold">Tổng thanh toán:</span>
+                                <span id="tongTienSpan" class="fw-bold text-danger fs-5"
+                                      th:text="${#numbers.formatDecimal((tongThanhToan != null ? tongThanhToan : 0), 0, 'COMMA', 0, 'POINT') + 'đ'}"
+                                      th:data-tongtien="${tongThanhToan != null ? tongThanhToan : 0}">0đ</span>
                             </div>
 
                             <div class="d-flex justify-content-between align-items-center mb-2.5">
@@ -194,15 +235,27 @@
                             </div>
 
                             <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-success py-2.5 fw-bold text-white shadow-sm border-0" th:disabled="${hoadonHienTai == null}">Thực hiện Thanh Toán</button>
+                                <button type="submit" class="btn py-2.5 fw-bold text-white shadow-sm border-0"
+                                        th:classappend="${hoadonHienTai != null && hoadonHienTai.loaiBan == 'Online' ? 'btn-warning text-dark' : 'btn-success'}"
+                                        th:disabled="${hoadonHienTai == null || #lists.isEmpty(listhdct) || (hoadonHienTai.loaiBan == 'Online' && hoadonHienTai.maKhachHang == null)}">
+                                    <i th:class="${hoadonHienTai != null && hoadonHienTai.loaiBan == 'Online' ? 'bi bi-truck me-1' : 'bi bi-check-circle-fill me-1'}"></i>
+                                    <span th:text="${hoadonHienTai != null && hoadonHienTai.loaiBan == 'Online' ? 'Xác nhận & Giao hàng' : 'Thực hiện Thanh Toán'}">Thực hiện Thanh Toán</span>
+                                </button>
+
+                                <small class="text-danger text-center fw-semibold"
+                                       th:if="${hoadonHienTai != null && hoadonHienTai.loaiBan == 'Online' && hoadonHienTai.maKhachHang == null}">
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i> Vui lòng chọn hoặc thêm khách hàng để giao hàng!
+                                </small>
                             </div>
-                        </form> <div class="d-grid gap-2 mt-2" th:if="${hoadonHienTai != null}">
-                        <a th:href="@{/banhang/inhoadon/{id}(id=${hoadonHienTai.maHoaDon})}"
-                           target="_blank"
-                           class="btn btn-info py-2 fw-bold text-white shadow-sm border-0">
-                            <i class="bi bi-printer-fill me-1"></i> In hóa đơn
-                        </a>
-                    </div>
+                        </form>
+
+                        <div class="d-grid gap-2 mt-2" th:if="${hoadonHienTai != null}">
+                            <a th:href="@{/banhang/inhoadon/{id}(id=${hoadonHienTai.maHoaDon})}"
+                               target="_blank"
+                               class="btn btn-info py-2 fw-bold text-white shadow-sm border-0">
+                                <i class="bi bi-printer-fill me-1"></i> In hóa đơn
+                            </a>
+                        </div>
 
                         <form th:action="@{/banhang/huyhd}" method="post" class="mt-2">
                             <input type="hidden" name="mahd" th:value="${hoadonHienTai != null ? hoadonHienTai.maHoaDon : ''}" />
@@ -304,6 +357,55 @@
     </div>
 </div>
 
+<div class="modal fade" id="giamGiaModal" tabindex="-1" aria-labelledby="giamGiaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold" id="giamGiaModalLabel"><i class="bi bi-ticket-perforated-fill me-2"></i>Danh Sách Chương Trình Giảm Giá</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body bg-light">
+                <div class="card border-0 shadow-sm rounded overflow-hidden">
+                    <div class="table-responsive" style="max-height: 350px;">
+                        <table class="table table-hover align-middle text-center mb-0">
+                            <thead class="table-secondary text-dark sticky-top">
+                            <tr>
+                                <th>Mã</th>
+                                <th class="text-start">Tên chương trình</th>
+                                <th>Loại</th>
+                                <th>Mức giảm</th>
+                                <th>Giảm tối đa</th>
+                                <th>Hành động</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="gg : ${listgg}">
+                                <td th:text="${gg.maGiamGia}"></td>
+                                <td class="text-start fw-semibold text-dark" th:text="${gg.tenGiamGia}"></td>
+                                <td th:text="${gg.loaiGiamGia == 'PhanTram' ? 'Phần trăm (%)' : 'Số tiền cố định'}"></td>
+                                <td class="fw-bold text-success"
+                                    th:text="${gg.loaiGiamGia == 'PhanTram' ? (gg.giaTriGiam + '%') : (#numbers.formatDecimal(gg.giaTriGiam, 0, 'COMMA', 0, 'POINT') + 'đ')}"></td>
+                                <td th:text="${gg.giamToiDa != null && gg.giamToiDa > 0 ? #numbers.formatDecimal(gg.giamToiDa, 0, 'COMMA', 0, 'POINT') + 'đ' : 'Không giới hạn'}"></td>
+                                <td>
+                                    <form th:action="@{/banhang/chongg}" method="post">
+                                        <input type="hidden" name="mahd" th:value="${hoadonHienTai != null ? hoadonHienTai.maHoaDon : ''}" />
+                                        <input type="hidden" name="magg" th:value="${gg.maGiamGia}" />
+                                        <button type="submit" class="btn btn-sm btn-danger px-3">Áp dụng</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(listgg)}">
+                                <td colspan="6" class="text-muted py-4">Không có chương trình giảm giá nào khả dụng hiện tại.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="khachHangModal" tabindex="-1" aria-labelledby="khachHangModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
@@ -355,7 +457,6 @@
 </div>
 
 <script>
-    // 1. Hàm lọc sản phẩm trong popup
     function filterProducts() {
         var inputMa = document.getElementById("filterMaSPCT").value.toLowerCase();
         var selectMau = document.getElementById("filterMauSac").value;
@@ -381,15 +482,13 @@
         }
     }
 
-    // 2. Nút Reset làm mới bộ lọc sản phẩm
     function resetSanPhamFilter() {
         document.getElementById("filterMaSPCT").value = "";
         document.getElementById("filterMauSac").value = "";
         document.getElementById("filterTrangThai").value = "";
-        filterProducts(); // chạy lại bộ lọc để hiển thị lại tất cả dữ liệu ban đầu
+        filterProducts();
     }
 
-    // 3. Hàm lọc khách hàng nhanh theo số điện thoại trong popup khách hàng
     function filterKhachHang() {
         var inputSdt = document.getElementById("searchKH").value.trim();
         var rows = document.getElementsByClassName("khachhang-row");
@@ -404,37 +503,26 @@
             }
         }
     }
-    // Thêm hàm này vào trong phần <script> cuối trang của bạn
+
     function xuLyThayDoiPhuongThuc() {
         var phuongThuc = document.getElementById("idPhuongThuc").value;
         var inputTienKhachDua = document.getElementById("idTienKhachDua");
 
-        // Nếu chọn Chuyển khoản
         if (phuongThuc === "Chuyển khoản") {
-            // Lấy giá trị số từ th:data-tongtien và th:data-tienship đã truyền từ Controller xuống
-            var tongTienHang = parseFloat(document.getElementById("tongTienSpan").getAttribute("data-tongtien")) || 0;
-            var tienShip = parseFloat(document.getElementById("tienShipSpan").getAttribute("data-tienship")) || 0;
-
-            // Tổng số tiền khách phải thanh toán thực tế
-            var tongThanhToan = tongTienHang + tienShip;
-
-            // Gán thẳng giá trị vào ô input tiền khách đưa và khóa readonly (hoặc không tùy bạn)
+            var tongThanhToan = parseFloat(document.getElementById("tongTienSpan").getAttribute("data-tongtien")) || 0;
             inputTienKhachDua.value = tongThanhToan;
-            inputTienKhachDua.readOnly = true; // Khóa lại không cho sửa khi chuyển khoản
+            inputTienKhachDua.readOnly = true;
         } else {
-            // Nếu chọn Tiền mặt thì xóa trống hoặc để nhân viên tự nhập, mở khóa readonly
             inputTienKhachDua.value = "";
             inputTienKhachDua.readOnly = false;
         }
     }
 
-    // Gọi hàm này ngay khi trang vừa tải xong để nếu mặc định là "Chuyển khoản" thì nó tự điền luôn
     document.addEventListener("DOMContentLoaded", function() {
         if(document.getElementById("idPhuongThuc")) {
             xuLyThayDoiPhuongThuc();
         }
     });
-
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>

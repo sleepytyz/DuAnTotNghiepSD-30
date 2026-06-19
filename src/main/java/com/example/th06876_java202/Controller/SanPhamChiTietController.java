@@ -78,98 +78,63 @@ public class SanPhamChiTietController {
     }
 
     @PostMapping("/add")
-    public String add(@ModelAttribute("sanphamct") @Valid SanPhamChiTiet sanPhamChiTiet,
-                      Errors errors,
-                      Model model) {
-
+    public String add(@ModelAttribute("sanphamct") @Valid SanPhamChiTiet sanPhamChiTiet, Errors errors, Model model) {
         if (errors.hasErrors()) {
-            List<SanPhamChiTiet> listspct = sanPhamChiTietService.getall();
-            List<SanPham> Listsp = sanPhamService.getAll();
-            List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
-
-            model.addAttribute("listspct", listspct);
-            model.addAttribute("listsp", Listsp);
-            model.addAttribute("listdmsp", listdmsp);
-            model.addAttribute("listms", mauSacService.findAll());
-            model.addAttribute("lists", kichThuocService.getAllKichThuoc());
-
+            prepareModel(model);
+            model.addAttribute("showModal", true);
+            model.addAttribute("isEdit", null);
             return "sanphamct/index";
         }
 
-        SanPham sp = sanPhamService.findById(
-                sanPhamChiTiet.getSanPham().getMaSanPham()
-        ).orElseThrow();
 
-        KichThuoc kt = kichThuocService.getKichThuocById(
-                sanPhamChiTiet.getKichThuoc().getMaKichThuoc()
-        ).orElseThrow();
+        sanPhamChiTiet.setSanPham(sanPhamService.findById(sanPhamChiTiet.getSanPham().getMaSanPham()).orElseThrow());
+        sanPhamChiTiet.setKichThuoc(kichThuocService.getKichThuocById(sanPhamChiTiet.getKichThuoc().getMaKichThuoc()).orElseThrow());
+        sanPhamChiTiet.setMauSac(mauSacService.findById(sanPhamChiTiet.getMauSac().getMaMauSac()).orElseThrow());
 
-        MauSac ms = mauSacService.findById(
-                sanPhamChiTiet.getMauSac().getMaMauSac()
-        ).orElseThrow();
 
-        sanPhamChiTiet.setSanPham(sp);
-        sanPhamChiTiet.setKichThuoc(kt);
-        sanPhamChiTiet.setMauSac(ms);
-
-        sanPhamChiTietService.capNhatTrangThai(sanPhamChiTiet);
+        sanPhamChiTietService.capNhatTrangThaii(sanPhamChiTiet);
         sanPhamChiTiet.setNgayTao(LocalDate.now());
 
         sanPhamChiTietService.them(sanPhamChiTiet);
-
         return "redirect:/sanphamct/index";
     }
 
     @PostMapping("/update")
-    public String update(@ModelAttribute("sanphamct") @Valid SanPhamChiTiet sanPhamChiTiet,
-                         Errors errors,
-                         Model model) {
-
+    public String update(@ModelAttribute("sanphamct") @Valid SanPhamChiTiet sanPhamChiTiet, Errors errors, Model model) {
         if (errors.hasErrors()) {
-            List<SanPhamChiTiet> listspct = sanPhamChiTietService.getall();
-            List<SanPham> Listsp = sanPhamService.getAll();
-            List<DanhMucSanPham> listdmsp = danhMucSanPhamService.getAll();
-
-            model.addAttribute("listspct", listspct);
-            model.addAttribute("listsp", Listsp);
-            model.addAttribute("listdmsp", listdmsp);
-            model.addAttribute("listms", mauSacService.findAll());
-            model.addAttribute("lists", kichThuocService.getAllKichThuoc());
-
+            prepareModel(model);
+            model.addAttribute("showModal", true);
+            model.addAttribute("isEdit", true);
             return "sanphamct/index";
         }
 
-        SanPhamChiTiet old = sanPhamChiTietService
-                .findbyId(sanPhamChiTiet.getMaSanPhamChiTiet())
-                .orElseThrow();
 
-        old.setSanPham(
-                sanPhamService.findById(
-                        sanPhamChiTiet.getSanPham().getMaSanPham()
-                ).orElseThrow()
-        );
+        SanPhamChiTiet old = sanPhamChiTietService.findbyId(sanPhamChiTiet.getMaSanPhamChiTiet()).orElseThrow();
 
-        old.setKichThuoc(
-                kichThuocService.getKichThuocById(
-                        sanPhamChiTiet.getKichThuoc().getMaKichThuoc()
-                ).orElseThrow()
-        );
 
-        old.setMauSac(
-                mauSacService.findById(
-                        sanPhamChiTiet.getMauSac().getMaMauSac()
-                ).orElseThrow()
-        );
-
+        old.setSanPham(sanPhamService.findById(sanPhamChiTiet.getSanPham().getMaSanPham()).orElseThrow());
+        old.setKichThuoc(kichThuocService.getKichThuocById(sanPhamChiTiet.getKichThuoc().getMaKichThuoc()).orElseThrow());
+        old.setMauSac(mauSacService.findById(sanPhamChiTiet.getMauSac().getMaMauSac()).orElseThrow());
         old.setGiaBan(sanPhamChiTiet.getGiaBan());
+        old.setGiaNhap(sanPhamChiTiet.getGiaNhap());
         old.setSoLuongTon(sanPhamChiTiet.getSoLuongTon());
-        old.setTrangThai(sanPhamChiTiet.getTrangThai());
         old.setNgayCapNhat(LocalDate.now());
 
-        sanPhamChiTietService.capNhatTrangThai(old);
+
+        sanPhamChiTietService.capNhatTrangThaii(old);
+
+        // Chỉ lưu 1 lần duy nhất
         sanPhamChiTietService.them(old);
 
         return "redirect:/sanphamct/index";
+    }
+
+    private void prepareModel(Model model) {
+        model.addAttribute("listspct", sanPhamChiTietService.getall());
+        model.addAttribute("listsp", sanPhamService.getAll());
+        model.addAttribute("listdmsp", danhMucSanPhamService.getAll());
+        model.addAttribute("listms", mauSacService.findAll());
+        model.addAttribute("lists", kichThuocService.getAllKichThuoc());
     }
 
     @GetMapping("/locsize")

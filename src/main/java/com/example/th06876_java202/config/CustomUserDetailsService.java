@@ -19,12 +19,10 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        TaiKhoan myUser = taiKhoanService.findUserByTenDangNhap(username);
-
-        if (myUser == null) {
-            throw new UsernameNotFoundException("username not found");
+        TaiKhoan taiKhoan = taiKhoanService.findUserByTenDangNhap(username); // Hoặc qua repo tùy code bạn
+        if (taiKhoan == null) {
+            throw new UsernameNotFoundException("User not found");
         }
-        return new User(myUser.getTenDangNhap(), myUser.getMatKhau(),
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + myUser.getVaiTro())));
+        return new CustomUserDetails(taiKhoan);
     }
 }

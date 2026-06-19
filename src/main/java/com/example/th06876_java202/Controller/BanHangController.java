@@ -3,9 +3,13 @@ package com.example.th06876_java202.Controller;
 import com.example.th06876_java202.Entity.*;
 import com.example.th06876_java202.Repository.HoaDonChiTietRepository;
 import com.example.th06876_java202.Service.*;
+import com.example.th06876_java202.config.CustomUserDetails;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -23,24 +27,32 @@ public class BanHangController {
     private final HoaDonService hoaDonService;
     private final HoaDonChiTietService hoaDonChiTietService;
     private final DotGiamGiaService dotGiamGiaService;
+    private final TaiKhoanService taiKhoanService;
+    private final GiamGiaService giamGiaService;
+
 
     public BanHangController( SanPhamChiTietService sanPhamChiTietService, KhachHangService khachHangService
     , HoaDonService hoaDonService, HoaDonChiTietService hoaDonChiTietService, DotGiamGiaService dotGiamGiaService
-    , SanPhamService sanPhamService) {
+    , SanPhamService sanPhamService, TaiKhoanService taiKhoanService ,GiamGiaService giamGiaService) {
         this.sanPhamChiTietService = sanPhamChiTietService;
         this.khachHangService = khachHangService;
         this.hoaDonService = hoaDonService;
         this.hoaDonChiTietService = hoaDonChiTietService;
         this.dotGiamGiaService = dotGiamGiaService;
         this.sanPhamService = sanPhamService;
+        this.taiKhoanService = taiKhoanService;
+        this.giamGiaService = giamGiaService;
     }
 
     @GetMapping("/index")
-    public String index( @RequestParam(value = "mahd", required = false) Integer mahd, Model model){
+    public String index(@RequestParam(value = "mahd", required = false) Integer mahd, Model model) {
         List<HoaDonChiTiet> hdct = hoaDonChiTietService.findById(mahd);
 
         HoaDon hoadonHienTai = null;
         BigDecimal tongTienGioHang = BigDecimal.ZERO;
+        BigDecimal tienGiamVoucher = BigDecimal.ZERO;
+        BigDecimal tongThanhToan = BigDecimal.ZERO;
+        BigDecimal tienShip = BigDecimal.ZERO; // Khởi tạo tiền ship mặc định
 
         if (mahd != null) {
             hoadonHienTai = hoaDonService.findById(mahd).orElse(null);
@@ -52,30 +64,73 @@ public class BanHangController {
                     }
                 }
             }
+
+            if (hoadonHienTai != null && hoadonHienTai.getMaGiamGia() != null) {
+                GiamGia gg = hoadonHienTai.getMaGiamGia();
+                if ("PhanTram".equalsIgnoreCase(gg.getLoaiGiamGia())) {
+                    tienGiamVoucher = tongTienGioHang.multiply(gg.getGiaTriGiam()).divide(BigDecimal.valueOf(100));
+                    if (gg.getGiamToiDa() != null && gg.getGiamToiDa().compareTo(BigDecimal.ZERO) > 0) {
+                        if (tienGiamVoucher.compareTo(gg.getGiamToiDa()) > 0) {
+                            tienGiamVoucher = gg.getGiamToiDa();
+                        }
+                    }
+                } else {
+                    tienGiamVoucher = gg.getGiaTriGiam();
+                }
+            }
+
+            if (hoadonHienTai != null && "Online".equalsIgnoreCase(hoadonHienTai.getLoaiBan())) {
+                tienShip = hoadonHienTai.getTienShip() != null ? hoadonHienTai.getTienShip() : BigDecimal.valueOf(30000);
+            }
         }
 
-        // Đẩy 2 biến quan trọng này ra ngoài View
+
+        tongThanhToan = tongTienGioHang.subtract(tienGiamVoucher).add(tienShip);
+        if (tongThanhToan.compareTo(BigDecimal.ZERO) < 0) {
+            tongThanhToan = BigDecimal.ZERO;
+        }
+
         model.addAttribute("hoadonHienTai", hoadonHienTai);
         model.addAttribute("tongTienGioHang", tongTienGioHang);
-        // -----------------------------
+        model.addAttribute("tienGiamVoucher", tienGiamVoucher);
+        model.addAttribute("tongThanhToan", tongThanhToan);
+        model.addAttribute("tienShip", tienShip); // Đẩy tiền ship sang HTML hiển thị
 
         model.addAttribute("listhdct", hdct);
         model.addAttribute("hoadonct", new HoaDonChiTiet());
         model.addAttribute("kh", new KhachHang());
         model.addAttribute("hoadon", new HoaDon());
-
-        model.addAttribute("listkh", khachHangService.getKhachHang());
-
-        model.addAttribute("listsanpham",
-                sanPhamChiTietService.getall());
-
-        model.addAttribute("listsanphamms",
-                sanPhamChiTietService.getMsac());
-
-        model.addAttribute("listsanphams",
-                sanPhamChiTietService.getSize());
+        model.addAttribute("listgg", giamGiaService.getGiamGia1());
+        model.addAttribute("listkh", khachHangService.getAllKhachHang());
+        model.addAttribute("listsanpham", sanPhamChiTietService.getall());
+        model.addAttribute("listsanphamms", sanPhamChiTietService.getMsac());
+        model.addAttribute("listsanphams", sanPhamChiTietService.getSize());
 
         return "banhang/index";
+    }
+
+    @PostMapping("/chongg")
+    public String chonGiamGia(@RequestParam("mahd") Integer mahd,
+                              @RequestParam("magg") Integer magg,
+                              RedirectAttributes redirectAttributes) {
+        try {
+            HoaDon hoaDon = hoaDonService.findById(mahd).orElse(null);
+            GiamGia giamGia = giamGiaService.getGiamGiaById(magg).orElse(null);
+
+            if (hoaDon != null && giamGia != null) {
+                hoaDon.setMaGiamGia(giamGia);
+                hoaDonService.save(hoaDon);
+                redirectAttributes.addFlashAttribute("mess", "Đã áp dụng mã giảm giá: " + giamGia.getTenGiamGia());
+            } else {
+                redirectAttributes.addFlashAttribute("mess", "Áp dụng mã giảm giá thất bại!");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("mess", "Có lỗi xảy ra khi áp dụng giảm giá!");
+        }
+
+        // ĐÃ SỬA: Thêm ?mahd= vào sau index để giữ lại hóa đơn hiện tại trên giao diện
+        return "redirect:/banhang/index?mahd=" + mahd;
     }
 
     @GetMapping("/khachhang")
@@ -83,7 +138,7 @@ public class BanHangController {
         List<KhachHang> kh;
 
         if (sdt == null || sdt.trim().isEmpty()) {
-            kh = khachHangService.getKhachHang();
+            kh = khachHangService.getAllKhachHang();
         }else {
             kh = khachHangService.findBySdt(sdt);
         }
@@ -102,37 +157,52 @@ public class BanHangController {
 
     @PostMapping("/themkh")
     public String themkhachhang(
-            @ModelAttribute("kh") KhachHang kh,
-            @RequestParam(value = "mahd", required = false) Integer mahd, // Đón mã hóa đơn từ giao diện gửi lên
+            @Valid @ModelAttribute("kh") KhachHang kh,
+            BindingResult bindingResult, // Đặt ngay sau @ModelAttribute để hứng lỗi validation
+            @RequestParam(value = "mahd", required = false) Integer mahd,
+            @RequestParam(value = "ghiChuGiaoHang", required = false) String ghiChuGiaoHang,
             Model model,
             RedirectAttributes redirectAttributes) {
 
-        // 1. Kiểm tra trùng số điện thoại
-        if (khachHangService.existsBySoDienThoai(kh.getSdt())){
-            redirectAttributes.addFlashAttribute("mess", "Số điện thoại đã tồn tại");
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("listgg", giamGiaService.getGiamGia1());
+            model.addAttribute("listkh", khachHangService.getAllKhachHang());
+            model.addAttribute("listsanpham", sanPhamChiTietService.getall());
+            model.addAttribute("listsanphamms", sanPhamChiTietService.getMsac());
+            model.addAttribute("listsanphams", sanPhamChiTietService.getSize());
+            String lỗiĐầuTiên = bindingResult.getFieldError().getDefaultMessage();
+            redirectAttributes.addFlashAttribute("mess", "Lỗi: " + lỗiĐầuTiên);
 
-            // Nếu có hóa đơn thì quay lại đúng hóa đơn đó, không thì về index chung
             return mahd != null ? "redirect:/banhang/index?mahd=" + mahd : "redirect:/banhang/index";
         }
 
-        // 2. Thêm mới khách hàng vào database bằng hàm của bạn
-        khachHangService.them(kh);
+        // 2. Kiểm tra trùng số điện thoại trong Database
+        if (khachHangService.existsBySoDienThoai(kh.getSdt())){
+            redirectAttributes.addFlashAttribute("mess", "Số điện thoại đã tồn tại trên hệ thống!");
+            return mahd != null ? "redirect:/banhang/index?mahd=" + mahd : "redirect:/banhang/index";
+        }
 
-        // Vì hàm 'them(kh)' thường không trả về đối tượng có ID, ta sẽ dùng SĐT vừa thêm để tìm lại khách hàng này từ DB
+        // Khởi tạo các giá trị mặc định bắt buộc trước khi lưu đơn lẻ
+        if (kh.getNgayDangKy() == null) kh.setNgayDangKy(LocalDate.now());
+        if (kh.getDiemTichLuy() == null) kh.setDiemTichLuy(0);
+        if (kh.getHangKhachHang() == null) kh.setHangKhachHang("Đồng");
+
+        khachHangService.save(kh);
+
         List<KhachHang> danhSachTimDuoc = khachHangService.findBySdt(kh.getSdt());
 
-        // 3. Nếu tìm thấy khách hàng vừa tạo và đang có hóa đơn thao tác, tiến hành gán luôn
         if (mahd != null && danhSachTimDuoc != null && !danhSachTimDuoc.isEmpty()) {
-            KhachHang khachHangVuaThem = danhSachTimDuoc.get(0); // Lấy khách hàng vừa tạo
+            KhachHang khachHangVuaThem = danhSachTimDuoc.get(0);
 
             HoaDon hd = hoaDonService.findById(mahd).orElse(null);
             if (hd != null) {
-                hd.setMaKhachHang(khachHangVuaThem); // Gán khách hàng vào hóa đơn
-                hoaDonService.save(hd);             // Lưu cập nhật hóa đơn
+                hd.setMaKhachHang(khachHangVuaThem);
+                if (ghiChuGiaoHang != null && !ghiChuGiaoHang.trim().isEmpty()) {
+                    hd.setGhiChu(ghiChuGiaoHang);
+                }
+                hoaDonService.save(hd);
                 redirectAttributes.addFlashAttribute("mess", "Thêm mới và áp dụng khách hàng thành công!");
             }
-
-            // Quay trở lại đúng hóa đơn hiện tại để không bị mất dữ liệu màn hình
             return "redirect:/banhang/index?mahd=" + mahd;
         }
 
@@ -142,37 +212,60 @@ public class BanHangController {
 
     @GetMapping("/inhoadon/{id}")
     public String inHoaDon(@PathVariable("id") Integer id, Model model) {
-        // 1. Tìm hóa đơn theo mã hóa đơn (thay đổi Method tìm kiếm tùy thuộc vào Repository/Service của bạn)
         HoaDon hoaDon = hoaDonService.findById(id).orElse(null);
 
-        // 2. Lấy danh sách sản phẩm chi tiết của hóa đơn này (Hàm vừa viết ở trên)
+
         List<HoaDonChiTiet> listHdct = hoaDonChiTietService.findByHoaDOn(hoaDon);
 
-// 3. Tính tổng tiền bằng BigDecimal (Chuẩn, không lỗi convert, không sai số)
+
         BigDecimal tongTien = listHdct.stream()
                 .map(item -> item.getThanhTien() != null ? item.getThanhTien() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-// 4. Đẩy dữ liệu ra giao diện Thymeleaf
         model.addAttribute("hd", hoaDon);
         model.addAttribute("listHdct", listHdct);
-        model.addAttribute("tongTien", tongTien); // Thymeleaf vẫn nhận và hiển thị bình thường
+        model.addAttribute("tongTien", tongTien);
 
-        // 5. Trả về file HTML giao diện bản in (nằm trong thư mục src/main/resources/templates/inhoadon.html)
         return "inhoadon";
     }
 
     @PostMapping("/taohd")
-    public String taohd(@ModelAttribute("hoadon") HoaDon hoaDon, Model model, HttpSession session) {
-        hoaDon.setNgayTao(LocalDate.now());
-        Account account = (Account) session.getAttribute("user");
-        if (account != null) {
-            hoaDon.setMaNhanVien(account.getMaNhanVien());
-        }
-        hoaDon.setTrangThai("Đang xử lý");
-        HoaDon hdVuaLuu = hoaDonService.save(hoaDon);
+    public String taohd(@ModelAttribute("hoadon") HoaDon hoaDon,
+                        @RequestParam("loaiBan") String loaiBan,
+                        Model model,
+                        Authentication authentication) {
 
-        return "redirect:/banhang/index?mahd=" + hdVuaLuu.getMaHoaDon();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
+
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof CustomUserDetails) {
+            CustomUserDetails userDetails = (CustomUserDetails) principal;
+            TaiKhoan account = userDetails.getTaiKhoan();
+
+            hoaDon.setNgayTao(LocalDate.now());
+            hoaDon.setTrangThai("Đang xử lý");
+            hoaDon.setLoaiBan(loaiBan);
+
+
+            if ("Online".equalsIgnoreCase(loaiBan)) {
+                hoaDon.setTienShip(BigDecimal.valueOf(30000));
+            } else {
+                hoaDon.setTienShip(BigDecimal.ZERO);
+            }
+
+            if (account.getNhanVien() != null) {
+                hoaDon.setMaNhanVien(account.getNhanVien());
+            } else {
+                return "redirect:/banhang/index?error=no_employee_profile";
+            }
+
+            HoaDon hdVuaLuu = hoaDonService.save(hoaDon);
+            return "redirect:/banhang/index?mahd=" + hdVuaLuu.getMaHoaDon();
+        }
+
+        return "redirect:/login";
     }
 
     @GetMapping("/sanpham")
@@ -334,69 +427,101 @@ public class BanHangController {
                               RedirectAttributes redirectAttributes) {
         HoaDon hd = hoaDonService.findById(mahd).orElse(null);
 
+
         if (hd == null) {
-            redirectAttributes.addFlashAttribute("mess", "Chua tạo hoá đơn");
+            redirectAttributes.addFlashAttribute("mess", "Chưa tạo hoá đơn!");
             return "redirect:/banhang/index";
+        }
+
+        if ("Online".equalsIgnoreCase(hd.getLoaiBan()) && hd.getMaKhachHang() == null) {
+            redirectAttributes.addFlashAttribute("mess", "Không thể giao hàng! Hóa đơn Online bắt buộc phải có thông tin khách hàng và địa chỉ.");
+            return "redirect:/banhang/index?mahd=" + mahd;
         }
 
         List<HoaDonChiTiet> listhdct = hoaDonChiTietService.findById(mahd);
 
-        if (listhdct == null) {
-            redirectAttributes.addFlashAttribute("mess", "Hoá đơn chưa có sản phẩm");
-            return "redirect:/banhang/index";
+        if (listhdct == null || listhdct.isEmpty()) {
+            redirectAttributes.addFlashAttribute("mess", "Không thể thanh toán! Hoá đơn chưa có sản phẩm nào.");
+            return "redirect:/banhang/index?mahd=" + mahd;
         }
 
         BigDecimal tongtien = BigDecimal.ZERO;
-
         for (HoaDonChiTiet dc : listhdct) {
-            tongtien = tongtien.add(dc.getThanhTien());
-        }
-
-        if(tienkhacdua.compareTo(tongtien) < 0){
-            redirectAttributes.addFlashAttribute("mess", "Tiền khách đưa còn thiếu : " + tongtien.subtract(tienkhacdua) + "VNĐ");
-            return "redirect:/banhang/index";
-        }
-
-        for (HoaDonChiTiet dc : listhdct) {
-            SanPhamChiTiet spct = dc.getSanPhamChiTiet();
-
-            if (dc.getSoLuong() > spct.getSoLuongTon()) {
-                redirectAttributes.addFlashAttribute("mess", "Sản phẩm : " + spct.getSanPham().getTenSanPham() + "không đủ hàng tồn kho");
-                return "redirect:/banhang/index";
+            if (dc.getThanhTien() != null) {
+                tongtien = tongtien.add(dc.getThanhTien());
             }
+        }
 
+        if (hd.getMaGiamGia() != null) {
+            GiamGia gg = hd.getMaGiamGia();
+            BigDecimal tienGiamVoucher = BigDecimal.ZERO;
+            if ("PhanTram".equalsIgnoreCase(gg.getLoaiGiamGia())) {
+                tienGiamVoucher = tongtien.multiply(gg.getGiaTriGiam()).divide(BigDecimal.valueOf(100));
+                if (gg.getGiamToiDa() != null && gg.getGiamToiDa().compareTo(BigDecimal.ZERO) > 0) {
+                    if (tienGiamVoucher.compareTo(gg.getGiamToiDa()) > 0) {
+                        tienGiamVoucher = gg.getGiamToiDa();
+                    }
+                }
+            } else {
+                tienGiamVoucher = gg.getGiaTriGiam();
+            }
+            tongtien = tongtien.subtract(tienGiamVoucher);
+        }
+
+        // CỘNG THÊM TIỀN SHIP VÀO TỔNG TIỀN PHẢI TRẢ NẾU LÀ ĐƠN ONLINE
+        if ("Online".equalsIgnoreCase(hd.getLoaiBan())) {
+            BigDecimal ship = hd.getTienShip() != null ? hd.getTienShip() : BigDecimal.valueOf(30000);
+            tongtien = tongtien.add(ship);
+        }
+
+        if (tongtien.compareTo(BigDecimal.ZERO) < 0) {
+            tongtien = BigDecimal.ZERO;
+        }
+
+        if (tienkhacdua.compareTo(tongtien) < 0) {
+            redirectAttributes.addFlashAttribute("mess", "Tiền khách đưa còn thiếu: " + tongtien.subtract(tienkhacdua) + " VNĐ");
+            return "redirect:/banhang/index?mahd=" + mahd;
         }
 
         for (HoaDonChiTiet dc : listhdct) {
             SanPhamChiTiet spct = dc.getSanPhamChiTiet();
+            if (dc.getSoLuong() > spct.getSoLuongTon()) {
+                redirectAttributes.addFlashAttribute("mess", "Sản phẩm: " + spct.getSanPham().getTenSanPham() + " không đủ hàng tồn kho!");
+                return "redirect:/banhang/index?mahd=" + mahd;
+            }
+        }
 
+        for (HoaDonChiTiet dc : listhdct) {
+            SanPhamChiTiet spct = dc.getSanPhamChiTiet();
             spct.setSoLuongTon(spct.getSoLuongTon() - dc.getSoLuong());
-
             sanPhamChiTietService.them(spct);
+        }
 
+        if (hd.getMaGiamGia() != null) {
+            GiamGia gg = hd.getMaGiamGia();
+            if (gg.getSoLuong() != null && gg.getSoLuong() > 0) {
+                giamGiaService.giamSoLuongVoucher(gg.getMaGiamGia());
+            } else {
+                redirectAttributes.addFlashAttribute("mess", "Mã giảm giá này đã hết lượt sử dụng!");
+                return "redirect:/banhang/index?mahd=" + mahd;
+            }
         }
 
         hd.setTongTien(tongtien);
-
         hd.setTienKhachDua(tienkhacdua);
-
-        hd.setTienThua(
-                tienkhacdua.subtract(tongtien)
-        );
-
+        hd.setTienThua(tienkhacdua.subtract(tongtien));
         hd.setPhuongThucThanhToan(phuongthuc);
 
-        hd.setTrangThai("Đã thanh toán");
+        if ("Online".equalsIgnoreCase(hd.getLoaiBan())) {
+            hd.setTrangThai("Đang giao");
+            redirectAttributes.addFlashAttribute("mess", "Đơn hàng đã chuyển sang trạng thái: Đang giao!");
+        } else {
+            hd.setTrangThai("Đã thanh toán");
+            redirectAttributes.addFlashAttribute("mess", "Thanh toán thành công!");
+        }
 
         hoaDonService.save(hd);
-
-        redirectAttributes.addFlashAttribute(
-                "mess",
-                "Thanh toán thành công"
-        );
-
         return "redirect:/banhang/index";
-
     }
 
     @PostMapping("/chonkh")

@@ -23,9 +23,6 @@ public class DanhMucSanPham {
     @Column( name = "TenDanhMuc")
     private String tenDanhMuc;
 
-    @Column(name = "TrangThai")
-    private Boolean trangThai;
-
     @NotBlank(message = "Mô tả danh mục không để trống")
     @Pattern(regexp = "^[\\p{L}\\s]*$", message = "Mô tả danh mục chỉ được chứa chữ cái và khoảng trắng")
     @Column( name = "MoTa")

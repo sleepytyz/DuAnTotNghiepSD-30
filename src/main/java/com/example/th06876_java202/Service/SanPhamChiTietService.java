@@ -5,6 +5,7 @@ import com.example.th06876_java202.Repository.SanPhamChiTietRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -28,23 +29,15 @@ public class SanPhamChiTietService {
         return sanPhamChiTietRepository.findById(id);
     }
 
-    public void capNhatTrangThai(SanPhamChiTiet spct) {
-        if (spct.getSoLuongTon() == 0) {
-            spct.setTrangThai("Hết hàng");
-        } else if (spct.getSoLuongTon() <= 10) {
-            spct.setTrangThai("Sắp hết hàng");
-        } else {
-            spct.setTrangThai("Còn hàng");
-        }
-    }
 
     public List<SanPhamChiTiet> getBySanPhamVaMau(
             Integer maSP,
             String mauSac){
 
-        return sanPhamChiTietRepository.findBySanPham_MaSanPhamAndMauSac(
-                maSP,
-                mauSac);
+        return sanPhamChiTietRepository
+                .findBySanPham_MaSanPhamAndMauSac_TenMauSac(
+                        maSP,
+                        mauSac);
     }
 
     public List<SanPhamChiTiet> getByHinhAnh(){
@@ -81,7 +74,7 @@ public class SanPhamChiTietService {
     }
 
     public List<SanPhamChiTiet> getByTT(String tt) {
-        return sanPhamChiTietRepository.findByTrangThai(tt);
+        return sanPhamChiTietRepository.locTheoTrangThaiHienThi(tt);
     }
 
     public List<SanPhamChiTiet> getBygia(BigDecimal gm, BigDecimal gm2) {
@@ -102,6 +95,21 @@ public class SanPhamChiTietService {
 
     public List<String> getMsac() {
         return sanPhamChiTietRepository.findAllMauSac();
+    }
+
+
+    public void capNhatTrangThaii(SanPhamChiTiet spct) {
+        Integer soLuong = spct.getSoLuongTon();
+
+        if (soLuong == null || soLuong <= 0) {
+            spct.setTrangThai("Hết hàng");
+        } else if (soLuong <= 10) {
+            spct.setTrangThai("Sắp hết");
+        } else {
+            spct.setTrangThai("Còn hàng");
+        }
+
+        spct.setNgayCapNhat(LocalDate.now());
     }
 
 }

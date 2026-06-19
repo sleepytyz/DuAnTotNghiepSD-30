@@ -4,6 +4,7 @@ import com.example.th06876_java202.Entity.SanPhamChiTiet;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,9 +26,9 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
     int updateTrangThaiii(int maSanPham);
 
 
-    List<SanPhamChiTiet> findBySanPham_MaSanPhamAndMauSac(
+    List<SanPhamChiTiet> findBySanPham_MaSanPhamAndMauSac_TenMauSac(
             Integer maSP,
-            String mauSac);
+            String tenMauSac);
 
     @Query( value = "SELECT MIN(ct.maSanPhamChiTiet) FROM SanPhamChiTiet ct JOIN SanPhamHinhAnh ha ON ct.maSanPhamChiTiet = ha.sanPhamChiTiet.maSanPhamChiTiet WHERE ha.laAnhChinh = true GROUP BY ct.sanPham, ct.mauSac")
     List<SanPhamChiTiet> findAllSanPham();
@@ -44,9 +45,11 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
     @Query( value = "select distinct kt.TenKichThuoc from SanPhamChiTiet spct inner join KichThuoc kt on spct.MaKichThuoc = kt.MaKichThuoc order by kt.TenKichThuoc", nativeQuery = true)
     List<String> findAllSize();
 
-    @Query( value = "select * from SanPhamChiTiet where TrangThai = ?", nativeQuery = true)
-    List<SanPhamChiTiet> findByTrangThai(String tt);
+    @Query("SELECT s FROM SanPhamChiTiet s WHERE s.trangThai = :tt")
+    List<SanPhamChiTiet> locTheoTrangThaiHienThi(@Param("tt") String tt);
 
     @Query(value = "select * from SanPhamChiTiet  where GiaBan >= ? and GiaBan <= ?", nativeQuery = true)
     List<SanPhamChiTiet> findByGiaBanAndGiaBan(BigDecimal gt, BigDecimal gb);
+
+
 }
