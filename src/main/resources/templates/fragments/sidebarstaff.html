@@ -1,0 +1,43 @@
+<!-- sidebar-staff.html -->
+<nav class="sidebar" th:fragment="sidebar-staff">
+    <style>
+        .sidebar-header{
+            background: #fff;
+            border-bottom: 1px solid #e5e5e5;
+        }
+    </style>
+
+    <div>
+        <div class="sidebar-header">
+            <img th:src="@{/images/img.png}" alt="FS Shop Logo">
+        </div>
+
+        <div class="sidebar-menu-wrapper">
+            <div class="menu-heading">Bán Hàng</div>
+            <a href="/"><i class="bi bi-house-door"></i> Trang Chủ</a>
+            <a href="/banhang/index"><i class="bi bi-cart3"></i> Bán hàng</a>
+
+            <div class="menu-heading">Quản Lý Đơn Hàng</div>
+            <a href="/donhang/index"><i class="bi bi-truck"></i> Danh sách đơn hàng</a>
+            <a href="/hoa-don/index"><i class="bi bi-receipt"></i> Hóa đơn</a>
+
+            <div class="menu-heading">Khách Hàng</div>
+            <a href="/khach-hang/hien-thi"><i class="bi bi-person-lines-fill"></i> Khách hàng</a>
+
+            <div class="menu-heading">Báo Cáo</div>
+            <a href="#"><i class="bi bi-bar-chart-line"></i> Thống kê doanh số</a>
+            <a href="#"><i class="bi bi-trophy"></i> Sản phẩm bán chạy</a>
+        </div>
+    </div>
+
+    <div class="sidebar-footer">
+        <a href="javascript:void(0);"
+           onclick="document.getElementById('logout-form-staff').submit();"
+           class="d-flex align-items-center gap-2 text-secondary text-decoration-none fw-semibold"
+           style="font-size: 14px;">
+            <i class="bi bi-box-arrow-right text-danger"></i> Đăng xuất
+        </a>
+
+        <form id="logout-form-staff" th:action="@{/logout}" method="post" style="display: none;"></form>
+    </div>
+</nav>
