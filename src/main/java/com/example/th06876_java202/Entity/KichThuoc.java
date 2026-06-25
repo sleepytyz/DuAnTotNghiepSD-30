@@ -20,7 +20,13 @@ public class KichThuoc {
     private Integer maKichThuoc;
 
     @NotBlank(message = "Không bỏ trống kích thước")
-    @Pattern(regexp = "^\\d+$", message = "Kích thước chỉ chứa số")
+    @Pattern(
+            regexp = "^\\d+(\\.\\d+)?$",
+            message = "Kích thước chỉ chứa số hoặc số thập phân"
+    )
     @Column(name = "TenKichThuoc")
     private String tenKichThuoc;
+
+    @Column(name = "TrangThai")
+    private boolean trangThai;
 }

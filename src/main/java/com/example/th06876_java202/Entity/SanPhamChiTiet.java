@@ -1,5 +1,6 @@
 package com.example.th06876_java202.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
@@ -17,6 +18,7 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Table( name = "SanPhamChiTiet")
+@JsonIgnoreProperties({"sanPham", "kichThuoc", "mauSac"})
 public class SanPhamChiTiet {
 
     @Id
@@ -60,8 +62,7 @@ public class SanPhamChiTiet {
     @Column(name = "TrangThai")
     private String trangThai;
 
-    @OneToMany(mappedBy = "sanPhamChiTiet")
-    private List<SanPhamHinhAnh> danhSachAnh;
-
+    @Column(name = "DuongDanAnh")
+    private String duongDanAnh;
 
 }

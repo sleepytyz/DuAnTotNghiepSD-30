@@ -2,6 +2,8 @@ package com.example.th06876_java202.Repository;
 
 import com.example.th06876_java202.Entity.DanhMucSanPham;
 import jakarta.validation.constraints.NotBlank;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -21,5 +23,7 @@ public interface DanhMucSanPhamRepository extends JpaRepository<DanhMucSanPham, 
     List<DanhMucSanPham> findByMaDanhMuc (int idd );
 
     boolean existsByTenDanhMuc(@NotBlank(message = "Tên danh mục không để trống") String tenDanhMuc);
+
+    Page<DanhMucSanPham> findAllByOrderByMaDanhMucDesc(Pageable pageable);
 
 }

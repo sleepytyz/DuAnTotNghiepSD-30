@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name = "SanPham")
@@ -49,4 +50,25 @@ public class SanPham {
 
     @Column(name = "NgayCapNhat")
     private LocalDate ngayCapNhat;
+
+    @ManyToOne
+    @JoinColumn(name = "MaThuongHieu")
+    private ThuongHieu thuongHieu;
+
+    @ManyToOne
+    @JoinColumn(name = "MaKieuGiay")
+    private KieuGiay kieuGiay;
+
+    @OneToMany(mappedBy = "sanPham")
+    private List<SanPhamChiTiet> sanPhamChiTiets;
+
+    public int getTongTon() {
+        if (sanPhamChiTiets == null) {
+            return 0;
+        }
+
+        return sanPhamChiTiets.stream()
+                .mapToInt(spct -> spct.getSoLuongTon() == null ? 0 : spct.getSoLuongTon())
+                .sum();
+    }
 }

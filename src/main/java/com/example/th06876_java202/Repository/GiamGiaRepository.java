@@ -2,6 +2,8 @@ package com.example.th06876_java202.Repository;
 
 import com.example.th06876_java202.Entity.GiamGia;
 import com.example.th06876_java202.Entity.SanPham;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -27,7 +29,7 @@ public interface GiamGiaRepository extends JpaRepository<GiamGia, Integer> {
     @Modifying
     @Transactional
     @Query(value = "update GiamGia set TrangThai = N'Ngừng hoạt động' where MaGiamGia = ?", nativeQuery = true)
-    void updateGiamGia(int id);
+    void updateGiamGiaaa(int id);
 
 
     @Query(value = "select * from GiamGia where LoaiGiamGia = ?", nativeQuery = true)
@@ -43,4 +45,34 @@ public interface GiamGiaRepository extends JpaRepository<GiamGia, Integer> {
     List<GiamGia> timkiemngay(LocalDateTime ngaybd, LocalDateTime ngayketthuc);
 
     boolean existsByTenGiamGia(String tenChuongTrinh);
+
+    @Query("SELECT g FROM GiamGia g WHERE g.trangThai != 'Ngừng hoạt động'")
+    List<GiamGia> findDanhSachCanCapNhat();
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE GiamGia g SET g.trangThai = :trangThai WHERE g.maGiamGia = :id")
+    void updateTrangThai(@Param("trangThai") String trangThai, @Param("id") int id);
+
+    @Query(value = """
+        SELECT * FROM GiamGia 
+        WHERE (:keyword IS NULL OR :keyword = '' OR TenChuongTrinh LIKE %:keyword% OR CAST(MaGiamGia AS VARCHAR(30)) LIKE %:keyword%)
+        AND (:tt IS NULL OR :tt = '' OR TrangThai = :tt)
+        AND (:lg IS NULL OR :lg = '' OR LoaiGiamGia = :lg)
+        AND (:tuNgay IS NULL OR NgayBatDau >= :tuNgay)
+        AND (:denNgay IS NULL OR NgayKetThuc <= :denNgay)
+        ORDER BY MaGiamGia DESC
+    """, nativeQuery = true, countQuery = "SELECT count(*) FROM GiamGia")
+    Page<GiamGia> filterAll(
+            @Param("keyword") String keyword,
+            @Param("tt") String tt,
+            @Param("lg") String lg,
+            @Param("tuNgay") LocalDateTime tuNgay,
+            @Param("denNgay") LocalDateTime denNgay,
+            Pageable pageable
+    );
+
+
+
+
 }

@@ -134,16 +134,16 @@
                                 <div class="text-danger small fw-semibold mt-1" th:if="${#fields.hasErrors('sdt')}" th:errors="*{sdt}"></div>
                             </div>
 
-                            <div class="mb-2.5">
-                                <label class="form-label text-muted mb-1 small">
-                                    Địa chỉ: <span th:if="${hoadonHienTai != null && hoadonHienTai.loaiBan == 'Online'}" class="text-danger">*</span>
-                                </label>
-                                <input type="text" th:field="*{diaChi}" class="form-control form-control-sm text-dark fw-semibold"
-                                       th:readonly="${hoadonHienTai != null && hoadonHienTai.maKhachHang != null}"
-                                       th:required="${hoadonHienTai != null && hoadonHienTai.loaiBan == 'Online'}"
-                                       placeholder="Nhập địa chỉ giao hàng lẻ...">
-                                <div class="text-danger small fw-semibold mt-1" th:if="${#fields.hasErrors('diaChi')}" th:errors="*{diaChi}"></div>
-                            </div>
+<!--                            <div class="mb-2.5">-->
+<!--                                <label class="form-label text-muted mb-1 small">-->
+<!--                                    Địa chỉ: <span th:if="${hoadonHienTai != null && hoadonHienTai.loaiBan == 'Online'}" class="text-danger">*</span>-->
+<!--                                </label>-->
+<!--                                <input type="text" th:field="*{diaChi}" class="form-control form-control-sm text-dark fw-semibold"-->
+<!--                                       th:readonly="${hoadonHienTai != null && hoadonHienTai.maKhachHang != null}"-->
+<!--                                       th:required="${hoadonHienTai != null && hoadonHienTai.loaiBan == 'Online'}"-->
+<!--                                       placeholder="Nhập địa chỉ giao hàng lẻ...">-->
+<!--                                <div class="text-danger small fw-semibold mt-1" th:if="${#fields.hasErrors('diaChi')}" th:errors="*{diaChi}"></div>-->
+<!--                            </div>-->
 
                             <!-- ĐÂY RỒI: Ô Ghi chú giao hàng dành riêng cho đơn Online -->
                             <div class="mb-3" th:if="${hoadonHienTai != null && hoadonHienTai.loaiBan == 'Online'}">
@@ -438,7 +438,7 @@
                                 <td th:text="${khach.maKH}"></td>
                                 <td class="text-start fw-semibold text-dark" th:text="${khach.hoTen}"></td>
                                 <td th:text="${khach.sdt}" class="text-secondary fw-bold"></td>
-                                <td th:text="${khach.diaChi}"></td>
+<!--                                <td th:text="${khach.diaChi}"></td>-->
                                 <td>
                                     <form th:action="@{/banhang/chonkh}" method="post">
                                         <input type="hidden" name="mahd" th:value="${hoadonHienTai != null ? hoadonHienTai.maHoaDon : ''}" />

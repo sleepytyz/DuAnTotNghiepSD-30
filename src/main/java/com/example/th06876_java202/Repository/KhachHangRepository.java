@@ -15,20 +15,16 @@ import java.util.Optional;
 public interface KhachHangRepository extends JpaRepository<KhachHang, Integer> {
 
     @Query("select k from KhachHang k where k.sdt like concat('%', :sdt, '%')")
-    List<KhachHang> findBySdt(@Param("sdt") String sdt);
-
-    List<KhachHang> findByHangKhachHang(String sdt);
+    List<KhachHang> findBySdtt(@Param("sdt") String sdt);
 
     @Modifying
     @Transactional
     @Query(value = " INSERT INTO KhachHang(HoTen, SoDienThoai, DiaChi, TrangThai, HangKhachHang) VALUES (?1, ?2, ?3, 1, N'Mới')", nativeQuery = true)
     int saveee(String hoTen, String soDienThoai, String diaChi);
 
+    List<KhachHang> findTop10BySdtContaining(String sdt);
 
     Page<KhachHang> findBySdtContaining(String sdt, Pageable pageable);
-    Page<KhachHang> findByHangKhachHang(String hang, Pageable pageable);
-
-
 
     @Modifying
     @Transactional
@@ -40,8 +36,14 @@ public interface KhachHangRepository extends JpaRepository<KhachHang, Integer> {
     @Query("update KhachHang k set k.trangThai = true where k.maKH = :maKH")
     void restoreTrangThai(@Param("maKH") Integer mkh);
 
-    boolean existsBySdt(String sdt);
-
     Optional<KhachHang> findByEmail(String email);
+
+    boolean existsBySdt(String sdt);
+    boolean existsByEmail(String email);
+
+    boolean existsBySdtAndMaKHNot(String sdt, Integer maKH);
+    boolean existsByEmailAndMaKHNot(String email, Integer maKH);
+
+
 
 }

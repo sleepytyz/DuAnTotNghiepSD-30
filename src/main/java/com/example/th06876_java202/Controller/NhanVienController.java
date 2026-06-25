@@ -3,8 +3,13 @@ package com.example.th06876_java202.Controller;
 import com.example.th06876_java202.Entity.NhanVien;
 import com.example.th06876_java202.Entity.TaiKhoan; // BẮT BUỘC PHẢI CÓ DÒNG NÀY
 import com.example.th06876_java202.Repository.NhanVienRepository;
+import com.example.th06876_java202.Service.EmailService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -21,19 +26,30 @@ public class NhanVienController {
     @Autowired
     private NhanVienRepository nhanVienRepository;
 
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
+    private org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder passwordEncoder;
+
     @GetMapping
     public String index(
             @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "role", required = false) String role,
             @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "page", defaultValue = "0") int page,
             Model model) {
 
-        List<NhanVien> dsNhanVien = nhanVienRepository.filter(keyword, role, status);
+        Pageable pageable = PageRequest.of(page, 10, Sort.by("MaNhanVien").descending());
 
-        model.addAttribute("list", dsNhanVien);
+        Page<NhanVien> pageNhanVien = nhanVienRepository.filter(keyword, role, status, pageable);
+
+        model.addAttribute("list", pageNhanVien.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", pageNhanVien.getTotalPages());
+
         model.addAttribute("activeMenu", "nhanvien");
 
-        // TRUYỀN CÁC GIÁ TRỊ LỌC VÀO MODEL ĐỂ HIỂN THỊ TRÊN GIAO DIỆN
         model.addAttribute("keyword", keyword);
         model.addAttribute("role", role);
         model.addAttribute("status", status);
@@ -52,29 +68,39 @@ public class NhanVienController {
                        BindingResult result,
                        Model model) {
 
-        String defaultBcrypt = "$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG";
-
-        // Validate lỗi
         if (result.hasErrors()) {
-
-            if (nv.getTaiKhoan() == null) {
-                nv.setTaiKhoan(new TaiKhoan());
-            }
-
+            if (nv.getTaiKhoan() == null) nv.setTaiKhoan(new TaiKhoan());
             model.addAttribute("list", nhanVienRepository.findAll());
             model.addAttribute("showModal", true);
             model.addAttribute("nhanVien", nv);
-
             return "nhanvien/index";
         }
 
-        if (nv.getMaNhanVien() != null) {
+        boolean isUpdate = (nv.getMaNhanVien() != null);
+        boolean emailExists = isUpdate ?
+                nhanVienRepository.existsByEmailAndMaNhanVienNot(nv.getEmail(), nv.getMaNhanVien()) :
+                nhanVienRepository.existsByEmail(nv.getEmail());
 
-            NhanVien existingNv = nhanVienRepository.findById(nv.getMaNhanVien())
-                    .orElse(null);
+        boolean sdtExists = isUpdate ?
+                nhanVienRepository.existsBySoDienThoaiAndMaNhanVienNot(nv.getSoDienThoai(), nv.getMaNhanVien()) :
+                nhanVienRepository.existsBySoDienThoai(nv.getSoDienThoai());
 
+        if (emailExists) {
+            result.rejectValue("email", "error.nv", "Email này đã tồn tại trong hệ thống!");
+        }
+        if (sdtExists) {
+            result.rejectValue("soDienThoai", "error.nv", "Số điện thoại này đã được sử dụng!");
+        }
+
+        if (result.hasErrors()) {
+            model.addAttribute("list", nhanVienRepository.findAll());
+            model.addAttribute("showModal", true);
+            return "nhanvien/index";
+        }
+
+        if (isUpdate) {
+            NhanVien existingNv = nhanVienRepository.findById(nv.getMaNhanVien()).orElse(null);
             if (existingNv != null) {
-
                 existingNv.setHoTen(nv.getHoTen());
                 existingNv.setSoDienThoai(nv.getSoDienThoai());
                 existingNv.setEmail(nv.getEmail());
@@ -87,55 +113,61 @@ public class NhanVienController {
                 existingNv.setTrangThai(nv.getTrangThai());
                 existingNv.setGhiChu(nv.getGhiChu());
 
-                // Tài khoản
-                if (nv.getTaiKhoan() != null
-                        && nv.getTaiKhoan().getTenDangNhap() != null
-                        && !nv.getTaiKhoan().getTenDangNhap().trim().isEmpty()) {
-
-                    if (existingNv.getTaiKhoan() != null) {
-
-                        existingNv.getTaiKhoan()
-                                .setTenDangNhap(nv.getTaiKhoan().getTenDangNhap());
-
-                    } else {
-
+                if (nv.getTaiKhoan() != null && nv.getTaiKhoan().getTenDangNhap() != null && !nv.getTaiKhoan().getTenDangNhap().trim().isEmpty()) {
+                    if (existingNv.getTaiKhoan() == null) {
+                        String rawPass = "Pass" + (int)(Math.random() * 900000 + 100000);
                         TaiKhoan tk = new TaiKhoan();
                         tk.setTenDangNhap(nv.getTaiKhoan().getTenDangNhap());
-                        tk.setMatKhau(defaultBcrypt);
+                        tk.setMatKhau(passwordEncoder.encode(rawPass));
                         tk.setVaiTro("STAFF");
                         tk.setTrangThai(true);
-
                         existingNv.setTaiKhoan(tk);
+                        // Gọi gửi mail
+                        emailService.sendAccountDetails(nv.getEmail(), nv.getHoTen(), tk.getTenDangNhap(), rawPass);
                     }
                 }
-
                 nhanVienRepository.save(existingNv);
             }
-
         } else {
 
+            if (nv.getNgayVaoLam() == null) nv.setNgayVaoLam(LocalDate.now());
+            nv.setTrangThai(true);
+            String hoTen = nv.getHoTen().trim();
+            String tenChinh = hoTen.substring(hoTen.lastIndexOf(" ") + 1);
 
-            if (nv.getNgayVaoLam() == null) {
-                nv.setNgayVaoLam(LocalDate.now());
-            }
+            String autoUsername = tenChinh.toLowerCase() + (int)(Math.random() * 900 + 100);
 
-            if (nv.getTaiKhoan() != null
-                    && nv.getTaiKhoan().getTenDangNhap() != null
-                    && !nv.getTaiKhoan().getTenDangNhap().trim().isEmpty()) {
+            String rawPassword = "Pass" + (int)(Math.random() * 900000 + 100000);
 
-                nv.getTaiKhoan().setMatKhau(defaultBcrypt);
-                nv.getTaiKhoan().setVaiTro("STAFF");
-                nv.getTaiKhoan().setTrangThai(true);
-
-            } else {
-                nv.setTaiKhoan(null);
-            }
+            TaiKhoan tk = new TaiKhoan();
+            tk.setTenDangNhap(autoUsername);
+            tk.setMatKhau(passwordEncoder.encode(rawPassword));
+            tk.setVaiTro("STAFF");
+            tk.setTrangThai(true);
+            nv.setTaiKhoan(tk);
 
             nhanVienRepository.save(nv);
+
+            try {
+                emailService.sendAccountDetails(nv.getEmail(), nv.getHoTen(), autoUsername, rawPassword);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
-        return "redirect:/nhan-vien";
+        return "redirect:/nhan-vien?page=0";
     }
+
+    @GetMapping("/toggle-status/{id}")
+    public String toggleStatus(@PathVariable("id") Integer id, @RequestParam(value = "page", defaultValue = "0") int page) {
+        NhanVien nv = nhanVienRepository.findById(id).orElse(null);
+        if (nv != null) {
+            nv.setTrangThai(!nv.getTrangThai());
+            nhanVienRepository.save(nv);
+        }
+        return "redirect:/nhan-vien?page=" + page;
+    }
+
     @GetMapping("/edit/{id}")
     public String edit(@PathVariable("id") Integer id, Model model) {
         NhanVien nv = nhanVienRepository.findById(id)

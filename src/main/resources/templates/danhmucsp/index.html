@@ -13,6 +13,13 @@
             border-color: #c92327 !important;
             box-shadow: 0 0 0 0.25rem rgba(201, 35, 39, 0.15) !important;
         }
+        .transition-all {
+            transition: all 0.2s ease-in-out;
+        }
+        .transition-all:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 
@@ -33,6 +40,12 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
 
+            <div th:if="${successMess}" class="alert alert-success alert-dismissible fade show mt-3 shadow-sm border-0" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <span th:text="${successMess}" class="fw-medium"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
             <div class="card card-custom mb-4 shadow-sm border-0 mt-3">
                 <div class="card-header text-white" style="background:#c92327;">
                     <h5 class="mb-0 d-flex align-items-center gap-2 py-1">
@@ -41,47 +54,45 @@
                     </h5>
                 </div>
 
-                <div class="card-body bg-white p-4">
-                    <form method="post" th:object="${danhmuc}">
-                        <input type="hidden"
-                               th:name="${_csrf.parameterName}"
-                               th:value="${_csrf.token}">
+                <div class="card border-0 shadow-sm rounded-3">
+                    <div class="card-body bg-white p-4">
+                        <form method="post" th:object="${danhmuc}">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
+                            <div class="row g-4 align-items-end">
+                                <div class="col-lg-4 col-md-6">
+                                    <label class="form-label fw-bold text-secondary small mb-2">
+                                        Tên danh mục <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-secondary-subtle text-muted"><i class="bi bi-tag"></i></span>
+                                        <input type="text" class="form-control border-secondary-subtle shadow-none" th:field="*{tenDanhMuc}" placeholder="Nhập tên danh mục...">
+                                    </div>
+                                    <div class="text-danger small mt-1 d-block" th:errors="*{tenDanhMuc}"></div>
+                                </div>
 
-                        <div class="row g-3">
+                                <div class="col-lg-5 col-md-6">
+                                    <label class="form-label fw-bold text-secondary small mb-2">Mô tả</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-secondary-subtle text-muted"><i class="bi bi-justify-left"></i></span>
+                                        <input type="text" class="form-control border-secondary-subtle shadow-none" th:field="*{moTa}" placeholder="Nhập mô tả ngắn...">
+                                    </div>
+                                </div>
 
-                            <div class="col-md-2">
-                                <label class="form-label fw-semibold text-dark small">Mã danh mục</label>
-                                <input type="text" class="form-control bg-light border-secondary-subtle" th:field="*{maDanhMuc}" readonly placeholder="Tự động tăng">
+                                <div class="col-lg-3 col-md-12 d-flex gap-2 justify-content-md-start justify-content-lg-end">
+                                    <button class="btn fw-semibold text-white px-4 py-2 d-flex align-items-center gap-2 shadow-sm transition-all"
+                                            type="submit"
+                                            formaction="/danhmucsp/add"
+                                            style="background-color: #c92327; border-color: #c92327;">
+                                        <i class="bi bi-plus-circle-fill"></i> Thêm mới
+                                    </button>
+
+                                </div>
                             </div>
-
-                            <div class="col-md-3">
-                                <label class="form-label fw-semibold text-dark small">Tên danh mục <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control border-secondary-subtle" th:field="*{tenDanhMuc}" placeholder="Nhập tên danh mục...">
-                                <div class="text-danger small mt-1" th:errors="*{tenDanhMuc}"></div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold text-dark small">Mô tả</label>
-                                <input type="text" class="form-control border-secondary-subtle" th:field="*{moTa}" placeholder="Nhập mô tả ngắn...">
-                                <div class="text-danger small mt-1" th:errors="*{moTa}"></div>
-                            </div>
-
-                        </div>
-
-                        <hr class="text-secondary-subtle my-4">
-
-                        <div class="d-flex gap-2 justify-content-start">
-                            <button class="btn fw-semibold text-white px-4 d-flex align-items-center gap-1" type="submit" formaction="/danhmucsp/add" style="background:#c92327;">
-                                <i class="bi bi-plus-circle"></i> Thêm mới
-                            </button>
-
-                            <button type="button" class="btn btn-outline-secondary fw-semibold px-4 d-flex align-items-center gap-1" onclick="resetForm()">
-                                <i class="bi bi-arrow-clockwise"></i> Reset
-                            </button>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
+
             </div>
 
             <div class="card card-custom border-0 shadow-sm mt-4">
@@ -100,26 +111,80 @@
                             <th style="width:120px">Mã DM</th>
                             <th>Tên danh mục</th>
                             <th>Mô tả</th>
+                            <th>Trạng Thái</th>
+                            <th>Hành động</th>
                         </tr>
                         </thead>
 
                         <tbody>
-                        <tr th:each="dm,row : ${listdmsp}">
-                            <td th:text="${row.count}"></td>
+                        <tr th:each="kg,stt : ${listdmsp}">
+                            <td th:text="${(currentPage * 5) + stt.count}"></td>
+                            <td class="fw-semibold text-secondary" th:text="${'DM' + kg.maDanhMuc}"></td>
+                            <td class="fw-bold text-dark" th:text="${kg.tenDanhMuc}"></td>
+                            <td th:text="${kg.moTa}"></td>
                             <td>
-                                <span class="fw-bold text-dark" th:text="${'DM' + dm.maDanhMuc}"></span>
+                                <span th:if="${kg.trangThai}" class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Đang hoạt động</span>
+                                <span th:unless="${kg.trangThai}" class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">Ngừng hoạt động</span>
                             </td>
-                            <td class="fw-medium" th:text="${dm.tenDanhMuc}"></td>
-                            <td th:text="${dm.moTa}"></td>
-                        </tr>
 
-                        <tr th:if="${#lists.isEmpty(listdmsp)}">
-                            <td colspan="6" class="text-center text-muted py-4">
-                                <i class="bi bi-inbox me-1"></i> Chưa có dữ liệu danh mục hiển thị
+                            <td>
+                                <a th:if="${kg.trangThai}"
+                                   th:href="@{/danhmucsp/capnhatt/{id}(id=${kg.maDanhMuc})}"
+                                   class="btn btn-sm btn-link text-success p-1 border-0"
+                                   title="Đang hoạt động - Nhấn để ngừng"
+                                   onclick="return confirm('Bạn có chắc chắn muốn NGỪNG hoạt động danh mục này?')">
+                                    <i class="bi bi-toggle2-on fs-4"></i>
+                                </a>
+
+                                <a th:unless="${kg.trangThai}"
+                                   th:href="@{/danhmucsp/capnhatt/{id}(id=${kg.maDanhMuc})}"
+                                   class="btn btn-sm btn-link text-secondary p-1 border-0"
+                                   title="Đang ngừng hoạt động - Nhấn để kích hoạt lại"
+                                   onclick="return confirm('Bạn có muốn KÍCH HOẠT LẠI danh mục này không?')">
+                                    <i class="bi bi-toggle2-off fs-4"></i>
+                                </a>
                             </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(listdmsp)}">
+                            <td colspan="5" class="text-center text-muted py-4">Chưa có dữ liệu kiểu giày nào được tạo.</td>
                         </tr>
                         </tbody>
                     </table>
+                </div>
+                <div class="card-footer bg-white border-top d-flex justify-content-between align-items-center px-4 py-3" th:if="${totalPages > 0}">
+                    <div class="small text-muted fw-semibold">
+                        Hiển thị trang <span class="fw-semibold text-dark" th:text="${currentPage + 1}">1</span> / <span th:text="${totalPages}">1</span>
+                    </div>
+
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-sm m-0 gap-1">
+                            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled' : ''">
+                                <a class="page-link rounded-2 border-0 d-flex align-items-center justify-content-center text-danger"
+                                   th:href="@{/danhmucsp/index(page=${currentPage - 1})}"
+                                   style="width: 32px; height: 32px;">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+
+                            <li class="page-item"
+                                th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                                th:classappend="${currentPage == i} ? 'active' : ''">
+                                <a class="page-link rounded-2 border-0 d-flex align-items-center justify-content-center fw-semibold"
+                                   th:href="@{/danhmucsp/index(page=${i})}"
+                                   th:text="${i + 1}"
+                                   th:style="${currentPage == i} ? 'background-color:#c92327; border-color:#c92327; color:#fff;' : 'color:#212529; width: 32px; height: 32px;'">
+                                </a>
+                            </li>
+
+                            <li class="page-item" th:classappend="${currentPage + 1 == totalPages} ? 'disabled' : ''">
+                                <a class="page-link rounded-2 border-0 d-flex align-items-center justify-content-center text-danger"
+                                   th:href="@{/danhmucsp/index(page=${currentPage + 1})}"
+                                   style="width: 32px; height: 32px;">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
                 </div>
             </div>
 

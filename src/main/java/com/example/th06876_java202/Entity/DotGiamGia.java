@@ -1,6 +1,10 @@
 package com.example.th06876_java202.Entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.Constraint;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
+import jakarta.validation.Payload;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,6 +12,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -31,19 +39,11 @@ public class DotGiamGia {
     @Column(name = "MoTa")
     private String moTa;
 
-    @NotBlank(message = "Vui lòng chọn loại giảm giá!")
-    @Column(name = "LoaiGiamGia")
-    private String loaiGiamGia;
-
     @NotNull(message = "Giá trị giảm không được để trống!")
-    @DecimalMin(value = "0.0", inclusive = false, message = "Giá trị giảm phải lớn hơn 0!")
+    @DecimalMin(value = "1", message = "Giá trị giảm phải từ 1 đến 100!")
+    @DecimalMax(value = "100", message = "Giá trị giảm phải từ 1 đến 100!")
     @Column(name = "GiaTriGiam")
     private BigDecimal giaTriGiam;
-
-    @NotNull(message = "Mức giảm tối đa không được để trống!")
-    @DecimalMin(value = "0.0", inclusive = true, message = "Mức giảm tối đa không được âm!")
-    @Column(name = "GiamToiDa")
-    private BigDecimal giamToiDa;
 
     @NotNull(message = "Ngày bắt đầu không được để trống!")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
@@ -55,13 +55,11 @@ public class DotGiamGia {
     @Column(name = "NgayKetThuc")
     private LocalDate ngayKetThuc;
 
-    @NotNull(message = "Vui lòng chọn trạng thái hoạt động!")
     @Column(name = "TrangThai")
-    private Boolean trangThai;
+    private String trangThai;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Column(name = "NgayTao")
     private LocalDate ngayTao;
-
 
 }

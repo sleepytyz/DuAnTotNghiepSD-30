@@ -18,4 +18,15 @@ public interface ChiTietDotGiamGiaRepo extends JpaRepository<ChiTietDotGiamGia,I
             nativeQuery = true)
     List<ChiTietDotGiamGia> filterByDotGiamGia(@Param("maGiamGia") String maGiamGia);
 
+    boolean existsByDotGiamGia_MaGiamGiaAndSanPhamChiTiet_MaSanPhamChiTiet(
+            Integer maGiamGia,
+            Integer maSanPhamChiTiet
+    );
+
+    @Query("SELECT DISTINCT ct.sanPham.maSanPham FROM ChiTietDotGiamGia ct WHERE ct.dotGiamGia.maGiamGia = :id")
+    List<Integer> findSanPhamByDot(@Param("id") Integer id);
+
+    @Query("SELECT ct.sanPhamChiTiet.maSanPhamChiTiet FROM ChiTietDotGiamGia ct WHERE ct.dotGiamGia.maGiamGia = :id")
+    List<Integer> findSanPhamChiTietByDot(@Param("id") Integer id);
+
 }

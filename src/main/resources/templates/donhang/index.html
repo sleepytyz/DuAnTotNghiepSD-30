@@ -14,8 +14,6 @@
             border-color: #c92327 !important;
             box-shadow: 0 0 0 0.25rem rgba(201, 35, 39, 0.15) !important;
         }
-
-        /* --- STEPPER TIẾN TRÌNH ĐƠN HÀNG 3 BƯỚC TÍCH LŨY --- */
         .invoice-stepper {
             display: flex;
             justify-content: space-between;
@@ -128,15 +126,12 @@
         <section class="table-card shadow-sm border-0">
             <div class="table-header bg-white border-bottom p-3 d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div class="status-tabs">
-                    <a th:href="@{/donhang/index}" class="tab-item" th:classappend="${trangThai == null} ? ' active' : ''">Tất cả</a>
-                    <a th:href="@{/donhang/loctt(tt='Chờ xác nhận')}" class="tab-item" th:classappend="${trangThai == 'Chờ xác nhận'} ? ' active' : ''">Chờ xác nhận</a>
-                    <a th:href="@{/donhang/loctt(tt='Đã xác nhận')}" class="tab-item" th:classappend="${trangThai == 'Đã xác nhận'} ? ' active' : ''">Đã xác nhận</a>
-                    <a th:href="@{/donhang/loctt(tt='Đang giao')}" class="tab-item" th:classappend="${trangThai == 'Đang giao'} ? ' active' : ''">Đang giao</a>
+                    <a th:href="@{/donhang/index}" class="tab-item" th:classappend="${tt == null} ? ' active' : ''">Tất cả</a>
+                    <a th:href="@{/donhang/index(tt='Chờ xác nhận')}" class="tab-item" th:classappend="${tt == 'Chờ xác nhận'} ? ' active' : ''">Chờ xác nhận</a>
+                    <a th:href="@{/donhang/index(tt='Đã xác nhận')}" class="tab-item" th:classappend="${tt == 'Đã xác nhận'} ? ' active' : ''">Đã xác nhận</a>
+                    <a th:href="@{/donhang/index(tt='Đang giao')}" class="tab-item" th:classappend="${tt == 'Đang giao'} ? ' active' : ''">Đang giao</a>
                 </div>
 
-                <button type="button" class="btn-export fw-semibold">
-                    <i class="bi bi-file-earmark-excel-fill text-success"></i> Xuất Excel
-                </button>
             </div>
 
             <div class="table-wrapper p-3">
@@ -149,6 +144,7 @@
                         <th>KHÁCH HÀNG</th>
                         <th>TỔNG TIỀN</th>
                         <th>THANH TOÁN</th>
+                        <th>LOẠI HOÁ ĐƠN</th>
                         <th>NGÀY TẠO</th>
                         <th>TRẠNG THÁI</th>
                         <th style="width: 100px;">HÀNH ĐỘNG</th>
@@ -162,6 +158,7 @@
                         <td th:text="${hd.maKhachHang != null ? hd.maKhachHang.hoTen + ' - ' + hd.maKhachHang.sdt : 'Khách lẻ'}"></td>
                         <td class="fw-bold text-danger" th:text="${#numbers.formatDecimal(hd.tongTien, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
                         <td th:text="${hd.phuongThucThanhToan}"></td>
+                        <td th:text="${hd.loaiBan}"></td>
                         <td th:text="${hd.ngayTao}"></td>
                         <td>
                             <span th:class="'status-badge status-' + ${hd.trangThai}" th:text="${hd.trangThai}"></span>
@@ -177,6 +174,35 @@
                     </tr>
                     </tbody>
                 </table>
+                <div class="card-footer bg-white border-top p-3 d-flex justify-content-between align-items-center" th:if="${totalPages > 0}">
+                    <div class="small text-muted">
+                        Trang <span th:text="${currentPage + 1}"></span> / <span th:text="${totalPages}"></span>
+                    </div>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                <a class="page-link"
+                                   th:href="@{/donhang/index(page=${currentPage - 1}, mahd=${param.mahd}, tt=${param.tt}, ngay=${param.ngay}, ngay2=${param.ngay2})}">
+                                    &laquo;
+                                </a>
+                            </li>
+
+                            <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                                th:classappend="${currentPage == i} ? 'active'">
+                                <a class="page-link"
+                                   th:href="@{/donhang/index(page=${i}, mahd=${param.mahd}, tt=${param.tt}, ngay=${param.ngay}, ngay2=${param.ngay2})}"
+                                   th:text="${i + 1}"></a>
+                            </li>
+
+                            <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+                                <a class="page-link"
+                                   th:href="@{/donhang/index(page=${currentPage + 1}, mahd=${param.mahd}, tt=${param.tt}, ngay=${param.ngay}, ngay2=${param.ngay2})}">
+                                    &raquo;
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
             </div>
         </section>
 
@@ -248,8 +274,13 @@
                         </select>
                     </div>
 
-                    <div class="col-12">
-                        <label class="form-label fw-semibold small text-dark">Ghi chú nội bộ đơn hàng</label>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold small text-dark">Loại hoá đơn</label>
+                        <input class="form-control bg-light" th:value="${hd != null ? hd.loaiBan : ''}" readonly>
+                    </div>
+
+                    <div class="col-6">
+                        <label class="form-label fw-semibold small text-dark">Ghi chú đơn hàng</label>
                         <textarea class="form-control bg-light" rows="2" readonly th:text="${hd != null ? hd.ghiChu : ''}"></textarea>
                     </div>
 

@@ -30,7 +30,7 @@ public class UserController {
                 return "account/staff/home";
             }
         }
-        return "account/user/home";
+        return "sanpham/index";
     }
 
     @GetMapping("/login")

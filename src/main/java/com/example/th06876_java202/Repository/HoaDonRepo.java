@@ -1,6 +1,8 @@
 package com.example.th06876_java202.Repository;
 
 import com.example.th06876_java202.Entity.HoaDon;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -17,34 +19,55 @@ public interface HoaDonRepo extends JpaRepository<HoaDon, Integer> {
 
     // Hoá đơn
 
-    @Query( value = "select * from HoaDon where MaHoaDon = ? and TrangThai in (N'Đã thanh toán', N'Đã giao', N'Đã huỷ', N'Đã trả hàng')", nativeQuery = true)
-    List<HoaDon> searchByMa(Integer maHoaDon);
+    @Query("SELECT h FROM HoaDon h WHERE h.trangThai NOT IN :ds")
+    Page<HoaDon> findByTrangThaiNotIn(@Param("ds") List<String> ds, Pageable pageable);
 
-    @Query( value = "select * from HoaDon where TrangThai in (N'Đã thanh toán', N'Đã giao', N'Đã huỷ', N'Đã trả hàng')", nativeQuery = true)
+    Page<HoaDon> findAll(Pageable pageable);
+
+    @Query(value = "select * from HoaDon where MaHoaDon = ?1 AND TrangThai IN (N'Đã thanh toán', N'Đã giao', N'Đã huỷ', N'Đã trả hàng')",
+            countQuery = "select count(*) from HoaDon where MaHoaDon = ?1 AND TrangThai IN (N'Đã thanh toán', N'Đã giao', N'Đã huỷ', N'Đã trả hàng')",
+            nativeQuery = true)
+    Page<HoaDon> searchByMa(Integer maHoaDon, Pageable pageable);
+
+    @Query( value = "select * from HoaDon where TrangThai in (N'Đã thanh toán', N'Đã giao', N'Đã huỷ', N'Đã trả hàng') order by MaHoaDon desc", nativeQuery = true)
     List<HoaDon> getallHD();
 
-    List<HoaDon> findByTrangThai(String trangThai);
+    @Query(value = "select * from HoaDon where TrangThai = ?1",
+            countQuery = "select count(*) from HoaDon where TrangThai = ?1",
+            nativeQuery = true)
+    Page<HoaDon> findByTrangThai(String trangThai, Pageable pageable);
 
-    @Query(value = "select * from HoaDon where NgayTao  >= ? and  NgayTao <= ? and TrangThai in (N'Đã thanh toán', N'Đã giao', N'Đã huỷ', N'Đã trả hàng')", nativeQuery = true)
-    List<HoaDon> findByNgayTao(LocalDate ngayTao1, LocalDate ngayTao2);
+    @Query(
+            value = "SELECT * FROM HoaDon WHERE NgayTao >= ?1 AND NgayTao <= ?2 " +
+                    "AND TrangThai IN (N'Đã thanh toán', N'Đã giao', N'Đã huỷ', N'Đã trả hàng') " +
+                    "ORDER BY MaHoaDon DESC",
+            countQuery = "SELECT COUNT(*) FROM HoaDon WHERE NgayTao >= ?1 AND NgayTao <= ?2 " +
+                    "AND TrangThai IN (N'Đã thanh toán', N'Đã giao', N'Đã huỷ', N'Đã trả hàng')",
+            nativeQuery = true
+    )
+    Page<HoaDon> findByNgayTao(LocalDate ngayTao1, LocalDate ngayTao2, Pageable pageable);
 
 
     //ĐƠn hàng
 
-    @Query(value = "select * from HoaDon where NgayTao   >= ? and  NgayTao <= ? and TrangThai in (N'Chờ xác nhận', N'Đã xác nhận', N'Đang giao')", nativeQuery = true)
-    List<HoaDon> findByNgayTaodh(
-            LocalDate ngayTao1,
-            LocalDate ngayTao2
-    );
 
     @Query(value = "select * from HoaDon where TrangThai = N'Yêu cầu huỷ'", nativeQuery = true)
     List<HoaDon> findByTrangThai();
 
-    @Query( value = "select * from HoaDon where MaHoaDon = ? and TrangThai in (N'Chờ xác nhận', N'Đã xác nhận', N'Đang giao')", nativeQuery = true)
-    List<HoaDon> searchByMadh(Integer maHoaDon);
+    @Query(value = "SELECT * FROM HoaDon WHERE NgayTao >= ?1 AND NgayTao <= ?2 AND TrangThai IN (N'Chờ xác nhận', N'Đã xác nhận', N'Đang giao', N'Đang xử lý')",
+            countQuery = "SELECT COUNT(*) FROM HoaDon WHERE NgayTao >= ?1 AND NgayTao <= ?2 AND TrangThai IN (N'Chờ xác nhận', N'Đã xác nhận', N'Đang giao', N'Đang xử lý')",
+            nativeQuery = true)
+    Page<HoaDon> findByNgayTaodh(LocalDate ngayTao1, LocalDate ngayTao2, Pageable pageable);
 
-    @Query( value = "select * from HoaDon where TrangThai in (N'Chờ xác nhận', N'Đã xác nhận', N'Đang giao')", nativeQuery = true)
-    List<HoaDon> getaddDH();
+    @Query(value = "SELECT * FROM HoaDon WHERE MaHoaDon = ?1 AND TrangThai IN (N'Chờ xác nhận', N'Đã xác nhận', N'Đang giao', N'Đang xử lý')",
+            countQuery = "SELECT COUNT(*) FROM HoaDon WHERE MaHoaDon = ?1 AND TrangThai IN (N'Chờ xác nhận', N'Đã xác nhận', N'Đang giao', N'Đang xử lý')",
+            nativeQuery = true)
+    Page<HoaDon> searchByMadh(Integer maHoaDon, Pageable pageable);
+
+    @Query(value = "SELECT * FROM HoaDon WHERE TrangThai IN (N'Chờ xác nhận', N'Đã xác nhận', N'Đang giao', N'Đang xử lý')",
+            countQuery = "SELECT COUNT(*) FROM HoaDon WHERE TrangThai IN (N'Chờ xác nhận', N'Đã xác nhận', N'Đang giao' , N'Đang xử lý')",
+            nativeQuery = true)
+    Page<HoaDon> getaddDH(Pageable pageable);
 
     @Modifying
     @Transactional

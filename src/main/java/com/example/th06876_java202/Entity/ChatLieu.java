@@ -24,4 +24,7 @@ public class ChatLieu {
     @Column(name = "TenChatLieu")
     private String tenChatLieu;
 
+    @Column(name = "TrangThai")
+    private boolean trangThai;
+
 }

@@ -9,6 +9,21 @@
 
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <style>
+        .form-switch .form-check-input {
+            width: 3.5em;
+            height: 1.75em;
+            margin-top: 0;
+            cursor: pointer;
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+        .form-switch .form-check-input:checked {
+            background-color: #b02a37;
+            border-color: #b02a37;
+        }
+        .form-switch .form-check-input:focus {
+            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+        }
         .pagination-bar {
             padding: 12px 16px;
             border-top: 1px solid #E5E7EB;
@@ -78,24 +93,7 @@
             font-size: 11px;
         }
 
-        .btn-action-lock {
-            background: #F59E0B;
-            color: white;
-            padding: 4px 10px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-size: 12px;
-        }
 
-        .btn-action-lock:hover {
-            background: #D97706;
-            color: white;
-        }
-
-        .btn-trash {
-            color: #EF4444;
-            font-size: 16px;
-        }
     </style>
 </head>
 
@@ -126,24 +124,10 @@
                             <input type="text" name="sdt" th:value="${sdt}" class="form-control" placeholder="Tìm theo số điện thoại">
                         </div>
                         <div class="col-md-4">
-                            <button class="btn btn-primary w-100">Tìm SĐT</button>
+                            <button class="btn btn-danger w-100">Tìm SĐT</button>
                         </div>
                     </form>
 
-                    <form th:action="@{/khach-hang/lochang}" method="get" class="col-md-6 row g-2">
-                        <input type="hidden" name="page" value="0">
-                        <div class="col-md-8">
-                            <select name="hang" class="form-select">
-                                <option value="">-- Chọn hạng --</option>
-                                <option value="Mới" th:selected="${hang == 'Mới'}">Mới</option>
-                                <option value="Thành viên" th:selected="${hang == 'Thành viên'}">Thành viên</option>
-                                <option value="VIP" th:selected="${hang == 'VIP'}">VIP</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <button class="btn btn-success w-100">Lọc</button>
-                        </div>
-                    </form>
                 </div>
 
                 <div class="row mt-3">
@@ -152,11 +136,11 @@
                             <i class="bi bi-arrow-clockwise"></i> Reset
                         </a>
                     </div>
-<!--                    <div class="col-md-6 text-end">-->
-<!--                        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalThem">-->
-<!--                            <i class="bi bi-plus-circle"></i> Thêm khách hàng-->
-<!--                        </button>-->
-<!--                    </div>-->
+                    <div class="col-md-6 text-end">
+                        <a th:href="@{/khach-hang/add-view}" class="btn btn-danger">
+                            <i class="bi bi-plus-circle"></i> Thêm khách hàng
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -165,12 +149,10 @@
                     <thead>
                     <tr>
                         <th>STT</th>
+                        <th>Mã Khách hàng</th>
                         <th>Họ tên</th>
-                        <th>Tài khoản</th>
                         <th>SĐT</th>
                         <th>Email</th>
-                        <th>Hạng KH</th>
-                        <th>Điểm</th>
                         <th>Trạng thái</th>
                         <th>Hành động</th>
                     </tr>
@@ -178,46 +160,26 @@
                     <tbody>
                     <tr th:each="ok, row : ${khachHangs}">
                         <td th:text="${row.count + (currentPage * size)}"></td>
+                        <td th:text="${'KH' + ok.maKH}"></td>
                         <td th:text="${ok.hoTen}"></td>
-                        <td th:text="${ok.taiKhoan != null ? ok.taiKhoan.tenDangNhap : 'Chưa có'}"></td>
                         <td th:text="${ok.sdt}"></td>
                         <td th:text="${ok.email}"></td>
-                        <td>
-                            <span th:if="${ok.hangKhachHang == 'VIP'}" class="badge bg-warning text-dark">VIP</span>
-                            <span th:if="${ok.hangKhachHang == 'Thành viên'}" class="badge bg-info">Thành viên</span>
-                            <span th:if="${ok.hangKhachHang == 'Mới'}" class="badge bg-secondary">Mới</span>
-                        </td>
-                        <td th:text="${ok.diemTichLuy}"></td>
                         <td>
                             <span th:if="${ok.trangThai == true}" class="badge-active">Hoạt động</span>
                             <span th:if="${ok.trangThai == false}" class="badge-locked">Ngừng hoạt động</span>
                         </td>
                         <td class="text-center align-middle">
-                            <div class="btn-group" role="group" aria-label="Hành động">
-                                <!-- Nút Xem/Sửa -->
-                                <a class="btn btn-sm btn-outline-primary"
-                                   th:href="@{/khach-hang/edit/{id}(id=${ok.maKH})}"
-                                   title="Xem chi tiết">
-                                    <i class="bi bi-eye-fill"></i>
-                                </a>
+                            <a class="btn btn-sm btn-outline-danger"
+                               th:href="@{/khach-hang/edit/{id}(id=${ok.maKH})}"
+                               title="Xem chi tiết">
+                                <i class="bi bi-eye-fill"></i>
+                            </a>
 
-                                <!-- Nút Khóa (Hiển thị khi đang hoạt động) -->
-                                <a th:if="${ok.trangThai}"
-                                   class="btn btn-sm btn-outline-danger"
-                                   th:href="@{/khach-hang/lock/{id}(id=${ok.maKH})}"
-                                   onclick="return confirm('Bạn có chắc chắn muốn KHÓA tài khoản khách hàng này?')"
-                                   title="Khóa tài khoản">
-                                    <i class="bi bi-lock-fill"></i>
-                                </a>
-
-                                <!-- Nút Mở khóa (Hiển thị khi đang bị khóa) -->
-                                <a th:if="${!ok.trangThai}"
-                                   class="btn btn-sm btn-outline-success"
-                                   th:href="@{/khach-hang/unlock/{id}(id=${ok.maKH})}"
-                                   onclick="return confirm('Bạn có chắc chắn muốn MỞ KHÓA tài khoản khách hàng này?')"
-                                   title="Mở khóa tài khoản">
-                                    <i class="bi bi-unlock-fill"></i>
-                                </a>
+                            <div class="form-check form-switch d-inline-block align-middle ms-2">
+                                <input class="form-check-input" type="checkbox" role="switch"
+                                       th:checked="${ok.trangThai}"
+                                       th:onchange="|toggleStatus('${ok.maKH}', this.checked, this)|"
+                                       title="Bật/Tắt trạng thái">
                             </div>
                         </td>
                     </tr>
@@ -278,73 +240,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
-
-<div class="modal fade" id="modalThem" tabindex="-1">
-    <div class="modal-dialog" style="max-width: 650px;">
-        <div class="modal-content">
-
-            <div class="modal-header" style="background:#c92327; color:white;">
-                <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i>Thêm khách hàng</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-
-            <form th:action="@{/khach-hang/add}" method="post" class="w-100 mx-auto">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Họ tên <span class="text-danger">*</span></label>
-                        <input type="text" name="hoTen" class="form-control" placeholder="Nhập họ tên" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Số điện thoại <span class="text-danger">*</span></label>
-                        <input type="text" name="sdt" class="form-control" placeholder="Nhập số điện thoại" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Email</label>
-                        <input type="email" name="email" class="form-control" placeholder="Nhập email">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Địa chỉ</label>
-                        <input type="text" name="diaChi" class="form-control" placeholder="Nhập địa chỉ">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Ngày sinh</label>
-                        <input type="date" name="ngaySinh" class="form-control">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold d-block">Giới tính</label>
-                        <div class="d-flex gap-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="gioiTinh" value="true" id="themNam">
-                                <label class="form-check-label" for="themNam">Nam</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="gioiTinh" value="false" id="themNu">
-                                <label class="form-check-label" for="themNu">Nữ</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="modal-footer justify-content-center">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                    <button type="submit" class="btn btn-danger">Lưu</button>
-                </div>
-            </form>
-
-        </div>
-    </div>
-</div>
-
-
-<!-- ══════════════════════════════════════════
-     MODAL 2 — XEM KHÁCH HÀNG (readonly, hiện đủ)
-     Mở từ server khi isEdit=true
-═══════════════════════════════════════════ -->
 <div class="modal fade" id="modalXem" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -381,19 +276,12 @@
                         <input class="form-control bg-light" th:value="*{email}" readonly>
                     </div>
 
-                    <!-- Địa chỉ -->
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold text-muted">Địa chỉ</label>
-                        <input class="form-control bg-light" th:value="*{diaChi}" readonly>
-                    </div>
 
-                    <!-- Ngày sinh -->
                     <div class="col-md-6">
                         <label class="form-label fw-semibold text-muted">Ngày sinh</label>
                         <input type="date" class="form-control bg-light" th:value="*{ngaySinh}" readonly>
                     </div>
 
-                    <!-- Giới tính -->
                     <div class="col-md-6">
                         <label class="form-label fw-semibold text-muted d-block">Giới tính</label>
                         <div class="d-flex align-items-center gap-4 mt-1">
@@ -410,36 +298,67 @@
                         </div>
                     </div>
 
-                    <!-- Trạng thái -->
                     <div class="col-md-6">
                         <label class="form-label fw-semibold text-muted d-block">Trạng thái</label>
                         <span th:if="*{trangThai == true}" class="badge-active">Hoạt động</span>
                         <span th:if="*{trangThai == false}" class="badge-locked">Ngừng hoạt động</span>
                     </div>
 
-                    <!-- Hạng KH -->
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold text-muted">Hạng khách hàng</label>
-                        <input class="form-control bg-light" th:value="*{hangKhachHang}" readonly>
-                    </div>
-
-                    <!-- Điểm tích lũy -->
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold text-muted">Điểm tích lũy</label>
-                        <input class="form-control bg-light" th:value="*{diemTichLuy}" readonly>
-                    </div>
-
-                    <!-- Ngày đăng ký -->
                     <div class="col-md-6">
                         <label class="form-label fw-semibold text-muted">Ngày đăng ký</label>
                         <input type="date" class="form-control bg-light" th:value="*{ngayDangKy}" readonly>
                     </div>
 
-                    <!-- Ghi chú -->
                     <div class="col-md-12">
                         <label class="form-label fw-semibold text-muted">Ghi chú</label>
                         <input class="form-control bg-light" th:value="*{ghiChu}" readonly>
                     </div>
+
+                    <div class="col-md-12 mt-4">
+                        <label class="form-label fw-bold text-danger">
+                            <i class="bi bi-geo-alt-fill"></i> Danh sách địa chỉ
+                        </label>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm align-middle">
+                                <thead class="table-light">
+                                <tr>
+                                    <th>Người nhận</th>
+                                    <th>Địa chỉ chi tiết</th>
+                                    <th class="text-center">Mặc định</th>
+                                    <th class="text-center">Thao tác</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:if="${danhSachDiaChi == null or danhSachDiaChi.isEmpty()}">
+                                    <td colspan="4" class="text-center text-muted py-3">Chưa có địa chỉ nào được lưu.</td>
+                                </tr>
+
+                                <tr th:each="dc : ${danhSachDiaChi}">
+                                    <td th:text="${dc.tenNguoiNhan}"></td>
+                                    <td>
+                    <span th:text="${(dc.diaChiCuThe != null ? dc.diaChiCuThe + ', ' : '') +
+                                     (dc.phuongXa != null ? dc.phuongXa + ', ' : '') +
+                                     (dc.quanHuyen != null ? dc.quanHuyen + ', ' : '') +
+                                     (dc.tinhThanh != null ? dc.tinhThanh : '')}">
+                    </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <i th:if="${dc.diaChiMacDinh == true}" class="bi bi-check-circle-fill text-success" title="Địa chỉ mặc định"></i>
+                                        <span th:unless="${dc.diaChiMacDinh == true}" class="text-muted">-</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <a th:href="@{/khach-hang/xoa-dia-chi/{id}(id=${dc.maDiaChi}, maKH=${kh.maKH})}"
+                                           class="btn btn-sm btn-outline-danger" title="Xóa địa chỉ"
+                                           onclick="return confirm('Bạn có chắc chắn muốn xóa địa chỉ này?')">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
 
                 </div>
             </div>
@@ -453,10 +372,18 @@
 </div>
 
 
-<script th:if="${showModal == true and isEdit == true}">
-    document.addEventListener("DOMContentLoaded", function () {
-        new bootstrap.Modal(document.getElementById('modalXem')).show();
-    });
+<script>
+    function toggleStatus(id, isChecked, element) {
+        let action = isChecked ? 'unlock' : 'lock';
+        let confirmMsg = isChecked ? 'Bạn có chắc chắn muốn MỞ KHÓA tài khoản này?' : 'Bạn có chắc chắn muốn KHÓA tài khoản này?';
+
+        if (confirm(confirmMsg)) {
+            window.location.href = '/khach-hang/' + action + '/' + id;
+        } else {
+            // Nếu hủy, trả lại trạng thái check cũ của nút gạt
+            element.checked = !isChecked;
+        }
+    }
 </script>
 
 </body>

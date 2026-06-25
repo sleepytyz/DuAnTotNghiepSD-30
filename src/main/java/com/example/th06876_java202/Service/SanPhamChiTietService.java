@@ -1,15 +1,26 @@
 package com.example.th06876_java202.Service;
 
-import com.example.th06876_java202.Entity.SanPhamChiTiet;
+import com.example.th06876_java202.Entity.*;
 import com.example.th06876_java202.Repository.SanPhamChiTietRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 
 @Service
+@Transactional
 public class SanPhamChiTietService {
+
+    @Autowired
+    private MauSacService mauSacService;
+
+    @Autowired
+    private KichThuocService kichThuocService;
 
     private final SanPhamChiTietRepository sanPhamChiTietRepository;
 
@@ -17,7 +28,11 @@ public class SanPhamChiTietService {
         this.sanPhamChiTietRepository = sanPhamChiTietRepository;
     }
 
-    public List<SanPhamChiTiet> getall(){
+    public Page<SanPhamChiTiet> getall(Pageable pageable) {
+        return sanPhamChiTietRepository.findAll(pageable);
+    }
+
+    public List<SanPhamChiTiet> getalll() {
         return sanPhamChiTietRepository.findAll();
     }
 
@@ -30,59 +45,35 @@ public class SanPhamChiTietService {
     }
 
 
-    public List<SanPhamChiTiet> getBySanPhamVaMau(
-            Integer maSP,
-            String mauSac){
-
-        return sanPhamChiTietRepository
-                .findBySanPham_MaSanPhamAndMauSac_TenMauSac(
-                        maSP,
-                        mauSac);
+    public Double gia(){
+        return sanPhamChiTietRepository.findMaxGiaBan();
     }
 
-    public List<SanPhamChiTiet> getByHinhAnh(){
-        return sanPhamChiTietRepository.findAllSanPham();
+    public Integer gi1a(){
+        return sanPhamChiTietRepository.sluong();
+    }
+    public Page<SanPhamChiTiet> getByMauSac(String maSac, Pageable pageable) {
+        return sanPhamChiTietRepository.findByMauSac_MaMauSac(maSac, pageable);
     }
 
-    public List<SanPhamChiTiet> getDistinctSanPhamMau() {
+    public Page<SanPhamChiTiet> getBySize(String size, Pageable pageable) {
+        return sanPhamChiTietRepository.findByKichThuoc_MaKichThuoc(size, pageable);
+    }
 
-        List<SanPhamChiTiet> all = sanPhamChiTietRepository.findAll();
+    public Page<SanPhamChiTiet> getByTT(String tt, Pageable pageable) {
+        return sanPhamChiTietRepository.locTheoTrangThaiHienThi(tt, pageable);
+    }
 
-        Map<String, SanPhamChiTiet> map = new LinkedHashMap<>();
+    public Page<SanPhamChiTiet> getBygia(BigDecimal gm, BigDecimal gm2, Pageable pageable) {
+        return sanPhamChiTietRepository.findByGiaBanAndGiaBan(gm, gm2, pageable);
+    }
 
-        for (SanPhamChiTiet spct : all) {
-
-            String key =
-                    spct.getSanPham().getMaSanPham()
-                            + "_"
-                            + spct.getMauSac();
-
-            if (!map.containsKey(key)) {
-                map.put(key, spct);
-            }
+        public int suaSanPham2(int maSanPham) {
+            return sanPhamChiTietRepository.updateTrangThai(maSanPham);
         }
 
-        return new ArrayList<>(map.values());
-    }
-
-    public List<SanPhamChiTiet> getByMauSac(String maSac) {
-        return sanPhamChiTietRepository.findByMauSac(maSac);
-    }
-
-    public List<SanPhamChiTiet> getBySize(String size) {
-        return sanPhamChiTietRepository.findBySize(size);
-    }
-
-    public List<SanPhamChiTiet> getByTT(String tt) {
-        return sanPhamChiTietRepository.locTheoTrangThaiHienThi(tt);
-    }
-
-    public List<SanPhamChiTiet> getBygia(BigDecimal gm, BigDecimal gm2) {
-        return sanPhamChiTietRepository.findByGiaBanAndGiaBan(gm,gm2);
-    }
-
-    public int suaSanPham2(int maSanPham) {
-        return sanPhamChiTietRepository.updateTrangThai(maSanPham);
+    public int updateTrangThai(int id, String trangThai) {
+        return sanPhamChiTietRepository.updateTrangThaii(id, trangThai);
     }
 
     public int suaSanPham3(int maSanPham) {
@@ -97,19 +88,35 @@ public class SanPhamChiTietService {
         return sanPhamChiTietRepository.findAllMauSac();
     }
 
+    public List<SanPhamChiTiet> getByMauSac(String ms) {
+        return sanPhamChiTietRepository.findByMauSac(ms);
+    }
+
+    public List<SanPhamChiTiet> getBySize(String ms) {
+        return sanPhamChiTietRepository.findBySize(ms);
+    }
+
+    public List<SanPhamChiTiet> getByTT(String ms) {
+        return sanPhamChiTietRepository.findByTT(ms);
+    }
+
+    public List<SanPhamChiTiet> getallsp(Integer maSanPham) {
+        return sanPhamChiTietRepository.findByMaSanPham(maSanPham);
+    }
 
     public void capNhatTrangThaii(SanPhamChiTiet spct) {
         Integer soLuong = spct.getSoLuongTon();
-
         if (soLuong == null || soLuong <= 0) {
             spct.setTrangThai("Hết hàng");
-        } else if (soLuong <= 10) {
+        } else if (soLuong < 10) {
             spct.setTrangThai("Sắp hết");
         } else {
             spct.setTrangThai("Còn hàng");
         }
-
         spct.setNgayCapNhat(LocalDate.now());
     }
 
+    public List<SanPhamChiTiet> findsp(List<Integer> listMaSanPham) {
+        return sanPhamChiTietRepository.findByidmasp(listMaSanPham);
+    }
 }

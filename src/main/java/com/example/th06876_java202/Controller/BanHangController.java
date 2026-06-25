@@ -102,7 +102,7 @@ public class BanHangController {
         model.addAttribute("hoadon", new HoaDon());
         model.addAttribute("listgg", giamGiaService.getGiamGia1());
         model.addAttribute("listkh", khachHangService.getAllKhachHang());
-        model.addAttribute("listsanpham", sanPhamChiTietService.getall());
+        model.addAttribute("listsanpham", sanPhamChiTietService.getalll());
         model.addAttribute("listsanphamms", sanPhamChiTietService.getMsac());
         model.addAttribute("listsanphams", sanPhamChiTietService.getSize());
 
@@ -149,8 +149,6 @@ public class BanHangController {
 
     @GetMapping("/hang")
     public String hangkhachhang(@RequestParam("hang") String hang, Model model) {
-        List<KhachHang> kh = khachHangService.findByHangKH(hang);
-        model.addAttribute("listkh", kh);
         model.addAttribute("kh", new KhachHang());
         return "banhang/index";
     }
@@ -158,7 +156,7 @@ public class BanHangController {
     @PostMapping("/themkh")
     public String themkhachhang(
             @Valid @ModelAttribute("kh") KhachHang kh,
-            BindingResult bindingResult, // Đặt ngay sau @ModelAttribute để hứng lỗi validation
+            BindingResult bindingResult,
             @RequestParam(value = "mahd", required = false) Integer mahd,
             @RequestParam(value = "ghiChuGiaoHang", required = false) String ghiChuGiaoHang,
             Model model,
@@ -167,7 +165,7 @@ public class BanHangController {
         if (bindingResult.hasErrors()) {
             model.addAttribute("listgg", giamGiaService.getGiamGia1());
             model.addAttribute("listkh", khachHangService.getAllKhachHang());
-            model.addAttribute("listsanpham", sanPhamChiTietService.getall());
+            model.addAttribute("listsanpham", sanPhamChiTietService.getalll());
             model.addAttribute("listsanphamms", sanPhamChiTietService.getMsac());
             model.addAttribute("listsanphams", sanPhamChiTietService.getSize());
             String lỗiĐầuTiên = bindingResult.getFieldError().getDefaultMessage();
@@ -176,16 +174,12 @@ public class BanHangController {
             return mahd != null ? "redirect:/banhang/index?mahd=" + mahd : "redirect:/banhang/index";
         }
 
-        // 2. Kiểm tra trùng số điện thoại trong Database
         if (khachHangService.existsBySoDienThoai(kh.getSdt())){
             redirectAttributes.addFlashAttribute("mess", "Số điện thoại đã tồn tại trên hệ thống!");
             return mahd != null ? "redirect:/banhang/index?mahd=" + mahd : "redirect:/banhang/index";
         }
 
-        // Khởi tạo các giá trị mặc định bắt buộc trước khi lưu đơn lẻ
         if (kh.getNgayDangKy() == null) kh.setNgayDangKy(LocalDate.now());
-        if (kh.getDiemTichLuy() == null) kh.setDiemTichLuy(0);
-        if (kh.getHangKhachHang() == null) kh.setHangKhachHang("Đồng");
 
         khachHangService.save(kh);
 
@@ -270,7 +264,7 @@ public class BanHangController {
 
     @GetMapping("/sanpham")
     public String sp(Model model){
-        List<SanPhamChiTiet> sanPhamChiTiet = sanPhamChiTietService.getall();
+        List<SanPhamChiTiet> sanPhamChiTiet = sanPhamChiTietService.getalll();
         List<String> sanPhamChiTietms = sanPhamChiTietService.getMsac();
         List<String> sanPhamChiTiets = sanPhamChiTietService.getSize();
         model.addAttribute("listsanpham", sanPhamChiTiet);
@@ -367,32 +361,7 @@ public class BanHangController {
         BigDecimal giamLonNhatCuaMotSp = BigDecimal.ZERO;
         List<DotGiamGia> listdgg = dotGiamGiaService.getBymasp(spct.getSanPham().getMaSanPham());
 
-        for (DotGiamGia dg : listdgg) {
-            BigDecimal tienGiamCuaMotSp = BigDecimal.ZERO;
 
-            if (dg.getLoaiGiamGia().equalsIgnoreCase("Phần trăm")) {
-                // Tiền giảm 1 SP = Đơn giá gốc x % Giảm / 100
-                tienGiamCuaMotSp = hdct.getDonGia().multiply(dg.getGiaTriGiam()).divide(BigDecimal.valueOf(100));
-
-                // Kiểm tra điều kiện giảm tối đa của 1 sản phẩm nếu có cấu hình
-                if (dg.getGiamToiDa() != null) {
-                    BigDecimal giamtoida = dg.getGiamToiDa();
-                    if (tienGiamCuaMotSp.compareTo(giamtoida) > 0) {
-                        tienGiamCuaMotSp = giamtoida;
-                    }
-                }
-            } else {
-                // Nếu giảm theo số tiền mặt cố định (Ví dụ: Giảm thẳng 20k/sản phẩm)
-                tienGiamCuaMotSp = dg.getGiaTriGiam();
-            }
-
-            // Giữ lại chương trình ưu đãi lớn nhất cho 1 sản phẩm
-            if (tienGiamCuaMotSp.compareTo(giamLonNhatCuaMotSp) > 0) {
-                giamLonNhatCuaMotSp = tienGiamCuaMotSp;
-            }
-        }
-
-        // Tổng tiền giảm thực tế = Tiền giảm của 1 SP x Tổng số lượng khách mua
         BigDecimal soLuongBd = BigDecimal.valueOf(hdct.getSoLuong());
         BigDecimal tongTienGiam = giamLonNhatCuaMotSp.multiply(soLuongBd);
 

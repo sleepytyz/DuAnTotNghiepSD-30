@@ -1,7 +1,11 @@
 package com.example.th06876_java202.Service;
 
+import com.example.th06876_java202.Entity.DanhMucSanPham;
 import com.example.th06876_java202.Entity.KichThuoc;
+import com.example.th06876_java202.Entity.ThuongHieu;
 import com.example.th06876_java202.Repository.KichThuocRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,6 +15,11 @@ import java.util.Optional;
 public class KichThuocService {
 
     private final KichThuocRepository kichThuocRepository;
+
+    public List<KichThuoc> getall(){
+        return kichThuocRepository.findAllByOrderByTenKichThuocAsc();
+    }
+
 
     public KichThuocService(KichThuocRepository kichThuocRepository) {
         this.kichThuocRepository = kichThuocRepository;
@@ -30,6 +39,20 @@ public class KichThuocService {
 
     public boolean existsKichThuocByTenKichThuoc(String ten) {
         return kichThuocRepository.existsByTenKichThuoc(ten);
+    }
+
+    public Page<KichThuoc> getallpage(Pageable pageable) {
+        return kichThuocRepository.findAllByOrderByMaKichThuocDesc(pageable);
+    }
+
+    public KichThuoc doiTrangThai(Integer id) {
+        Optional<KichThuoc> optional = kichThuocRepository.findById(id);
+        if (optional.isPresent()) {
+            KichThuoc dm = optional.get();
+            dm.setTrangThai(!dm.isTrangThai());
+            return kichThuocRepository.save(dm);
+        }
+        return null;
     }
 
 }

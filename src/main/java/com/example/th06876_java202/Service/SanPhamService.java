@@ -2,6 +2,8 @@ package com.example.th06876_java202.Service;
 
 import com.example.th06876_java202.Entity.SanPham;
 import com.example.th06876_java202.Repository.SanPhamRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,8 +26,8 @@ public class SanPhamService {
          return sanPhamRepository.save(sanPham);
     }
 
-    public int suaSanPham(int maSanPham) {
-        return sanPhamRepository.updateTrangThaiNgungBan(maSanPham);
+    public void updateTrangThai(int maSanPham, boolean trangThai) {
+        sanPhamRepository.updateTrangThai(maSanPham, trangThai);
     }
 
     public Optional<SanPham> findById(Integer id) {
@@ -36,16 +38,24 @@ public class SanPhamService {
         return sanPhamRepository.existsByTenSanPham(TenSanPham);
     }
 
-    public List<SanPham> findByMadm(Integer maDanhMuc) {
-        return sanPhamRepository.getallbymaDanhMuc(maDanhMuc);
-    }
+    public Page<SanPham> searchSanPham(Integer maDanhMuc, Boolean tt, Integer maTH, Integer maKG, String t, Pageable pageable) {
+        String keyword = (t == null || t.trim().isEmpty()) ? null : t.trim();
 
-    public List<SanPham> findBytenhoacma(String ten) {
-        return sanPhamRepository.timkiem(ten);
+        return sanPhamRepository.searchSanPham(maDanhMuc, tt, maTH, maKG, keyword, pageable);
     }
 
     public List<SanPham> findBytt(String ten) {
         return sanPhamRepository.getallbyTrangThai(ten);
+    }
+
+    public Page<SanPham> getallpage(Pageable pageable) {
+        return sanPhamRepository.findAllByOrderByMaSanPhamDesc(pageable);
+    }
+
+    public boolean isTenSanPhamDuplicate(String ten) {
+        if (ten == null) return false;
+        String normalizedName = ten.trim().replaceAll("\\s+", " ");
+        return sanPhamRepository.existsByTenSanPhamIgnoreCase(normalizedName);
     }
 
 }

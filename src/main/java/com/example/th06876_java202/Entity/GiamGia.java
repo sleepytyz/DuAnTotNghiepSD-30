@@ -39,49 +39,63 @@ public class GiamGia {
     @Column(name = "GiamToiDa")
     private BigDecimal giamToiDa;
 
-    @NotNull(message = "Ngày bắt đầu không được để trống")
-    @FutureOrPresent(message = "Ngày bắt đầu phải là hiện tại hoặc trong tương lai")
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    @NotNull(message = "Ngày bắt đầu không được để trống")
     @Column(name = "NgayBatDau")
     private LocalDateTime ngayBatDau;
 
-    @NotNull(message = "Ngày kết thúc không được để trống")
-    @Future(message = "Ngày kết thúc phải là một ngày trong tương lai")
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    @NotNull(message = "Ngày kết thúc không được để trống")
     @Column(name = "NgayKetThuc")
     private LocalDateTime ngayKetThuc;
 
+    @NotNull(message = "Đơn tối thiểu không được để trống")
+    @DecimalMin(value = "0.0", message = "Đơn tối thiểu phải lớn hơn hoặc bằng 0")
+    @Column(name = "DonToiThieu")
+    private BigDecimal donToiThieu;
+
     @NotBlank(message = "Trạng thái không được để trống")
     @Column(name = "TrangThai")
-    private String trangThai;
+    private String trangThai = "Sắp hoạt động";;
 
-    @NotBlank(message = "Loại voucher không được để trống")
     @Column(name = "LoaiVoucher")
     private String loaiVoucher;
+
+    @NotNull(message = "Vui lòng chọn loại áp dụng")
+    @Column(name = "LoaiApDung")
+    private Integer loaiApDung;
 
     @NotNull(message = "Số lượng không được để trống")
     @Min(value = 0, message = "Số lượng mã giảm giá phải lớn hơn hoặc bằng 0")
     @Column(name = "SoLuong")
     private Integer soLuong;
 
-    @AssertTrue(message = "Nếu loại giảm giá là phần trăm, giá trị giảm phải từ 1 đến 100")
-    private boolean isGiaTriGiamValid() {
-        if (loaiGiamGia == null || giaTriGiam == null) {
-            return true;
+    @AssertTrue(message = "Giá trị giảm không hợp lệ cho hình thức này")
+    public boolean isGiaTriGiamValid() {
+        if (loaiGiamGia == null || giaTriGiam == null) return true;
+        if ("PhanTram".equals(loaiGiamGia)) {
+            return giaTriGiam.doubleValue() >= 1 && giaTriGiam.doubleValue() <= 100;
+        } else if (loaiGiamGia.equals("SoTien")) {
+            return giaTriGiam.doubleValue() > 0;
         }
-        if (loaiGiamGia.equalsIgnoreCase("PhanTram") || loaiGiamGia.equalsIgnoreCase("Percentage")) {
-            double value = giaTriGiam.doubleValue();
-            return value >= 1.0 && value <= 100.0;
-        }
-
         return true;
     }
 
-    @AssertTrue(message = "Ngày kết thúc phải sau ngày bắt đầu")
-    private boolean isNgayKetThucValid() {
-        if (ngayBatDau == null || ngayKetThuc == null) {
-            return true;
-        }
-        return ngayKetThuc.isAfter(ngayBatDau);
+
+    @AssertTrue(message = "Ngày bắt đầu phải ở tương lai hoặc hiện tại")
+    public boolean isNgayBatDauValid() {
+        if (ngayBatDau == null) return true;
+        return !ngayBatDau.isBefore(LocalDateTime.now());
+    }
+
+    @AssertTrue(message = "Ngày kết thúc phải ở tương lai và sau ngày bắt đầu")
+    public boolean isNgayKetThucValid() {
+        if (ngayKetThuc == null) return true;
+
+        boolean isFuture = !ngayKetThuc.isBefore(LocalDateTime.now());
+
+        boolean isAfterStart = (ngayBatDau == null) || ngayKetThuc.isAfter(ngayBatDau);
+
+        return isFuture && isAfterStart;
     }
 }

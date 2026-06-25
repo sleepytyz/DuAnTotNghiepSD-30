@@ -9,6 +9,8 @@ import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "KhachHang")
@@ -24,22 +26,32 @@ public class KhachHang {
 
     @NotBlank(message = "Họ tên không được để trống")
     @Size(max = 100, message = "Họ tên không được vượt quá 100 ký tự")
+    @Pattern(
+            regexp = "^[\\p{L} ]+$",
+            message = "Họ tên chỉ được chứa chữ cái và khoảng trắng"
+    )
+
     @Column(name = "HoTen")
     private String hoTen;
 
-    @NotBlank(message = "Số điện thoại không được để trống")
-    @Pattern(regexp = "^(0[3|5|7|8|9])+([0-9]{8})$", message = "Số điện thoại không đúng định dạng Việt Nam (10 số)")
     @Column(name = "SoDienThoai")
+    @NotBlank(message = "Số điện thoại không được để trống")
+    @Pattern(
+            regexp = "^(0(3|5|7|8|9))[0-9]{8}$",
+            message = "Số điện thoại không đúng định dạng Việt Nam (10 số)"
+    )
     private String sdt;
 
+    @NotBlank(message = "Email không được để trống")
     @Email(message = "Email không đúng định dạng")
     @Size(max = 100, message = "Email không được vượt quá 100 ký tự")
     @Column(name = "Email")
     private String email;
 
-    @Size(max = 255, message = "Địa chỉ không được vượt quá 255 ký tự")
-    @Column(name = "DiaChi")
-    private String diaChi;
+    @OneToMany(mappedBy = "khachHang",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    private List<DiaChi> danhSachDiaChi;
 
     @Past(message = "Ngày sinh phải là một ngày trong quá khứ")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
@@ -48,12 +60,6 @@ public class KhachHang {
 
     @Column(name = "GioiTinh")
     private Boolean gioiTinh;
-
-    @Column(name = "DiemTichLuy")
-    private Integer diemTichLuy = 0;
-
-    @Column(name = "HangKhachHang")
-    private String hangKhachHang = "Đồng";
 
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Column(name = "NgayDangKy")

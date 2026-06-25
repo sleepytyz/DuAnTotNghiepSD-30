@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thêm Sản Phẩm & Biến Thể - FS Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .card-custom {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #c92327 !important;
+            box-shadow: 0 0 0 0.25rem rgba(201, 35, 39, 0.15) !important;
+        }
+        .table-responsive {
+            background: #ffffff;
+            border-radius: 6px;
+            padding: 10px;
+        }
+        .bg-fs-red {
+            background-color: #c92327 !important;
+        }
+        .btn-fs-red {
+            background-color: #c92327 !important;
+            color: #ffffff !important;
+            border: 1px solid #c92327;
+        }
+        .btn-fs-red:hover {
+            background-color: #b01e22 !important;
+            color: #ffffff !important;
+        }
+        .btn-outline-fs {
+            border-color: #c92327 !important;
+            color: #c92327 !important;
+        }
+        .btn-outline-fs:hover {
+            background-color: #c92327 !important;
+            color: #ffffff !important;
+        }
+        .modal-body-scroll {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        /* Container chứa các ô upload */
+        #imageUploadArea {
+            display: flex;
+            flex-wrap: wrap; /* Cho phép xuống hàng khi hết chỗ */
+            gap: 15px; /* Khoảng cách giữa các ô */
+            margin-top: 10px;
+        }
+
+        .mau-upload-box {
+            width: 150px;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            text-align: center;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .image-preview {
+            width: 80px;
+            height: 80px;
+            margin: 10px 0;
+            object-fit: cover;
+            border: 1px dashed #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+        }
+
+        .mau-file-input {
+            display: none;
+        }
+        .btn-upload-label {
+            cursor: pointer;
+            color: #c92327;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+<div class="wrapper">
+
+    <div class="sidebar-container">
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    </div>
+
+    <div class="content-wrapper">
+
+        <div th:replace="~{fragments/header :: header('Thêm sản phẩm mới', 'Sản phẩm')}"></div>
+
+        <div class="content-body px-4 py-3">
+
+            <meta name="_csrf" th:content="${_csrf.token}"/>
+            <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+            <div th:if="${errorMess}" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <span th:text="${errorMess}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <!-- Thông báo thành công -->
+            <div th:if="${successMess}" class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <span th:text="${successMess}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <form method="post" th:action="@{/sanpham/add}" th:object="${form}" enctype="multipart/form-data" onsubmit="return validateForm()">
+
+                <div class="card card-custom mb-4 shadow-sm border-0">
+                    <div class="card-header text-white bg-fs-red">
+                        <h5 class="mb-0 d-flex align-items-center gap-2 py-1">
+                            <i class="bi bi-box-seam-fill"></i>
+                            <span>1. Thông tin chung sản phẩm</span>
+                        </h5>
+                    </div>
+                    <div class="card-body p-4 bg-white">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-dark">Tên sản phẩm <span class="text-danger">*</span></label>
+                                <input type="text" th:field="*{tenSanPham}" name="tenSanPham" id="inputTenSanPham"
+                                       class="form-control py-2 border-secondary-subtle" placeholder="Ví dụ: Nike Air Force" required>
+                                <small id="tenTrungError" class="text-danger" style="display: none;">Tên sản phẩm này đã tồn tại!</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-dark">Danh mục sản phẩm</label>
+                                <select th:field="*{maDanhMuc}" class="form-select py-2 border-secondary-subtle">
+                                    <option th:each="c : ${listdmsp}" name="maDanhMuc" th:value="${c.maDanhMuc}" th:text="${c.tenDanhMuc}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small text-dark">Thương hiệu</label>
+                                <select th:field="*{maThuongHieu}" class="form-select py-2 border-secondary-subtle">
+                                    <option th:each="th : ${listth}" name="maThuongHieu" th:value="${th.maThuongHieu}" th:text="${th.tenThuongHieu}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small text-dark">Kiểu giày</label>
+                                <select th:field="*{maKieuGiay}" class="form-select py-2 border-secondary-subtle">
+                                    <option th:each="kg : ${listkg}" name="maKieuGiay" th:value="${kg.maKieuGiay}" th:text="${kg.tenKieuGiay}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small text-dark">Chất liệu chính</label>
+                                <select th:field="*{maChatLieu}" class="form-select py-2 border-secondary-subtle">
+                                    <option th:each="c : ${listcl}" name="maChatLieu" th:value="${c.maChatLieu}" th:text="${c.tenChatLieu}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold small text-dark">Mô tả chi tiết <span class="text-danger">*</span></label>
+                                <textarea th:field="*{moTa}" name="moTa" class="form-control border-secondary-subtle" rows="3" placeholder="Nhập đặc điểm nổi bật của mẫu giày..." required></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                    <div class="card card-custom mb-4 shadow-sm border-0">
+                        <div class="card-header text-white bg-fs-red">
+                            <h5 class="mb-0 d-flex align-items-center gap-2 py-1">
+                                <i class="bi bi-grid-3x3-gap-fill"></i>
+                                <span>2. Cấu hình biến thể sản phẩm</span>
+                            </h5>
+                        </div>
+                        <div class="card-body bg-white p-4">
+                            <div class="d-flex gap-3 mb-3 flex-wrap">
+                                <button type="button" class="btn btn-outline-fs fw-semibold" data-bs-toggle="modal" data-bs-target="#modalMauSac">
+                                    <i class="bi bi-palette-fill me-1"></i> Chọn màu sắc (<span id="countMau">0</span>)
+                                </button>
+
+                                <button type="button" class="btn btn-outline-fs fw-semibold" data-bs-toggle="modal" data-bs-target="#modalKichThuoc">
+                                    <i class="bi bi-ruler me-1"></i> Chọn kích thước (<span id="countSize">0</span>)
+                                </button>
+
+                                <button type="button" class="btn btn-fs-red fw-semibold ms-auto" onclick="generateMatrixFromModals()">
+                                    <i class="bi bi-lightning-charge-fill text-warning"></i> Sinh danh sách biến thể
+                                </button>
+                            </div>
+
+                            <div class="table-responsive mt-4 border border-secondary-subtle shadow-sm" id="variantWrapper" style="display: none;">
+                                <h6 class="text-dark fw-bold mb-3 d-flex align-items-center gap-2">
+                                    <i class="bi bi-table text-danger"></i>
+                                    <span>Danh sách biến thể chi tiết (<span id="variantCount">0</span>)</span>
+                                </h6>
+                                <table class="table table-bordered table-hover align-middle small mb-0">
+                                    <thead class="table-light text-center">
+                                    <tr>
+                                        <th>Màu Sắc</th>
+                                        <th>Kích Thước</th>
+                                        <th style="width: 120px;">Số Lượng Tồn <span class="text-danger">*</span></th>
+                                        <th style="width: 160px;">Giá Nhập (VNĐ) <span class="text-danger">*</span></th>
+                                        <th style="width: 160px;">Giá Bán (VNĐ) <span class="text-danger">*</span></th>
+                                        <th style="width: 50px;">Xóa</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="variantTableBody">
+                                    </tbody>
+                                </table>
+                                <div class="card mt-4 border-0 shadow-sm">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0"><i class="bi bi-image"></i> Cấu hình ảnh đại diện theo màu sắc</h6>
+                                    </div>
+                                    <div class="card-body" id="imageUploadArea">
+                                        <p class="text-muted">Vui lòng "Sinh danh sách biến thể" trước để thiết lập ảnh cho các màu.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer bg-light border-top p-3 d-flex justify-content-end gap-2">
+                            <a th:href="@{/sanpham/index}" class="btn btn-outline-secondary fw-semibold px-4">
+                                <i class="bi bi-x-circle"></i> Hủy bỏ
+                            </a>
+
+                            <button type="button" class="btn btn-fs-red fw-semibold px-4" id="submitBtn" onclick="handleSave()">
+                                <i class="bi bi-check-circle-fill me-1"></i> Lưu sản phẩm & biến thể
+                            </button>
+                        </div>
+                    </div>
+
+                </form>
+
+                <div class="modal fade" id="modalMauSac" tabindex="-1" aria-labelledby="modalMauSacLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header bg-fs-red text-white">
+                                <h5 class="modal-title" id="modalMauSacLabel"><i class="bi bi-palette-fill me-2"></i>Chọn màu sắc sản phẩm</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body modal-body-scroll">
+                                <div class="form-check mb-2 py-1 border-bottom" th:each="ms : ${listmausac}">
+                                    <input class="form-check-input cb-popup-mau" type="checkbox" th:value="${ms.maMauSac}" th:data-ten="${ms.tenMauSac}" th:id="'p-ms-' + ${ms.maMauSac}" onchange="updateCounts()">
+                                    <label class="form-check-label w-100 user-select-none" th:for="'p-ms-' + ${ms.maMauSac}" th:text="${ms.tenMauSac}"></label>
+                                </div>
+                            </div>
+                            <div class="modal-footer bg-light">
+                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Xác nhận</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal chọn kích thước -->
+                <div class="modal fade" id="modalKichThuoc" tabindex="-1" aria-labelledby="modalKichThuocLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header bg-fs-red text-white">
+                                <h5 class="modal-title" id="modalKichThuocLabel"><i class="bi bi-ruler me-2"></i>Chọn kích thước (Size)</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body modal-body-scroll">
+                                <div class="form-check mb-2 py-1 border-bottom" th:each="kt : ${listkichthuoc}">
+                                    <input class="form-check-input cb-popup-size" type="checkbox" th:value="${kt.maKichThuoc}" th:data-ten="${kt.tenKichThuoc}" th:id="'p-kt-' + ${kt.maKichThuoc}" onchange="updateCounts()">
+                                    <label class="form-check-label w-100 user-select-none" th:for="'p-kt-' + ${kt.maKichThuoc}" th:text="${kt.tenKichThuoc}"></label>
+                                </div>
+                            </div>
+                            <div class="modal-footer bg-light">
+                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Xác nhận</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+
+
+    function updateCounts() {
+        const countMau = document.querySelectorAll('.cb-popup-mau:checked').length;
+        const countSize = document.querySelectorAll('.cb-popup-size:checked').length;
+
+        document.getElementById('countMau').innerText = countMau;
+        document.getElementById('countSize').innerText = countSize;
+    }
+
+    function generateMatrixFromModals() {
+        const selectedMaus = Array.from(
+            document.querySelectorAll('.cb-popup-mau:checked')
+        ).map(cb => ({
+            id: cb.value,
+            ten: cb.dataset.ten
+        }));
+
+        const selectedSizes = Array.from(
+            document.querySelectorAll('.cb-popup-size:checked')
+        ).map(cb => ({
+            id: cb.value,
+            ten: cb.dataset.ten
+        }));
+
+        if (selectedMaus.length === 0 || selectedSizes.length === 0) {
+            alert("Vui lòng chọn ít nhất 1 màu sắc và 1 kích thước!");
+            return;
+        }
+
+        const totalVariants = selectedMaus.length * selectedSizes.length;
+        if (totalVariants > 20) {
+            alert(`⚠️ Bạn đang tạo ${totalVariants} biến thể! Vui lòng tạo tối đa 20 biến thể mỗi lần.`);
+            return;
+        }
+        const uploadArea = document.getElementById("imageUploadArea");
+        if (uploadArea) {
+            uploadArea.innerHTML = "";
+            selectedMaus.forEach(mau => {
+                uploadArea.innerHTML += `
+            <div class="mau-upload-box">
+                <div class="fw-bold mb-2">${mau.ten}</div>
+                <label class="image-preview" onclick="this.nextElementSibling.click()">
+                    <img src="#" alt="preview" style="display:none; width:100%; height:100%; object-fit:cover;">
+                    <i class="bi bi-image" style="font-size: 2rem; color: #ddd;"></i>
+                </label>
+                <input type="file" class="mau-file-input"
+                       data-mau-id="${mau.id}" accept="image/*" onchange="previewImage(this)">
+                <span class="btn-upload-label" onclick="this.previousElementSibling.click()">Chọn ảnh</span>
+            </div>
+        `;
+            });
+        }
+        const tbody = document.getElementById("variantTableBody");
+        tbody.innerHTML = "";
+        let index = 0;
+
+        selectedMaus.forEach(mau => {
+            selectedSizes.forEach(size => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                <td class="text-center fw-semibold">
+                    ${mau.ten}
+                    <input type="hidden" name="chiTietList[${index}].maMauSac" value="${mau.id}">
+                </td>
+                <td class="text-center fw-semibold">
+                    ${size.ten}
+                   <input type="hidden" name="chiTietList[${index}].maKichThuoc" value="${size.id}">
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm text-center" name="chiTietList[${index}].soLuongTon" min="0" value="0" required>
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm" name="chiTietList[${index}].giaNhap" min="0" step="1000" required>
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm" name="chiTietList[${index}].giaBan" min="0" step="1000" required>
+                </td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm text-danger" onclick="removeRow(this)">
+                        <i class="bi bi-trash-fill"></i>
+                    </button>
+                </td>
+            `;
+                tbody.appendChild(tr);
+                index++;
+            });
+        });
+
+        document.getElementById('variantCount').innerText = index;
+        document.getElementById('variantWrapper').style.display = "block";
+        document.getElementById('noVariantMessage').style.display = "none";
+    }
+
+    async function handleSave() {
+        if (!validateForm()) return;
+
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+
+        // 1. Upload ảnh theo màu (chỉ upload những ảnh có file)
+        const colorImageMap = new Map();
+        const fileInputs = document.querySelectorAll('.mau-file-input');
+
+        for (let input of fileInputs) {
+            if (input.files.length > 0) {
+                const formData = new FormData();
+                formData.append("file", input.files[0]);
+
+                const res = await fetch('/sanpham/api/upload-anh', {
+                    method: 'POST',
+                    headers: { [csrfHeader]: csrfToken },
+                    body: formData
+                });
+                if (res.ok) {
+                    colorImageMap.set(input.dataset.mauId, await res.text());
+                }
+            }
+        }
+
+        // 2. Thu thập dữ liệu biến thể
+        const rows = document.querySelectorAll("#variantTableBody tr");
+        const chiTietList = [];
+
+        rows.forEach(row => {
+            const maMau = row.querySelector('input[name*=".maMauSac"]').value;
+            chiTietList.push({
+                maMauSac: maMau,
+                maKichThuoc: row.querySelector('input[name*=".maKichThuoc"]').value,
+                soLuongTon: row.querySelector('input[name*=".soLuongTon"]').value || 0,
+                giaNhap: row.querySelector('input[name*=".giaNhap"]').value || 0,
+                giaBan: row.querySelector('input[name*=".giaBan"]').value || 0,
+                duongDanAnh: colorImageMap.get(maMau) || "" // Lấy ảnh theo màu đã upload
+            });
+        });
+
+        // 3. Gửi dữ liệu chính
+        const finalData = {
+            sanPham: {
+                tenSanPham: document.querySelector('input[name="tenSanPham"]').value,
+                moTa: document.querySelector('textarea[name="moTa"]').value,
+                maDanhMuc: document.querySelector('select[name="maDanhMuc"]').value,
+                maThuongHieu: document.querySelector('select[name="maThuongHieu"]').value,
+                maKieuGiay: document.querySelector('select[name="maKieuGiay"]').value,
+                maChatLieu: document.querySelector('select[name="maChatLieu"]').value
+            },
+            chiTietList: chiTietList
+        };
+
+        const result = await fetch('/sanpham/api/save-all', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
+            body: JSON.stringify(finalData)
+        });
+
+        if (result.ok) {
+            alert("Thêm thành công!");
+            window.location.href = "/sanpham/index";
+        } else {
+            alert("Lỗi: " + await result.text());
+        }
+    }
+
+    function removeRow(btn) {
+        const row = btn.closest("tr");
+        row.remove();
+
+        const rows = document.querySelectorAll("#variantTableBody tr");
+        rows.forEach((row, idx) => {
+            row.querySelectorAll("input").forEach(input => {
+                const name = input.getAttribute("name");
+                if (name) {
+                    input.setAttribute("name", name.replace(/chiTietList\[\d+\]/, `chiTietList[${idx}]`));
+                }
+            });
+        });
+
+        const currentMauIds = Array.from(document.querySelectorAll('#variantTableBody input[name*=".maMauSac"]'))
+            .map(input => input.value);
+
+        const uploadInputs = document.querySelectorAll('.mau-file-input');
+        uploadInputs.forEach(input => {
+            if (!currentMauIds.includes(input.dataset.mauId)) {
+                // Xóa cả cái row chứa input upload đó
+                input.closest('.row').remove();
+            }
+        });
+        document.getElementById('variantCount').innerText = rows.length;
+        if (rows.length === 0) {
+            document.getElementById('variantWrapper').style.display = "none";
+            document.getElementById('imageUploadArea').innerHTML = ""; // Xóa trắng vùng upload
+        }
+    }
+
+    function previewImage(input) {
+        const previewBox = input.parentElement.querySelector('.image-preview');
+        const imgElement = previewBox.querySelector('img');
+        const iconElement = previewBox.querySelector('i');
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imgElement.src = e.target.result;
+                imgElement.style.display = 'block'; // Hiện ảnh
+                iconElement.style.display = 'none'; // Ẩn icon
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function validateForm() {
+        if (document.getElementById('tenTrungError').style.display === 'block') {
+            alert("Tên sản phẩm đã tồn tại, vui lòng chọn tên khác!");
+            return false;
+        }
+
+        const rows = document.querySelectorAll("#variantTableBody tr");
+        if (rows.length === 0) {
+            alert("Vui lòng tạo ít nhất 1 biến thể sản phẩm!");
+            return false;
+        }
+
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const giaNhap = row.querySelector('input[name$=".giaNhap"]');
+            const giaBan = row.querySelector('input[name$=".giaBan"]');
+            const soLuong = row.querySelector('input[name$=".soLuongTon"]');
+
+            if (!giaNhap.value || parseFloat(giaNhap.value) <= 0) {
+                alert(`Vui lòng nhập giá nhập hợp lệ cho biến thể ${i + 1}`);
+                giaNhap.focus();
+                return false;
+            }
+
+            if (!giaBan.value || parseFloat(giaBan.value) <= 0) {
+                alert(`Vui lòng nhập giá bán hợp lệ cho biến thể ${i + 1}`);
+                giaBan.focus();
+                return false;
+            }
+
+            if (soLuong.value === "" || parseFloat(soLuong.value) < 0) {
+                alert(`Số lượng tồn không được âm cho biến thể ${i + 1}`);
+                soLuong.focus();
+                return false;
+            }
+
+            if (parseFloat(giaBan.value) < parseFloat(giaNhap.value)) {
+                alert(`Giá bán phải lớn hơn hoặc bằng giá nhập cho biến thể ${i + 1}`);
+                giaBan.focus();
+                return false;
+            }
+        }
+
+        const fileInputs = document.querySelectorAll('input[type="file"]');
+        for (let input of fileInputs) {
+            if (input.files.length > 0) {
+                if (input.files[0].size > 5 * 1024 * 1024) {
+                    alert(`File ảnh quá lớn! Vui lòng chọn ảnh nhỏ hơn 5MB.`);
+                    input.focus();
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    document.getElementById('inputTenSanPham').addEventListener('blur', async function() {
+        const ten = this.value.trim().replaceAll(/\s+/g, ' ');
+        const errorSpan = document.getElementById('tenTrungError');
+
+        if (ten.length === 0) return;
+
+        try {
+            const response = await fetch(`/sanpham/api/check-trung?ten=${encodeURIComponent(ten)}`);
+            const isDuplicate = await response.json();
+
+            if (isDuplicate) {
+                errorSpan.style.display = 'block';
+                this.classList.add('is-invalid');
+            } else {
+                errorSpan.style.display = 'none';
+                this.classList.remove('is-invalid');
+            }
+        } catch (err) {``
+            console.error("Lỗi khi kiểm tra trùng tên:", err);
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,7 +1,10 @@
 package com.example.th06876_java202.Service;
 
 import com.example.th06876_java202.Entity.DanhMucSanPham;
+import com.example.th06876_java202.Entity.ThuongHieu;
 import com.example.th06876_java202.Repository.DanhMucSanPhamRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,6 +35,20 @@ public class DanhMucSanPhamService {
 
     public boolean ktraten(String tendanhmuc){
         return danhMucSanPhamRepository.existsByTenDanhMuc(tendanhmuc);
+    }
+
+    public DanhMucSanPham doiTrangThai(Integer id) {
+        Optional<DanhMucSanPham> optional = danhMucSanPhamRepository.findById(id);
+        if (optional.isPresent()) {
+            DanhMucSanPham dm = optional.get();
+            dm.setTrangThai(!dm.isTrangThai());
+            return danhMucSanPhamRepository.save(dm);
+        }
+        return null;
+    }
+
+    public Page<DanhMucSanPham> getallpage(Pageable pageable) {
+        return danhMucSanPhamRepository.findAllByOrderByMaDanhMucDesc(pageable);
     }
 
 }

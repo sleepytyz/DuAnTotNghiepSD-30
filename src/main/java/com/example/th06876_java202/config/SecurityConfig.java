@@ -1,8 +1,11 @@
 package com.example.th06876_java202.config;
 
 import com.example.th06876_java202.Service.TaiKhoanService;
+import org.springframework.boot.tomcat.servlet.TomcatServletWebServerFactory;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -11,13 +14,19 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.thymeleaf.extras.springsecurity6.dialect.SpringSecurityDialect; // Thêm import này
+import org.thymeleaf.extras.springsecurity6.dialect.SpringSecurityDialect;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@EnableAsync
 public class SecurityConfig {
-
+    @Bean
+    public WebServerFactoryCustomizer<TomcatServletWebServerFactory> tomcatCustomizer() {
+        return factory -> factory.addConnectorCustomizers(connector -> {
+            connector.setMaxPostSize(100 * 1024 * 1024);
+        });
+    }
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -28,7 +37,6 @@ public class SecurityConfig {
         return new CustomUserDetailsService(taiKhoanService);
     }
 
-    // ĐĂNG KÝ DIALECT ĐỂ THYMELEAF ĐỌC ĐƯỢC #authentication VÀ sec:authorize
     @Bean
     public SpringSecurityDialect springSecurityDialect() {
         return new SpringSecurityDialect();
@@ -43,11 +51,15 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, UserDetailsService userDetailsService) throws Exception {
-    // Thêm userDetailsService vào tham số ở đây
         http.authorizeHttpRequests((requests) -> requests
                 // ai cũng vào đc, ko cần đăng nhập
                 .requestMatchers("/", "/login", "/register", "/forgot").permitAll()
+
+                // ✅ Cho phép truy cập static resources
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+
+                // ✅ QUAN TRỌNG: Cho phép truy cập ảnh từ thư mục uploads
+                .requestMatchers("/uploads/**", "/images/sanpham/**").permitAll()
 
                 // chỉ user mới vào đc
                 .requestMatchers("/user/**").hasRole("USER")
@@ -82,11 +94,18 @@ public class SecurityConfig {
                 .expiredUrl("/login?expired"));
 
         http.rememberMe(r -> r
-                .key("mySecretKey_12345")                     // BẮT BUỘC
-                .rememberMeParameter("remember-me")           // Tên checkbox
-                .tokenValiditySeconds(30 * 24 * 60 * 60)      // 30 ngày
-                .userDetailsService(userDetailsService)       // SỬA TẠI ĐÂY: Truyền trực tiếp bean đã được Inject vào hệ thống
-                .useSecureCookie(false)                       // false vì dùng HTTP
+                .key("mySecretKey_12345")
+                .rememberMeParameter("remember-me")
+                .tokenValiditySeconds(30 * 24 * 60 * 60)
+                .userDetailsService(userDetailsService)
+                .useSecureCookie(false)
+        );
+
+        // ✅ Cấu hình CSRF - Bỏ qua cho các URL upload file
+        http.csrf(csrf -> csrf
+                .ignoringRequestMatchers("/sanpham/add", "/sanpham/add/**")
+                .ignoringRequestMatchers("/uploads/**")
+                .ignoringRequestMatchers("/khach-hang/xoa-dia-chi/**")
         );
 
         return http.build();

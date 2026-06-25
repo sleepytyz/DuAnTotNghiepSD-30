@@ -122,13 +122,11 @@ public class TaiKhoanService {
     }
 
     public TaiKhoan findByEmail(String email) {
-        // Tìm trong khách hàng trước
         Optional<KhachHang> khachHang = khachHangRepository.findByEmail(email);
         if (khachHang.isPresent() && khachHang.get().getTaiKhoan() != null) {
             return khachHang.get().getTaiKhoan();
         }
 
-        // Tìm trong nhân viên
         Optional<NhanVien> nhanVien = nhanVienRepository.findByEmail(email);
         if (nhanVien.isPresent() && nhanVien.get().getTaiKhoan() != null) {
             return nhanVien.get().getTaiKhoan();
