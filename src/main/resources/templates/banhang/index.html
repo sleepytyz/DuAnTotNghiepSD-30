@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title>Bán hàng - FS Shop</title>
@@ -10,7 +11,13 @@
 <body>
 
 <div class="wrapper">
-    <div th:replace="fragments/sidebar :: sidebar"></div>
+    <div sec:authorize="hasRole('ADMIN')">
+        <div th:replace="fragments/sidebaradmin :: sidebar-admin"></div>
+    </div>
+
+    <div sec:authorize="hasRole('STAFF')">
+        <div th:replace="fragments/sidebarstaff :: sidebar-staff"></div>
+    </div>
 
     <div class="content-wrapper">
         <div th:replace="fragments/header :: header('Bán hàng', 'Bán hàng')"></div>
