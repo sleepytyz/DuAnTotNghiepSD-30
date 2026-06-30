@@ -1,0 +1,328 @@
+    <!DOCTYPE html>
+    <html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <title>Quản Lý Đợt Giảm Giá</title>
+
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+        <link rel="stylesheet" th:href="@{/css/style.css}">
+
+        <style>
+            .modal-content {
+                border: none;
+                border-radius: 12px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+                overflow: hidden; /* Giúp bo góc header không bị tràn màu */
+            }
+            /* ĐỒNG BỘ STYLE HEADER GIỐNG MẪU BẠN GỬI */
+            .modal-header-custom {
+                background: #c92327;
+                color: white;
+                padding: 1rem 1.5rem;
+                border-bottom: none;
+            }
+            .modal-body {
+                padding: 2rem 1.5rem;
+                background-color: #f8f9fa;
+            }
+            .modal-footer {
+                background-color: #ffffff;
+                border-top: 1px solid #dee2e6;
+                padding: 1rem 1.5rem;
+            }
+            .form-label-custom {
+                font-weight: 600;
+                color: #495057;
+                margin-bottom: 0.4rem;
+                font-size: 0.9rem;
+            }
+            .form-control, .form-select {
+                border-radius: 6px;
+                border: 1px solid #ced4da;
+                padding: 0.55rem 0.75rem;
+                transition: all 0.2s ease-in-out;
+            }
+            .form-control:focus, .form-select:focus {
+                border-color: #c92327 !important;
+                box-shadow: 0 0 0 0.25rem rgba(201, 35, 39, 0.15) !important;
+            }
+            .radio-group {
+                background: #ffffff;
+                border: 1px solid #ced4da;
+                border-radius: 6px;
+                padding: 0.55rem 0.75rem;
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+            .radio-group input[type="radio"] {
+                accent-color: #c92327;
+            }
+        </style>
+    </head>
+
+    <body>
+
+    <div id="toastError" class="toast align-items-center text-bg-danger border-0 position-fixed top-0 end-0 m-3"
+         role="alert" style="z-index:9999;">
+        <div class="d-flex">
+            <div class="toast-body">
+                <span th:text="${error}"></span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+
+    <div class="wrapper">
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+        <div class="content-body">
+            <div th:replace="~{fragments/header :: header('Quản lý đợt giảm giá', 'Đợt giảm giá')}"></div>
+            <div class="card card-custom mt-3">
+                <div class="card-header text-white" style="background:#c92327;">
+                    <h5 class="mb-0 d-flex align-items-center gap-2" style="font-size: 1rem; font-weight: 600;">
+                        <i class="bi bi-search"></i>
+                        <span>Bộ lọc tìm kiếm đợt giảm giá</span>
+                    </h5>
+                </div>
+
+                <form th:action="@{/dot-giam-gia/hien-thi}" method="get" id="filterForm" class="shadow-sm border rounded bg-white">
+                    <div class="card-body p-4">
+                        <div class="row g-3 align-items-end">
+                            <!-- KEYWORD -->
+                            <div class="col-lg-4 col-md-6">
+                                <label class="form-label fw-semibold">Từ khóa</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+                                    <input type="text" name="keyword" th:value="${keyword}" class="form-control"
+                                           placeholder="Nhập tên hoặc mã giảm giá..." onkeyup="handleEnter(event)">
+                                </div>
+                            </div>
+
+                            <div class="col-lg-2 col-md-6">
+                                <label class="form-label fw-semibold">Trạng thái</label>
+                                <select name="trangThai" class="form-select" onchange="document.getElementById('filterForm').submit()">
+                                    <option value="">Tất cả</option>
+                                    <option value="Sắp hoạt động" th:selected="${trangThai == 'Sắp hoạt động'}">Sắp hoạt động</option>
+                                    <option value="Hoạt động" th:selected="${trangThai == 'Hoạt động'}">Hoạt động</option>
+                                    <option value="Ngừng hoạt động" th:selected="${trangThai == 'Ngừng hoạt động'}">Ngừng hoạt động</option>
+                                </select>
+                            </div>
+
+                            <div class="col-lg-2 col-md-6">
+                                <label class="form-label fw-semibold">Từ ngày</label>
+                                <input type="date" name="tuNgay" th:value="${tuNgay}" class="form-control" onchange="autoFilterDate()">
+                            </div>
+
+                            <div class="col-lg-2 col-md-6">
+                                <label class="form-label fw-semibold">Đến ngày</label>
+                                <input type="date" name="denNgay" th:value="${denNgay}" class="form-control" onchange="autoFilterDate()">
+                            </div>
+
+                            <div class="col-lg-2 col-md-12 text-lg-end">
+                                <button type="submit" class="btn btn-danger px-3">
+                                    <i class="bi bi-search"></i> Lọc
+                                </button>
+                                <a th:href="@{/dot-giam-gia/hien-thi}" class="btn btn-outline-secondary px-3 ms-1">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-top d-flex justify-content-end">
+                            <a th:href="@{/chi-tiet-dot-giam-gia/them-moi}" class="btn btn-danger  shadow-sm">
+                                <i class="bi bi-plus-lg"></i> Thêm đợt giảm giá mới
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="table-card mt-3">
+                <table class="table-custom">
+                    <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Mã</th>
+                        <th>Tên</th>
+                        <th>Giá trị</th>
+                        <th>Bắt đầu</th>
+                        <th>Kết thúc</th>
+                        <th>Trạng thái</th>
+                        <th>Hành động</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="dgg,stt : ${listDGG}">
+                        <td th:text="${stt.count}"></td>
+                        <td th:text="${ 'DGG' + dgg.maGiamGia}"></td>
+                        <td th:text="${dgg.tenGiamGia}"></td>
+                        <td class="text-center">
+    <span class="badge bg-light text-danger border border-danger-subtle rounded-pill px-3 fw-bold">
+        <span th:text="${dgg.giaTriGiam}"></span>%
+    </span>
+                        </td>
+                        <td th:text="${#temporals.format(dgg.ngayBatDau,'dd/MM/yyyy')}"></td>
+                        <td th:text="${#temporals.format(dgg.ngayKetThuc,'dd/MM/yyyy')}"></td>
+                        <td>
+        <span class="badge"
+              th:text="${dgg.trangThai}"
+              th:classappend="
+                ${dgg.trangThai == 'Hoạt động'} ? ' bg-success' :
+                (${dgg.trangThai == 'Sắp hoạt động'} ? ' bg-warning text-dark' :
+                ' bg-danger')">
+        </span>
+                        </td>
+                        <td>
+                            <a class="btn btn-danger" th:href="@{/dot-giam-gia/detail/{id}(id=${dgg.maGiamGia})}">
+                                <i class="bi bi-pencil-square"></i> Sửa
+                            </a>
+                            <a class="btn-trash ms-2" th:href="@{/dot-giam-gia/delete/{id}(id=${dgg.maGiamGia})}" onclick="return confirm('Bạn có chắc muốn xóa?')">
+                                <i class="bi bi-trash3"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="card-footer bg-white border-top-0 d-flex justify-content-between align-items-center px-4 py-3"
+                     th:if="${totalPages > 0}">
+
+
+                    <div class="small text-muted fw-semibold">
+                        Tổng số bản ghi:
+                        <span class="fw-semibold text-dark" th:text="${totalItems}">0</span>
+
+                        (Trang
+                        <span class="fw-semibold text-dark" th:text="${currentPage + 1}">1</span>
+                        /
+                        <span class="fw-semibold text-dark" th:text="${totalPages}">1</span>)
+                    </div>
+
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-sm mb-0 gap-1">
+
+
+                            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                <a class="page-link rounded-2 border-0 d-flex align-items-center justify-content-center text-danger"></a>
+                                <a class="page-link"
+                                   th:href="@{/dot-giam-gia/hien-thi(
+    page=${currentPage - 1},
+    keyword=${keyword},
+    trangThai=${trangThai},
+    tuNgay=${tuNgay},
+    denNgay=${denNgay})}">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+
+
+                            <li class="page-item"
+                                th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                                th:classappend="${currentPage == i} ? 'active'">
+
+                                <a class="page-link rounded-2 border-0 d-flex align-items-center justify-content-center fw-semibold"
+                                   th:style="${currentPage == i} ? 'background-color:#c92327; color:#fff;' : ''"
+                                   th:href="@{/dot-giam-gia/hien-thi(
+    page=${i},
+    keyword=${keyword},
+    trangThai=${trangThai},
+    tuNgay=${tuNgay},
+    denNgay=${denNgay})}"
+
+                                   th:text="${i + 1}">
+                                </a>
+                            </li>
+
+                            <li class="page-item"
+                                th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+
+                                <a class="page-link rounded-2 border-0 d-flex align-items-center justify-content-center text-danger" ></a>
+                                <a class="page-link"
+                                   th:href="@{/dot-giam-gia/hien-thi(
+    page=${currentPage + 1},
+    keyword=${keyword},
+    trangThai=${trangThai},
+    tuNgay=${tuNgay},
+    denNgay=${denngay})}">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+
+                            </li>
+
+                        </ul>
+                    </nav>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+            /*[Th:inline]*/
+            var showModalValue = /*[[${showModal != null ? showModal : false}]]*/ false;
+
+            if (showModalValue) {
+                var myModal = new bootstrap.Modal(document.getElementById('dotGiamGiaModal'));
+                myModal.show();
+
+                var maGiamGia = document.querySelector("[name='maGiamGia']").value;
+                if (maGiamGia) {
+                    document.getElementById("btn-add-submit").style.display = "none";
+                    document.getElementById("btn-update-submit").style.display = "block";
+                } else {
+                    document.getElementById("btn-add-submit").style.display = "block";
+                    document.getElementById("btn-update-submit").style.display = "none";
+                }
+            }
+        });
+
+        function openAddModal() {
+            document.querySelector("[name='maGiamGia']").value = "";
+            document.querySelector("[name='tenGiamGia']").value = "";
+            document.querySelector("[name='giaTriGiam']").value = "";
+            document.querySelector("[name='giamToiDa']").value = "";
+            document.querySelector("[name='ngayBatDau']").value = "";
+            document.querySelector("[name='ngayKetThuc']").value = "";
+            document.querySelector("[name='ngayTao']").value = "";
+            document.querySelector("[name='moTa']").value = "";
+            document.querySelector("[name='loaiGiamGia']").selectedIndex = 0;
+
+            document.querySelectorAll("input[name='trangThai']").forEach(r => r.checked = false);
+
+            document.getElementById("btn-add-submit").style.display = "block";
+            document.getElementById("btn-update-submit").style.display = "none";
+        }
+
+        function autoFilterDate() {
+            const from = document.querySelector("[name='tuNgay']").value;
+            const to = document.querySelector("[name='denNgay']").value;
+
+            if (from || to) {
+                document.getElementById("filterForm").submit();
+            }
+        }
+        function handleEnter(event) {
+            if (event.key === "Enter") {
+                document.getElementById("filterForm").submit();
+            }
+        }
+
+    </script>
+    <script th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+            var error = /*[[${error}]]*/ null;
+
+            if (error) {
+                var toastEl = document.getElementById('toastError');
+                var toast = new bootstrap.Toast(toastEl, {
+                    delay: 5000
+                });
+                toast.show();
+            }
+        });
+    </script>
+    </body>
+    </html>

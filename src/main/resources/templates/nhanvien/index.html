@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản Lý Nhân Viên</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .action-column {
+            min-width: 130px;
+            padding: 0 10px !important;
+        }
+        .action-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+        .toggle-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <div sec:authorize="hasRole('ADMIN')">
+        <div th:replace="fragments/sidebaradmin :: sidebar-admin"></div>
+    </div>
+
+    <div sec:authorize="hasRole('STAFF')">
+        <div th:replace="fragments/sidebarstaff :: sidebar-staff"></div>
+    </div>
+
+    <div class="content-body">
+        <div th:replace="fragments/header :: header('Quản lý nhân viên', 'Nhân viên')"></div>
+
+        <div class="page-content">
+            <div class="card card-custom mb-4 shadow-sm">
+                <div class="card-header text-white" style="background:#c92327;">
+                    <h5 class="mb-0">
+                        <i class="bi bi-funnel-fill me-2"></i>Bộ lọc tìm kiếm
+                    </h5>
+                </div>
+
+                <form method="GET" th:action="@{/nhan-vien}" id="filterForm" class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">Từ khóa</label>
+                            <input type="text" class="form-control" name="keyword" th:value="${keyword}" placeholder="Tên hoặc số điện thoại...">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-medium">Chức vụ</label>
+                            <select class="form-select" name="role" onchange="this.form.submit()">
+                                <option value="">Tất cả</option>
+                                <option value="Quản lý" th:selected="${role == 'Quản lý'}">Quản lý</option>
+                                <option value="Nhân viên" th:selected="${role == 'Nhân viên'}">Nhân viên</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-medium">Trạng thái</label>
+                            <select class="form-select" name="status" onchange="this.form.submit()">
+                                <option value="">Tất cả</option>
+                                <option value="1" th:selected="${status == '1'}">Đang làm việc</option>
+                                <option value="0" th:selected="${status == '0'}">Đã nghỉ việc</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-2 d-flex align-items-end gap-2">
+                            <button type="submit" class="btn btn-danger w-100">
+                                <i class="bi bi-search me-1"></i> Lọc
+                            </button>
+                            <a th:href="@{/nhan-vien}" class="btn btn-outline-secondary w-100">
+                                <i class="bi bi-arrow-clockwise"></i> Clear
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                        <h5 class="mb-0 fw-bold text-secondary">Danh Sách Nhân Viên</h5>
+                        <button type="button" class="btn btn-danger btn-sm px-3" data-bs-toggle="modal" data-bs-target="#nhanVienModal" onclick="clearForm()">
+                            <i class="bi bi-plus-circle me-1"></i> Thêm nhân viên
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light text-uppercase fs-7">
+                            <tr>
+                                <th class="ps-3">Mã NV</th>
+                                <th>Họ và tên</th>
+                                <th>SĐT / Email</th>
+                                <th>Chức vụ</th>
+                                <th>Tài khoản</th>
+                                <th>Trạng thái</th>
+                                <th width="150" class="text-center">Hành động</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="nv : ${list}">
+                                <td class="ps-3 fw-bold" th:text="${'NV' + nv.maNhanVien}"></td>
+                                <td>
+                                    <div th:text="${nv.hoTen}" class="fw-semibold text-dark"></div>
+                                    <small class="text-muted" th:text="${nv.gioiTinh ? 'Nam' : 'Nữ'}"></small>
+                                </td>
+                                <td>
+                                    <div th:text="${nv.soDienThoai}"></div>
+                                    <small class="text-muted" th:text="${nv.email}"></small>
+                                </td>
+                                <td><span class="badge bg-secondary-subtle text-secondary" th:text="${nv.chucVu}"></span></td>
+                                <td class="fw-bold text-danger" th:text="${nv.taiKhoan != null ? nv.taiKhoan.tenDangNhap : 'Chưa cấp'}"></td>
+                                <td>
+                                    <span th:if="${nv.trangThai}" class="badge bg-success-subtle text-success">Đang làm việc</span>
+                                    <span th:if="${!nv.trangThai}" class="badge bg-danger-subtle text-danger">Nghỉ việc</span>
+                                </td>
+                                <td class="text-center action-column">
+                                    <div class="action-container">
+                                        <button type="button" class="btn btn-outline-danger btn-sm"
+                                                data-bs-toggle="modal" data-bs-target="#nhanVienModal"
+                                                th:data-id="${nv.maNhanVien}"
+                                                th:data-hoten="${nv.hoTen}"
+                                                th:data-sdt="${nv.soDienThoai}"
+                                                th:data-email="${nv.email}"
+                                                th:data-chucvu="${nv.chucVu}"
+                                                th:data-tentaikhoan="${nv.taiKhoan != null ? nv.taiKhoan.tenDangNhap : ''}"
+                                                th:data-diachi="${nv.diaChi}"
+                                                th:data-ghichu="${nv.ghiChu}"
+                                                th:data-gioitinh="${nv.gioiTinh}"
+                                                th:data-trangthai="${nv.trangThai}"
+                                                th:data-ngaysinh="${nv.ngaySinh}"
+                                                th:data-ngayvaolam="${nv.ngayVaoLam}"
+                                                onclick="openEditModal(this)">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+
+                                        <a th:href="@{'/nhan-vien/toggle-status/' + ${nv.maNhanVien}}"
+                                           title="Bật/Tắt trạng thái"
+                                           class="toggle-link"
+                                           onclick="return confirm('Bạn có muốn đổi trạng thái nhân viên này?')">
+                                            <i class="bi"
+                                               th:classappend="${nv.trangThai} ? 'bi-toggle-on' : 'bi-toggle-off'"
+                                               style="font-size: 1.8rem; color: #dc3545;"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tbody>
+                        </table>
+                        <div class="card-footer bg-white border-top-0 d-flex justify-content-between align-items-center px-4 py-3" th:if="${totalPages > 0}">
+                            <div class="small text-muted fw-semibold">
+                                Tổng số bản ghi: <span class="fw-semibold text-dark" th:text="${totalItems}">0</span>
+                                (Trang <span class="fw-semibold text-dark" th:text="${currentPage + 1}">1</span> / <span th:text="${totalPages}">1</span>)
+                            </div>
+
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination pagination-sm mb-0 gap-1">
+                                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                        <a class="page-link rounded-2 border-0 d-flex align-items-center justify-content-center text-danger"
+                                           th:href="@{/nhan-vien(page=${currentPage - 1}, keyword=${keyword}, role=${role}, status=${status})}">
+                                            <i class="bi bi-chevron-left"></i>
+                                        </a>
+                                    </li>
+
+                                    <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                                        th:classappend="${currentPage == i} ? 'active'">
+                                        <a class="page-link rounded-2 border-0 d-flex align-items-center justify-content-center fw-semibold"
+                                           th:style="${currentPage == i} ? 'background-color:#c92327; color:#fff;' : ''"
+                                           th:href="@{/nhan-vien(page=${i}, keyword=${keyword}, role=${role}, status=${status})}"
+                                           th:text="${i + 1}">
+                                        </a>
+                                    </li>
+
+                                    <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+                                        <a class="page-link rounded-2 border-0 d-flex align-items-center justify-content-center text-danger"
+                                           th:href="@{/nhan-vien(page=${currentPage + 1}, keyword=${keyword}, role=${role}, status=${status})}">
+                                            <i class="bi bi-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="nhanVienModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fw-bold" id="modalTitle">Thông Tin Nhân Viên</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form th:action="@{/nhan-vien/save}" th:object="${nhanVien}" method="POST">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="modalMaNhanVien" th:field="*{maNhanVien}" />
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Họ và Tên <span class="text-danger">*</span></label>
+                            <input type="text" id="modalHoTen" class="form-control" th:field="*{hoTen}" placeholder="Nguyễn Văn A">
+                            <span class="text-danger small" th:if="${#fields.hasErrors('hoTen')}" th:errors="*{hoTen}"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Số Điện Thoại</label>
+                            <input type="tel" id="modalSoDienThoai" class="form-control" th:field="*{soDienThoai}" placeholder="0987654321">
+                            <span class="text-danger small" th:if="${#fields.hasErrors('soDienThoai')}" th:errors="*{soDienThoai}"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Email</label>
+                            <input type="email" id="modalEmail" class="form-control" th:field="*{email}">
+                            <div class="text-danger"
+                                 th:if="${#fields.hasErrors('email')}"
+                                 th:errors="*{email}">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Ngày Sinh</label>
+                            <input type="date" id="modalNgaySinh" class="form-control" th:field="*{ngaySinh}">
+                            <div class="text-danger"
+                                 th:if="${#fields.hasErrors('ngaySinh')}"
+                                 th:errors="*{ngaySinh}">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Giới Tính</label>
+                            <select class="form-select" id="modalGioiTinh" th:field="*{gioiTinh}">
+                                <option value="true">Nam</option>
+                                <option value="false">Nữ</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Chức Vụ</label>
+                            <select class="form-select" id="modalChucVu" th:field="*{chucVu}">
+                                <option value="Nhân viên">Nhân viên</option>
+                                <option value="Quản lý">Quản lý</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6" id="wrapperNgayVaoLam">
+                            <label class="form-label fw-semibold">Ngày Vào Làm</label>
+                            <input type="date" id="modalNgayVaoLam" class="form-control" th:field="*{ngayVaoLam}" readonly>
+                        </div>
+
+                        <div class="col-md-6" id="wrapperTrangThai">
+                            <label class="form-label fw-semibold">Trạng Thái Làm Việc</label>
+                            <select class="form-select" id="modalTrangThai" th:field="*{trangThai}">
+                                <option value="true">Đang làm việc</option>
+                                <option value="false">Đã nghỉ việc</option>
+                            </select>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Tỉnh/Thành phố</label>
+                                <select class="form-select select2-address" id="province" onchange="getDistricts()">
+                                    <option value="">Chọn Tỉnh/Thành</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Quận/Huyện</label>
+                                <select class="form-select select2-address" id="district" onchange="getWards()">
+                                    <option value="">Chọn Quận/Huyện</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Phường/Xã</label>
+                                <select class="form-select select2-address" id="ward">
+                                    <option value="">Chọn Phường/Xã</option>
+                                </select>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Địa chỉ cụ thể</label>
+                                <input type="text" id="addressDetail" class="form-control" placeholder="Số nhà, tên đường...">
+                                <input type="hidden" id="fullAddress" th:field="*{diaChi}">
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label  fw-semibold">Ghi Chú</label>
+                            <textarea class="form-control" id="modalGhiChu" th:field="*{ghiChu}" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-top">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger px-4">Lưu Lại</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+
+    document.getElementById('nhanVienModal').addEventListener('show.bs.modal', function () {
+        loadProvinces();
+    });
+
+    const host = "https://provinces.open-api.vn/api/";
+
+
+    function loadProvinces() {
+        fetch(host + "?depth=1").then(res => res.json()).then(data => {
+            let html = '<option value="">Chọn Tỉnh/Thành</option>';
+            data.forEach(p => html += `<option value="${p.code}">${p.name}</option>`);
+            $('#province').html(html).trigger('change.select2'); // Dùng trigger để Select2 refresh
+        });
+    }
+
+    function getDistricts() {
+        let code = $('#province').val();
+        if (!code) return;
+        fetch(host + "p/" + code + "?depth=2").then(res => res.json()).then(data => {
+            let html = '<option value="">Chọn Quận/Huyện</option>';
+            data.districts.forEach(d => html += `<option value="${d.code}">${d.name}</option>`);
+            $('#district').html(html).trigger('change.select2');
+        });
+    }
+
+    function getWards() {
+        let code = $('#district').val();
+        if (!code) return;
+        fetch(host + "d/" + code + "?depth=2").then(res => res.json()).then(data => {
+            let html = '<option value="">Chọn Phường/Xã</option>';
+            data.wards.forEach(w => html += `<option value="${w.code}">${w.name}</option>`);
+            $('#ward').html(html).trigger('change.select2');
+        });
+    }
+
+    function clearForm() {
+        document.querySelector("#nhanVienModal form").reset();
+        document.getElementById("modalTitle").innerText = "Thêm Nhân Viên Mới";
+
+        $('.select2-address').val(null).trigger('change');
+
+        document.getElementById('wrapperNgayVaoLam').style.display = "none";
+        document.getElementById('wrapperTrangThai').style.display = "none";
+
+        document.getElementById('passwordWrapper').style.display = "none";
+        document.getElementById('modalTenTaiKhoan').value = "Hệ thống sẽ tự tạo";
+        document.querySelectorAll(".text-danger").forEach(el => el.textContent = "");
+    }
+
+    document.getElementById('nhanVienModal')
+        .addEventListener('hidden.bs.modal', function () {
+            clearForm();                                                              
+        });
+    async function openEditModal(button) {
+        document.getElementById('modalTitle').innerText = "Cập Nhật Thông Tin Nhân Viên";
+
+        document.getElementById('wrapperNgayVaoLam').style.display = "block";
+        document.getElementById('wrapperTrangThai').style.display = "block";
+
+        document.getElementById('modalMaNhanVien').value = button.getAttribute('data-id') || '';
+
+        document.getElementById('modalHoTen').value = button.getAttribute('data-hoten') || '';
+        document.getElementById('modalSoDienThoai').value = button.getAttribute('data-sdt') || '';
+        document.getElementById('modalEmail').value = button.getAttribute('data-email') || '';
+        document.getElementById('modalChucVu').value = button.getAttribute('data-chucvu') || 'Nhân viên';
+        // document.getElementById('modalDiaChi').value = button.getAttribute('data-diachi') || '';
+        document.getElementById('modalGhiChu').value = button.getAttribute('data-ghichu') || '';
+
+        document.getElementById('modalNgaySinh').value = formatDateString(button.getAttribute('data-ngaysinh'));
+        document.getElementById('modalNgayVaoLam').value = formatDateString(button.getAttribute('data-ngayvaolam'));
+
+        document.getElementById('modalGioiTinh').value = String(button.getAttribute('data-gioitinh'));
+        document.getElementById('modalTrangThai').value = String(button.getAttribute('data-trangthai'));
+        let tenTk = button.getAttribute('data-tentaikhoan');
+        let inputTk = document.getElementById('modalTenTaiKhoan');
+        if(inputTk) {
+            inputTk.value = tenTk ? tenTk : "Chưa có tài khoản";
+            inputTk.readOnly = !!tenTk;
+        }
+
+        let fullAddress = button.getAttribute('data-diachi') || '';
+        if (fullAddress) {
+            let parts = fullAddress.split(', ');
+            document.getElementById('addressDetail').value = parts[0] || '';
+
+            let resP = await fetch(host + "?depth=1");
+            let provinces = await resP.json();
+            let pCode = provinces.find(p => p.name === parts[3])?.code;
+
+            if (pCode) {
+                $('#province').val(pCode).trigger('change');
+
+                let resD = await fetch(host + "p/" + pCode + "?depth=2");
+                let dataD = await resD.json();
+                let dCode = dataD.districts.find(d => d.name === parts[2])?.code;
+
+                let htmlD = '<option value="">Chọn Quận/Huyện</option>';
+                dataD.districts.forEach(d => htmlD += `<option value="${d.code}">${d.name}</option>`);
+                $('#district').html(htmlD).val(dCode).trigger('change');
+
+                let resW = await fetch(host + "d/" + dCode + "?depth=2");
+                let dataW = await resW.json();
+                let wCode = dataW.wards.find(w => w.name === parts[1])?.code;
+
+                let htmlW = '<option value="">Chọn Phường/Xã</option>';
+                dataW.wards.forEach(w => htmlW += `<option value="${w.code}">${w.name}</option>`);
+                $('#ward').html(htmlW).val(wCode).trigger('change');
+            }
+        }
+    }
+    function formatDateString(dateStr) {
+        if(!dateStr) return "";
+        let d = new Date(dateStr);
+        if (isNaN(d.getTime())) return "";
+        let month = '' + (d.getMonth() + 1);
+        let day = '' + d.getDate();
+        let year = d.getFullYear();
+
+        if (month.length < 2) month = '0' + month;
+        if (day.length < 2) day = '0' + day;
+
+        return [year, month, day].join('-');
+    }
+
+    document.querySelector("#nhanVienModal form").addEventListener("submit", function(event) {
+        let p = $('#province').find(':selected').text();
+        let d = $('#district').find(':selected').text();
+        let w = $('#ward').find(':selected').text();
+        let detail = document.getElementById('addressDetail').value;
+
+        let pText = (p === 'Chọn Tỉnh/Thành' || p === 'Chọn...') ? '' : p;
+        let dText = (d === 'Chọn Quận/Huyện' || d === 'Chọn...') ? '' : d;
+        let wText = (w === 'Chọn Phường/Xã' || w === 'Chọn...') ? '' : w;
+
+        let addressParts = [detail, wText, dText, pText].filter(part => part !== '');
+        document.getElementById('fullAddress').value = addressParts.join(', ');
+    });
+
+    $(document).ready(function() {
+        $('.select2-address').select2({
+            theme: "bootstrap-5",
+            width: '100%',
+            placeholder: "Chọn...",
+            dropdownParent: $('#nhanVienModal')
+        });
+    });
+
+
+    $.fn.modal.Constructor.prototype._enforceFocus = function() {};
+
+</script>
+
+<script th:inline="javascript">
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const showModal = /*[[${showModal}]]*/ false;
+
+        if(showModal){
+            new bootstrap.Modal(
+                document.getElementById('nhanVienModal')
+            ).show();
+        }
+    });
+    /*]]>*/
+</script>
+
+</body>
+</html>

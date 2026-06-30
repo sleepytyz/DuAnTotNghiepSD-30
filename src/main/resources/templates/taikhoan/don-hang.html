@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/client-head :: head('Đơn hàng của tôi')}"></head>
+<body class="fs-body">
+
+<header th:replace="~{fragments/client-header :: header('account')}"></header>
+
+<main class="fs-main">
+    <div class="fs-container" style="padding:30px 0 60px;">
+        <div class="fs-account-layout">
+            <div th:replace="~{fragments/account-menu :: menu('don-hang')}"></div>
+
+            <div>
+                <h2 class="fs-h3" style="margin-bottom:16px;">Đơn hàng của tôi</h2>
+
+                <div class="fs-empty-state" th:if="${trang.totalElements == 0}">
+                    <i class="bi bi-bag-x"></i>
+                    <h3>Bạn chưa có đơn hàng nào</h3>
+                    <a th:href="@{/san-pham}" class="fs-btn fs-btn-primary">Mua sắm ngay</a>
+                </div>
+
+                <a th:each="hd : ${trang.content}" th:href="@{/ca-nhan/don-hang/{id}(id=${hd.maHoaDon})}" class="fs-order-card" style="display:block;color:inherit;">
+                    <div class="head">
+                        <span class="code" th:text="'Đơn hàng #' + ${hd.maHoaDon}">#0</span>
+                        <span class="fs-status-pill"
+                              th:classappend="${hd.trangThai == 'Chờ xác nhận'} ? 'fs-status-wait' : (${hd.trangThai == 'Đã xác nhận'} ? 'fs-status-confirm' : (${hd.trangThai == 'Đang giao'} ? 'fs-status-shipping' : (${hd.trangThai == 'Đã huỷ'} ? 'fs-status-cancel' : 'fs-status-done')))"
+                              th:text="${hd.trangThai}">Trạng thái</span>
+                    </div>
+                    <div class="fs-muted" th:text="'Ngày đặt: ' + ${#temporals.format(hd.ngayTao, 'dd/MM/yyyy')}">Ngày</div>
+                    <div style="margin-top:8px;font-weight:700;" th:text="'Tổng tiền: ' + ${#numbers.formatDecimal(hd.tongTien,0,'COMMA',0,'POINT')} + 'đ'">Tổng</div>
+                </a>
+
+                <div class="fs-pagination" th:if="${trang.totalPages > 1}">
+                    <span th:each="i : ${#numbers.sequence(0, trang.totalPages - 1)}">
+                        <a th:if="${i != trang.number}" th:href="@{/ca-nhan/don-hang(page=${i})}" th:text="${i+1}">1</a>
+                        <span th:if="${i == trang.number}" class="active" th:text="${i+1}">1</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/client-footer :: footer}"></footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

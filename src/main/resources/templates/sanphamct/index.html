@@ -1,0 +1,486 @@
+    <!DOCTYPE html>
+    <html lang="vi" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <title>Quản lý sản phẩm chi tiết - FS Shop</title>
+
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+        <link rel="stylesheet" th:href="@{/css/style.css}">
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
+        <style>
+            .form-control:focus, .form-select:focus {
+                border-color: #c92327 !important;
+                box-shadow: 0 0 0 0.25rem rgba(201, 35, 39, 0.15) !important;
+            }
+            .filter-section form {
+                margin: 0;
+            }
+            .preview-box {
+                width: 100%;
+                height: 150px;
+                border: 2px dashed #dee2e6;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+                background: #f8f9fa;
+                position: relative;
+            }
+            .preview-box img {
+                max-width: 100%;
+                max-height: 100%;
+                object-fit: contain;
+            }
+            .filter-section .form-select,
+            .filter-section .form-control,
+            .filter-section .btn {
+                height: 42px !important;
+            }
+            .filter-section .form-label {
+                display: block;
+                margin-bottom: 5px !important;
+            }
+            .select2-container .select2-selection--single {
+                height: 42px !important;
+                padding: 6px 12px !important;
+                border: 1px solid #dee2e6 !important;
+            }
+            .select2-container .select2-selection--single .select2-selection__rendered {
+                line-height: 28px !important;
+            }
+            .select2-container--open {
+                z-index: 99999 !important;
+            }
+            .noUi-connect {
+                background: #c92327 !important;
+            }
+            #price-slider {
+                height: 8px !important;
+            }
+            .noUi-handle {
+                width: 18px !important;
+                height: 18px !important;
+                border-radius: 50% !important;
+                background: #c92327 !important;
+                border: none !important;
+                box-shadow: none !important;
+            }
+            .noUi-handle:after, .noUi-handle:before {
+                display: none !important;
+            }
+            .custom-switch:checked {
+                background-color: #c92327 !important;
+                border-color: #c92327 !important;
+            }
+            .custom-switch:disabled {
+                opacity: 0.5;
+                cursor: not-allowed !important;
+            }
+        </style>
+    </head>
+
+    <body>
+
+    <div class="wrapper">
+
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+        <div class="content-body">
+
+            <div th:replace="~{fragments/header :: header('Quản lý sản phẩm chi tiết', 'Sản phẩm chi tiết')}"></div>
+
+            <section class="card card-custom mb-4 shadow-sm border-0 mt-3 filter-section">
+                <div class="card-header text-white" style="background:#c92327;">
+                    <h5 class="mb-0 d-flex align-items-center gap-2 py-1">
+                        <i class="bi bi-funnel-fill"></i>
+                        <span>Bộ lọc & Tìm kiếm sản phẩm</span>
+                    </h5>
+                </div>
+
+                <div class="card-body bg-white p-4">
+                    <div class="row g-3 align-items-end">
+
+                        <div class="col-auto">
+                            <a th:href="@{/sanphamct/index}" class="btn btn-outline-secondary d-flex align-items-center"
+                               title="Reset bộ lọc">
+                                <i class="bi bi-arrow-clockwise fs-5"></i>
+                            </a>
+                        </div>
+
+                        <div class="col-md-2 col-sm-6">
+                            <label class="form-label fw-semibold text-dark small"><i class="bi bi-ruters me-1"></i>Kích thước</label>
+                            <form action="/sanphamct/locsize" method="get">
+                                <select name="size" class="form-select select2-search" onchange="this.form.submit()">
+                                    <option value="">Tất cả</option>
+                                    <option th:each="s : ${lists}" th:value="${s.maKichThuoc}" th:text="${s.tenKichThuoc}" th:selected="${#strings.equals(s.maKichThuoc, selectedSize)}"></option>
+                                </select>
+                            </form>
+                        </div>
+
+                        <div class="col-md-2 col-sm-6">
+                            <label class="form-label fw-semibold text-dark small"><i class="bi bi-palette me-1"></i>Màu sắc</label>
+                            <form action="/sanphamct/locmsac" method="get">
+                                <select name="msac" class="form-select select2-search" onchange="this.form.submit()">
+                                    <option value="">Tất cả</option>
+                                    <option th:each="m : ${listms}" th:value="${m.maMauSac}" th:text="${m.tenMauSac}" th:selected="${#strings.equals(m.maMauSac, selectedMauSac)}"></option>
+                                </select>
+                            </form>
+                        </div>
+
+                        <div class="col-md-2 col-sm-6">
+                            <label class="form-label fw-semibold text-dark small"><i class="bi bi-check-circle me-1"></i>Trạng thái</label>
+                            <form action="/sanphamct/loctt" method="get">
+                                <select name="tt" class="form-select border-secondary-subtle" onchange="this.form.submit()">
+                                    <option value="">Tất cả</option>
+                                    <option value="Còn hàng" th:selected="${selectedStatus == 'Còn hàng'}">Còn hàng</option>
+                                    <option value="Sắp hết" th:selected="${selectedStatus == 'Sắp hết'}">Sắp hết</option>
+                                    <option value="Hết hàng" th:selected="${selectedStatus == 'Hết hàng'}">Hết hàng</option>
+                                    <option value="Ngừng bán" th:selected="${selectedStatus == 'Ngừng bán'}">Ngừng bán</option>
+                                </select>
+                            </form>
+                        </div>
+
+                        <div class="col-md-4 col-sm-12">
+                            <label class="form-label fw-semibold text-dark small">
+                                <i class="bi bi-cash-stack me-1"></i>Khoảng giá (VNĐ)
+                            </label>
+                            <div id="price-slider" class="mt-3 mb-2" style="margin-right: 10px;"></div>
+
+                            <form action="/sanphamct/locgia" method="get" id="priceForm">
+                                <div class="d-flex justify-content-between small text-muted">
+                                    <span id="min-val">0 đ</span>
+                                    <span id="max-val">0 đ</span>
+                                </div>
+                                <input type="hidden" name="gia" id="min-input">
+                                <input type="hidden" name="gia2" id="max-input">
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <section class="table-card shadow-sm border-0">
+                <div class="table-header bg-white border-bottom p-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <h5 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+                        <i class="bi bi-list-ul text-danger"></i> Danh sách chi tiết sản phẩm
+                    </h5>
+                </div>
+
+                <div class="table-wrapper p-3">
+                    <div class="table-responsive">
+                        <table class="table-custom align-middle">
+                            <thead>
+                            <tr>
+                                <th style="width: 60px;">STT</th>
+                                <th>MÃ SPCT</th>
+                                <th>SẢN PHẨM</th>
+                                <th>SIZE</th>
+                                <th>MÀU SẮC</th>
+                                <th>GIÁ NHẬP</th>
+                                <th>GIÁ BÁN</th>
+                                <th>TỒN KHO</th>
+                                <th>TRẠNG THÁI</th>
+                                <th>HÌNH ẢNH</th>
+                                <th style="width: 90px;">HÀNH ĐỘNG</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="c,row : ${listspct}">
+                                <td th:text="${row.count}"></td>
+                                <td><span class="fw-semibold text-danger" th:text="${'SPCT' + c.maSanPhamChiTiet}"></span></td>
+                                <td class="fw-medium text-dark" th:text="${c.sanPham.tenSanPham}"></td>
+                                <td th:text="${c.kichThuoc.tenKichThuoc}"></td>
+                                <td th:text="${c.mauSac.tenMauSac}"></td>
+                                <td th:text="${#numbers.formatDecimal(c.giaNhap, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                                <td class="fw-bold text-danger" th:text="${#numbers.formatDecimal(c.giaBan, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                                <td class="fw-semibold" th:text="${c.soLuongTon}"></td>
+                                <td>
+                                    <span th:if="${c.trangThai == 'Còn hàng'}" class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1.5 rounded-pill fw-bold">Còn hàng</span>
+                                    <span th:if="${c.trangThai == 'Sắp hết'}" class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2.5 py-1.5 rounded-pill fw-bold">Sắp hết</span>
+                                    <span th:if="${c.trangThai == 'Hết hàng'}" class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1.5 rounded-pill fw-bold">Hết hàng</span>
+                                    <span th:if="${c.trangThai == 'Ngừng bán'}" class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2.5 py-1.5 rounded-pill fw-bold">Ngừng bán</span>
+                                </td>
+                                <td>
+                                    <img th:if="${c.duongDanAnh != null && !c.duongDanAnh.isEmpty()}"
+                                         th:src="@{'/images/' + ${c.duongDanAnh}}"
+                                         width="100" height="100"
+                                         class="shadow-sm rounded border img-zoom"
+                                         style="object-fit:cover; transition: transform 0.3s;"
+                                         alt="Ảnh sản phẩm">
+
+                                    <img th:if="${c.duongDanAnh == null || c.duongDanAnh.isEmpty()}"
+                                         src="/images/default-product.png"
+                                         width="100" height="100"
+                                         class="shadow-sm rounded border"
+                                         style="object-fit:cover"
+                                         alt="Ảnh mặc định">
+                                </td>
+                                <td class="align-middle">
+                                    <div class="d-flex align-items-center justify-content-center gap-2">
+                                        <a class="btn btn-sm btn-outline-danger"
+                                           th:href="@{/sanphamct/edit/{id}(id=${c.maSanPhamChiTiet}, page=${currentPage}, size=${selectedSize}, msac=${selectedMauSac}, tt=${selectedStatus})}">
+                                            <i class="bi bi-pencil-fill"></i>
+                                        </a>
+
+                                        <form th:action="@{/sanphamct/toggle-status/{id}(id=${c.maSanPhamChiTiet})}" method="get" class="m-0">
+                                            <input type="hidden" name="page" th:value="${currentPage}">
+                                            <input type="hidden" name="status" th:value="${c.trangThai == 'Ngừng bán' ? 'Còn hàng' : 'Ngừng bán'}">
+
+                                            <div class="form-check form-switch p-0 m-0 d-flex align-items-center" style="height: 32px;">
+                                                <input class="form-check-input m-0 custom-switch"
+                                                       type="checkbox"
+                                                       role="switch"
+                                                       th:checked="${c.trangThai != 'Ngừng bán'}"
+                                                       th:disabled="${!c.sanPham.trangThai}"
+                                                       onchange="this.form.submit()"
+                                                       style="cursor: pointer; width: 2.5em; height: 1.25em;">
+                                            </div>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(listspct)}">
+                                <td colspan="11" class="text-center text-muted py-5">Không tìm thấy sản phẩm chi tiết nào phù hợp.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <div class="card-footer bg-white border-top-0 d-flex justify-content-between align-items-center px-4 py-3" th:if="${totalPages > 0}">
+                            <div class="small text-muted fw-semibold">
+                                Tổng số bản ghi: <span class="fw-semibold text-dark" th:text="${totalItems}">0</span>
+                                (Trang <span class="fw-semibold text-dark" th:text="${currentPage + 1}">1</span> / <span th:text="${totalPages}">1</span>)
+                            </div>
+
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination pagination-sm mb-0 gap-1">
+                                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                        <a class="page-link rounded-2 border-0 d-flex align-items-center justify-content-center text-danger"
+                                           th:href="@{/sanphamct/index(page=${currentPage - 1}, size=5, size=${selectedSize}, msac=${selectedMauSac}, tt=${selectedStatus}, gia=${selectedGia}, gia2=${selectedGia2})}">
+                                            <i class="bi bi-chevron-left"></i>
+                                        </a>
+                                    </li>
+
+                                    <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                                        th:classappend="${currentPage == i} ? 'active'">
+                                        <a class="page-link rounded-2 border-0 d-flex align-items-center justify-content-center fw-semibold"
+                                           th:style="${currentPage == i} ? 'background-color:#c92327; color:#fff;' : ''"
+                                           th:href="@{/sanphamct/index(page=${i}, size=5, size=${selectedSize}, msac=${selectedMauSac}, tt=${selectedStatus}, gia=${selectedGia}, gia2=${selectedGia2})}"
+                                           th:text="${i + 1}">
+                                        </a>
+                                    </li>
+
+                                    <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+                                        <a class="page-link rounded-2 border-0 d-flex align-items-center justify-content-center text-danger"
+                                           th:href="@{/sanphamct/index(page=${currentPage + 1}, size=5, size=${selectedSize}, msac=${selectedMauSac}, tt=${selectedStatus}, gia=${selectedGia}, gia2=${selectedGia2})}">
+                                            <i class="bi bi-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="modal fade" id="spctModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header text-white" style="background:#c92327;">
+                            <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
+                                <i class="bi bi-box-seam-fill"></i>
+                                <span th:text="${isEdit == null ? 'Thêm thông tin sản phẩm chi tiết' : 'Cập nhật sản phẩm chi tiết'}"></span>
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+
+                        <div class="modal-body p-4 bg-light-subtle">
+
+
+                            <form th:action="@{/sanphamct/update}" method="post" th:object="${sanphamct}" enctype="multipart/form-data">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold small text-dark">Mã SPCT</label>
+                                        <input type="text" class="form-control bg-light border-secondary-subtle" th:field="*{maSanPhamChiTiet}" readonly>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold small text-dark">Sản phẩm chính <span class="text-danger">*</span></label>
+                                        <select class="form-select select2-search" th:field="*{sanPham.maSanPham}">
+                                            <option th:each="c : ${listsp}" th:value="${c.maSanPham}" th:text="${c.maSanPham + ' - ' + c.tenSanPham}"></option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold small text-dark">Kích cỡ <span class="text-danger">*</span></label>
+                                        <select class="form-select select2-search" th:field="*{kichThuoc.maKichThuoc}">
+                                            <option th:each="c : ${lists}" th:value="${c.maKichThuoc}" th:text="${c.tenKichThuoc}"></option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold small text-dark">Màu sắc <span class="text-danger">*</span></label>
+                                        <select class="form-select select2-search" th:field="*{mauSac.maMauSac}">
+                                            <option th:each="c : ${listms}" th:value="${c.maMauSac}" th:text="${c.tenMauSac}"></option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold small text-dark">Giá nhập <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control border-secondary-subtle" th:field="*{giaNhap}">
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold small text-dark">Giá bán <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control border-secondary-subtle" th:field="*{giaBan}">
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold small text-dark">Số lượng <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control border-secondary-subtle" th:field="*{soLuongTon}">
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold small text-dark">Hình ảnh sản phẩm</label>
+                                        <div class="preview-box mb-2" id="previewWrapper">
+                                            <img id="imgPreview"
+                                                 th:src="${sanphamct.duongDanAnh != null ? '/images/' + sanphamct.duongDanAnh : '/images/default-product.png'}"
+                                                 alt="Preview" style="max-width: 100%; height: 100%; object-fit: contain;">
+                                        </div>
+                                        <input type="file" name="fileAnh" class="form-control border-secondary-subtle"
+                                               accept="image/*" onchange="previewImage(this)">
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end gap-2 mt-4">
+                                    <button id="btnThem" class="btn btn-success" type="submit">Thêm mới</button>
+                                    <button id="btnSua" class="btn btn-warning" type="submit" style="display: none;">Xác nhận sửa</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script th:inline="javascript">
+        var slider = document.getElementById('price-slider');
+        var maxGiaBan = /*[[${maxGiaBan != null ? maxGiaBan : 1000000000}]]*/ 1000000000;
+        var currentMin = /*[[${selectedGia != null ? selectedGia : 0}]]*/ 0;
+        var currentMax = /*[[${selectedGia2 != null ? selectedGia2 : maxGiaBan}]]*/ maxGiaBan;
+
+        noUiSlider.create(slider, {
+            start: [currentMin, currentMax],
+            connect: true,
+            range: { 'min': 0, 'max': maxGiaBan },
+            format: { to: v => Math.round(v), from: v => Number(v) }
+        });
+
+        slider.noUiSlider.on('update', function (values) {
+            document.getElementById('min-val').innerText = parseInt(values[0]).toLocaleString() + ' đ';
+            document.getElementById('max-val').innerText = parseInt(values[1]).toLocaleString() + ' đ';
+            document.getElementById('min-input').value = values[0];
+            document.getElementById('max-input').value = values[1];
+        });
+
+        slider.noUiSlider.on('slide', function () {
+            document.getElementById('priceForm').submit();
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
+            $('.select2-search').select2({
+                placeholder: "Chọn...",
+                allowClear: true,
+                width: '100%'
+            });
+
+            $('#spctModal').on('shown.bs.modal', function () {
+                $('.select2-search', this).select2('destroy').select2({
+                    placeholder: "Chọn...",
+                    allowClear: true,
+                    width: '100%',
+                    dropdownParent: $('#spctModal')
+                });
+            });
+        });
+    </script>
+    <script>
+        function openEditModal() {
+            document.getElementById("btnThem").style.display = "none";
+            document.getElementById("btnSua").style.display = "inline-block";
+            if(document.getElementById("divNgayTao")) document.getElementById("divNgayTao").style.display = "block";
+            if(document.getElementById("divNgayCapNhat")) document.getElementById("divNgayCapNhat").style.display = "block";
+            document.querySelector('.modal-title span').innerText = 'Cập nhật sản phẩm chi tiết';
+        }
+
+        function previewImage(input) {
+            const preview = document.getElementById('imgPreview');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) { preview.src = e.target.result; }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function prepareEdit(anh) {
+            openEditModal();
+            if(anh) {
+                document.getElementById('previewContainer').style.display = 'block';
+                document.getElementById('imgPreview').src = '/images/' + anh;
+            } else {
+                document.getElementById('previewContainer').style.display = 'none';
+            }
+        }
+
+        function openAddModal() {
+            const form = document.querySelector('#spctModal form');
+            form.reset();
+            document.getElementById('imgPreview').src = '/images/default-product.png';
+            document.getElementById("btnThem").style.display = "inline-block";
+            document.getElementById("btnSua").style.display = "none";
+            const idInput = form.querySelector('[name="maSanPhamChiTiet"]');
+            if(idInput) idInput.value = "";
+
+            document.querySelector('.modal-title span').innerText = 'Thêm thông tin sản phẩm chi tiết';
+        }
+        function editProduct(anh) {
+            document.getElementById("btnThem").style.display = "none";
+            document.getElementById("btnSua").style.display = "inline-block";
+
+            const imgPreview = document.getElementById('imgPreview');
+            if (anh && anh !== 'null' && anh !== '') {
+                imgPreview.src = '/images/' + anh;
+            } else {
+                imgPreview.src = '/images/default-product.png';
+            }
+            document.querySelector('.modal-title span').innerText = 'Cập nhật sản phẩm chi tiết';
+        }
+
+    </script>
+    <script th:if="${showModal}" th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+            var myModal = new bootstrap.Modal(document.getElementById('spctModal'));
+            myModal.show();
+
+            var isEdit = /*[[${isEdit != null ? isEdit : false}]]*/ false;
+
+            if (isEdit) {
+                openEditModal();
+            }
+        });
+    </script>
+
+
+    </body>
+    </html>

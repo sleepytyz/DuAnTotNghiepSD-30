@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/client-head :: head('Voucher của tôi')}"></head>
+<body class="fs-body">
+
+<header th:replace="~{fragments/client-header :: header('account')}"></header>
+
+<main class="fs-main">
+    <div class="fs-container" style="padding:30px 0 60px;">
+        <div class="fs-account-layout">
+            <div th:replace="~{fragments/account-menu :: menu('voucher')}"></div>
+
+            <div>
+                <h2 class="fs-h3" style="margin-bottom:16px;">Voucher của tôi</h2>
+
+                <div class="fs-empty-state" th:if="${#lists.isEmpty(vouchers)}">
+                    <i class="bi bi-ticket-perforated"></i>
+                    <h3>Bạn chưa có voucher khả dụng</h3>
+                    <p>Hãy theo dõi FS Shoes để không bỏ lỡ ưu đãi nhé!</p>
+                </div>
+
+                <div th:each="v : ${vouchers}" class="fs-order-card" style="border-left:4px solid var(--fs-red);">
+                    <div class="head">
+                        <span class="code" th:text="${v.tenGiamGia}">Voucher</span>
+                        <span class="fs-status-pill fs-status-done" th:if="${v.loaiGiamGia == 'PhanTram'}" th:text="'-' + ${v.giaTriGiam} + '%'"></span>
+                        <span class="fs-status-pill fs-status-done" th:if="${v.loaiGiamGia != 'PhanTram'}" th:text="'-' + ${#numbers.formatDecimal(v.giaTriGiam,0,'COMMA',0,'POINT')} + 'đ'"></span>
+                    </div>
+                    <p class="fs-muted" th:if="${v.donToiThieu != null}" th:text="'Đơn tối thiểu: ' + ${#numbers.formatDecimal(v.donToiThieu,0,'COMMA',0,'POINT')} + 'đ'"></p>
+                    <p class="fs-muted" th:text="'Hạn sử dụng đến: ' + ${#temporals.format(v.ngayKetThuc, 'dd/MM/yyyy')}">Hạn</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/client-footer :: footer}"></footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+<div style="max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 10px; border-top: 5px solid #dc3545;">
+    <h2 style="color: #dc3545;">Chúc mừng bạn!</h2>
+    <p>Xin chào,</p>
+    <p>Bạn đã nhận được một ưu đãi đặc biệt từ chúng tôi:</p>
+
+    <div style="background: #fff0f0; padding: 15px; border-left: 4px solid #dc3545; margin: 20px 0;">
+        <p style="font-size: 18px; font-weight: bold; margin: 0;">Chương trình: <span th:text="${voucher.tenGiamGia}"></span></p>
+
+        <div style="margin: 15px 0; padding: 15px; border: 2px dashed #dc3545; text-align: center; background-color: #ffffff;">
+            <p style="margin: 0; color: #555; font-size: 14px;">Mã giảm giá của bạn:</p>
+            <h1 style="margin: 5px 0; color: #dc3545; letter-spacing: 3px;" th:text="${voucher.maGiamGia}">CODE123</h1>
+        </div>
+        <p style="margin: 5px 0;">Giá trị giảm: <strong style="color: #dc3545;" th:text="${#numbers.formatDecimal(voucher.giaTri, 0, 'POINT', 0, 'COMMA')} + 'đ'"></strong></p>
+        <p style="margin: 5px 0;">Đơn tối thiểu: <span th:text="${#numbers.formatDecimal(voucher.donToiThieu, 0, 'POINT', 0, 'COMMA')} + 'đ'"></span></p>
+    </div>
+
+    <p>Hãy truy cập website của chúng tôi để mua sắm ngay nhé!</p>
+    <a href="https://your-website.com" style="display: inline-block; background: #dc3545; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Truy cập Website</a>
+</div>
+</body>
+</html>

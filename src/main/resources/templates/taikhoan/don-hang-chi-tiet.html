@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/client-head :: head('Chi tiết đơn hàng')}"></head>
+<body class="fs-body">
+
+<header th:replace="~{fragments/client-header :: header('account')}"></header>
+
+<main class="fs-main">
+    <div class="fs-container" style="padding:30px 0 60px;">
+        <div class="fs-account-layout">
+            <div th:replace="~{fragments/account-menu :: menu('don-hang')}"></div>
+
+            <div>
+                <div class="fs-alert fs-alert-success" th:if="${thongBao}" th:text="${thongBao}"></div>
+                <div class="fs-alert fs-alert-danger" th:if="${loiDonHang}" th:text="${loiDonHang}"></div>
+
+                <div class="fs-order-card">
+                    <div class="head">
+                        <span class="code" th:text="'Đơn hàng #' + ${hoaDon.maHoaDon}">#0</span>
+                        <span class="fs-status-pill"
+                              th:classappend="${hoaDon.trangThai == 'Chờ xác nhận'} ? 'fs-status-wait' : (${hoaDon.trangThai == 'Đã xác nhận'} ? 'fs-status-confirm' : (${hoaDon.trangThai == 'Đang giao'} ? 'fs-status-shipping' : (${hoaDon.trangThai == 'Đã huỷ'} ? 'fs-status-cancel' : 'fs-status-done')))"
+                              th:text="${hoaDon.trangThai}">Trạng thái</span>
+                    </div>
+                    <p class="fs-muted" th:text="'Ngày đặt: ' + ${#temporals.format(hoaDon.ngayTao, 'dd/MM/yyyy')}">Ngày</p>
+                    <p class="fs-muted" th:text="'Giao đến: ' + ${hoaDon.diaChiGiaoHang}">Địa chỉ</p>
+                    <p class="fs-muted" th:text="'Thanh toán: ' + (${hoaDon.phuongThucThanhToan == 'COD'} ? 'Tiền mặt khi nhận hàng' : 'Chuyển khoản ngân hàng')">PTTT</p>
+
+                    <table class="fs-table-simple" style="margin-top:14px;">
+                        <thead><tr><th>Sản phẩm</th><th>SL</th><th>Thành tiền</th></tr></thead>
+                        <tbody>
+                        <tr th:each="ct : ${chiTiet}">
+                            <td th:text="${ct.sanPhamChiTiet.sanPham.tenSanPham} + ' (' + ${ct.sanPhamChiTiet.mauSac.tenMauSac} + ' / ' + ${ct.sanPhamChiTiet.kichThuoc.tenKichThuoc} + ')'">SP</td>
+                            <td th:text="${ct.soLuong}">1</td>
+                            <td th:text="${#numbers.formatDecimal(ct.thanhTien,0,'COMMA',0,'POINT')} + 'đ'">0đ</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <div class="fs-summary-row total" style="margin-top:10px;">
+                        <span>Tổng thanh toán</span>
+                        <span th:text="${#numbers.formatDecimal(hoaDon.tongTien,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
+                    </div>
+
+                    <form th:if="${coTheHuy}" th:action="@{/ca-nhan/don-hang/huy/{id}(id=${hoaDon.maHoaDon})}" method="post"
+                          onsubmit="return confirm('Bạn chắc chắn muốn huỷ đơn hàng này?')" style="margin-top:18px;">
+                        <button type="submit" class="fs-btn fs-btn-outline">Huỷ đơn hàng</button>
+                    </form>
+                </div>
+
+                <a th:href="@{/ca-nhan/don-hang}" class="fs-btn fs-btn-outline" style="margin-top:6px;"><i class="bi bi-arrow-left"></i> Quay lại danh sách</a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/client-footer :: footer}"></footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

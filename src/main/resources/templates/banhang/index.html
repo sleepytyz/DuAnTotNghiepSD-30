@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Bán hàng - FS Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="wrapper">
+    <div sec:authorize="hasRole('ADMIN')">
+        <div th:replace="fragments/sidebaradmin :: sidebar-admin"></div>
+    </div>
+
+    <div sec:authorize="hasRole('STAFF')">
+        <div th:replace="fragments/sidebarstaff :: sidebar-staff"></div>
+    </div>
+
+    <div class="content-wrapper">
+        <div th:replace="fragments/header :: header('Bán hàng', 'Bán hàng')"></div>
+
+        <div class="content-body container-fluid py-4">
+
+            <div th:if="${mess}" class="alert alert-info alert-dismissible fade show mb-3" role="alert">
+                <span th:text="${mess}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div class="row g-4">
+
+                <div class="col-lg-7 col-xl-8">
+                    <div class="pos-left-card card p-4 shadow-sm mb-4 bg-white rounded">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
+                            <h5 class="fw-bold mb-0 text-dark" style="font-size: 16px;">
+                                Hoá đơn:
+                                <span class="text-danger" th:text="${hoadonHienTai != null ? 'HD' + hoadonHienTai.maHoaDon : 'Chưa chọn'}"></span>
+                                <span th:if="${hoadonHienTai != null}" class="badge ms-2"
+                                      th:classappend="${hoadonHienTai.loaiBan == 'Online' ? 'bg-warning text-dark' : 'bg-info text-white'}"
+                                      th:text="${hoadonHienTai.loaiBan}"></span>
+                            </h5>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-danger px-3 py-2 fw-semibold rounded"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#sanPhamModal"
+                                        th:disabled="${hoadonHienTai == null}">
+                                    <i class="bi bi-plus-circle-fill me-1"></i> Chọn sản phẩm
+                                </button>
+
+                                <form th:action="@{/banhang/taohd}" method="post" th:object="${hoadon}" class="d-flex gap-2">
+                                    <select name="loaiBan" class="form-select form-select-sm fw-semibold border-secondary" style="width: 130px;" required>
+                                        <option value="Tại quầy">Tại quầy</option>
+                                        <option value="Online">Online</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-dark px-3 py-2 fw-semibold rounded">Tạo hoá đơn</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive pos-table-container">
+                            <table class="table align-middle text-center mb-0">
+                                <thead class="table-danger text-white">
+                                <tr>
+                                    <th style="width: 50px;">STT</th>
+                                    <th class="text-start">Tên sản phẩm</th>
+                                    <th style="width: 120px;">Số lượng</th>
+                                    <th>Giá tiền</th>
+                                    <th>Giảm giá</th>
+                                    <th>Thành tiền</th>
+                                    <th style="width: 60px;">Hành động</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="item, stat : ${listhdct}">
+                                    <td th:text="${stat.index + 1}">1</td>
+                                    <td class="text-start fw-bold text-dark"
+                                        th:text="${item.sanPhamChiTiet.sanPham.tenSanPham + ' [' + item.sanPhamChiTiet.mauSac.tenMauSac + ' - ' + item.sanPhamChiTiet.kichThuoc.tenKichThuoc + ']'}">
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center justify-content-center gap-1">
+                                            <form th:action="@{/banhang/giamsp}" method="post" style="display:inline;">
+                                                <input type="hidden" name="mahd" th:value="${hoadonHienTai.maHoaDon}" />
+                                                <input type="hidden" name="mactsp" th:value="${item.sanPhamChiTiet.maSanPhamChiTiet}" />
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary py-0 px-2 fw-bold">-</button>
+                                            </form>
+                                            <span class="fw-bold px-2" th:text="${item.soLuong}">1</span>
+                                        </div>
+                                    </td>
+                                    <td th:text="${#numbers.formatDecimal(item.donGia, 0, 'COMMA', 0, 'POINT') + 'đ'}">0đ</td>
+                                    <td class="text-danger fw-semibold"
+                                        th:text="${item.tienGiam != null && item.tienGiam > 0 ? #numbers.formatDecimal(item.tienGiam, 0, 'COMMA', 0, 'POINT') + 'đ' : '0'}">0</td>
+                                    <td class="fw-bold text-dark" th:text="${#numbers.formatDecimal(item.thanhTien, 0, 'COMMA', 0, 'POINT') + 'đ'}">0đ</td>
+                                    <td>
+                                        <form th:action="@{/banhang/xoasp}" method="post" style="display:inline;">
+                                            <input type="hidden" name="mahd" th:value="${hoadonHienTai.maHoaDon}" />
+                                            <input type="hidden" name="mactsp" th:value="${item.sanPhamChiTiet.maSanPhamChiTiet}" />
+                                            <button type="submit" class="btn btn-link text-danger p-0 m-0 border-0"><i class="bi bi-trash fs-5"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(listhdct)}">
+                                    <td colspan="7" class="text-muted py-5 fs-6">Hóa đơn chưa có sản phẩm. Ấn "Chọn sản phẩm" để thêm hàng.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-5 col-xl-4">
+
+                    <div class="pos-right-card card p-4 shadow-sm mb-4 bg-white rounded">
+                        <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                            <h6 class="fw-bold text-dark mb-0"><i class="bi bi-person-bounding-box me-2 text-danger"></i>Khách hàng</h6>
+                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#khachHangModal"
+                                    th:disabled="${hoadonHienTai == null}">
+                                <i class="bi bi-search me-1"></i> Chọn từ danh sách
+                            </button>
+                        </div>
+
+                        <!-- Sử dụng th:object để hỗ trợ hứng lỗi Validation từ Backend -->
+                        <form th:action="@{/banhang/themkh}" method="post" th:object="${kh}">
+
+                            <input type="hidden" name="mahd" th:value="${hoadonHienTai != null ? hoadonHienTai.maHoaDon : ''}" />
+
+                            <div class="mb-2.5">
+                                <label class="form-label text-muted mb-1 small">Tên khách hàng:</label>
+                                <input type="text" th:field="*{hoTen}" class="form-control form-control-sm text-dark fw-semibold"
+                                       th:readonly="${hoadonHienTai != null && hoadonHienTai.maKhachHang != null}" placeholder="Nhập tên khách mới...">
+                                <div class="text-danger small fw-semibold mt-1" th:if="${#fields.hasErrors('hoTen')}" th:errors="*{hoTen}"></div>
+                            </div>
+
+                            <div class="mb-2.5">
+                                <label class="form-label text-muted mb-1 small">Số điện thoại:</label>
+                                <input type="text" th:field="*{sdt}" class="form-control form-control-sm text-dark fw-semibold"
+                                       th:readonly="${hoadonHienTai != null && hoadonHienTai.maKhachHang != null}" placeholder="Nhập SĐT khách mới...">
+                                <div class="text-danger small fw-semibold mt-1" th:if="${#fields.hasErrors('sdt')}" th:errors="*{sdt}"></div>
+                            </div>
+
+<!--                            <div class="mb-2.5">-->
+<!--                                <label class="form-label text-muted mb-1 small">-->
+<!--                                    Địa chỉ: <span th:if="${hoadonHienTai != null && hoadonHienTai.loaiBan == 'Online'}" class="text-danger">*</span>-->
+<!--                                </label>-->
+<!--                                <input type="text" th:field="*{diaChi}" class="form-control form-control-sm text-dark fw-semibold"-->
+<!--                                       th:readonly="${hoadonHienTai != null && hoadonHienTai.maKhachHang != null}"-->
+<!--                                       th:required="${hoadonHienTai != null && hoadonHienTai.loaiBan == 'Online'}"-->
+<!--                                       placeholder="Nhập địa chỉ giao hàng lẻ...">-->
+<!--                                <div class="text-danger small fw-semibold mt-1" th:if="${#fields.hasErrors('diaChi')}" th:errors="*{diaChi}"></div>-->
+<!--                            </div>-->
+
+                            <!-- ĐÂY RỒI: Ô Ghi chú giao hàng dành riêng cho đơn Online -->
+                            <div class="mb-3" th:if="${hoadonHienTai != null && hoadonHienTai.loaiBan == 'Online'}">
+                                <label class="form-label text-muted mb-1 small">Ghi chú giao hàng:</label>
+                                <textarea name="ghiChuGiaoHang" class="form-control form-control-sm" rows="2"
+                                          th:text="${hoadonHienTai != null ? hoadonHienTai.ghiChu : ''}"
+                                          placeholder="Ghi chú thời gian nhận, lưu ý ship hàng..."></textarea>
+                            </div>
+
+                            <div class="d-grid" th:if="${hoadonHienTai != null && hoadonHienTai.maKhachHang == null}">
+                                <button type="submit" class="btn btn-sm btn-dark"><i class="bi bi-person-plus-fill me-1"></i> Lưu & Thêm khách hàng mới</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="pos-right-card card p-4 shadow-sm bg-white rounded">
+                        <h6 class="fw-bold mb-4 text-dark border-bottom pb-2" style="font-size: 15px;">Thông tin hoá đơn</h6>
+
+                        <form th:action="@{/banhang/thanhtoanhd}" method="post">
+                            <input type="hidden" name="mahd" th:value="${hoadonHienTai != null ? hoadonHienTai.maHoaDon : ''}" />
+
+                            <div class="d-flex justify-content-between mb-2.5">
+                                <span class="text-muted">Mã hoá đơn:</span>
+                                <span class="fw-bold text-dark" th:text="${hoadonHienTai != null ? 'HD' + hoadonHienTai.maHoaDon : ''}"></span>
+                            </div>
+
+                            <div class="d-flex justify-content-between mb-2.5">
+                                <span class="text-muted">Tên nhân viên:</span>
+                                <span class="fw-semibold text-dark" th:text="${hoadonHienTai != null && hoadonHienTai.maNhanVien != null ? hoadonHienTai.maNhanVien.hoTen : ''}"></span>
+                            </div>
+
+                            <div class="d-flex justify-content-between mb-2.5">
+                                <span class="text-muted">Ngày lập:</span>
+                                <span class="text-dark" th:text="${hoadonHienTai != null ? hoadonHienTai.ngayTao : ''}"></span>
+                            </div>
+
+                            <div class="mb-2.5">
+                                <label class="form-label text-muted mb-1 small">Mã giảm giá áp dụng:</label>
+                                <div class="input-group">
+                                    <input type="text" id="idTenGiamGia" class="form-control form-control-sm bg-light fw-bold text-danger"
+                                           th:value="${hoadonHienTai != null && hoadonHienTai.maGiamGia != null ? hoadonHienTai.maGiamGia.tenGiamGia : 'Chưa áp dụng'}" readonly>
+                                    <button class="btn btn-sm btn-danger" type="button"
+                                            data-bs-toggle="modal" data-bs-target="#giamGiaModal"
+                                            th:disabled="${hoadonHienTai == null}">
+                                        <i class="bi bi-ticket-perforated"></i> Chọn
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-2.5 border-top pt-2">
+                                <span class="text-muted">Tiền hàng:</span>
+                                <span class="fw-semibold text-dark"
+                                      th:text="${#numbers.formatDecimal(tongTienGioHang, 0, 'COMMA', 0, 'POINT') + 'đ'}">0đ</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-2.5">
+                                <span class="text-muted">Giảm giá voucher:</span>
+                                <span class="fw-semibold text-danger"
+                                      th:text="${'-' + #numbers.formatDecimal((tienGiamVoucher != null ? tienGiamVoucher : 0), 0, 'COMMA', 0, 'POINT') + 'đ'}">0đ</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between mb-2.5">
+                                <span class="text-muted">Tiền ship:</span>
+                                <span id="tienShipSpan" class="text-danger fw-bold"
+                                      th:text="${#numbers.formatDecimal((tienShip != null ? tienShip : 0), 0, 'COMMA', 0, 'POINT') + 'đ'}"
+                                      th:data-tienship="${tienShip != null ? tienShip : 0}">0đ</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-3 border-top pt-2">
+                                <span class="text-muted fw-bold">Tổng thanh toán:</span>
+                                <span id="tongTienSpan" class="fw-bold text-danger fs-5"
+                                      th:text="${#numbers.formatDecimal((tongThanhToan != null ? tongThanhToan : 0), 0, 'COMMA', 0, 'POINT') + 'đ'}"
+                                      th:data-tongtien="${tongThanhToan != null ? tongThanhToan : 0}">0đ</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-2.5">
+                                <span class="text-muted">Tiền khách đưa:</span>
+                                <input type="number" id="idTienKhachDua" name="tienkhachdua" class="form-control text-end fw-bold text-dark border"
+                                       style="width: 140px; height: 35px;" required min="0" th:disabled="${hoadonHienTai == null}">
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <span class="text-muted">Hình thức thanh toán:</span>
+                                <select id="idPhuongThuc" name="phuongthuc" class="form-select form-select-sm text-dark" style="width: 140px;"
+                                        th:disabled="${hoadonHienTai == null}" onchange="xuLyThayDoiPhuongThuc()">
+                                    <option value="Chuyển khoản">Chuyển khoản</option>
+                                    <option value="Tiền mặt">Tiền mặt</option>
+                                </select>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn py-2.5 fw-bold text-white shadow-sm border-0"
+                                        th:classappend="${hoadonHienTai != null && hoadonHienTai.loaiBan == 'Online' ? 'btn-warning text-dark' : 'btn-success'}"
+                                        th:disabled="${hoadonHienTai == null || #lists.isEmpty(listhdct) || (hoadonHienTai.loaiBan == 'Online' && hoadonHienTai.maKhachHang == null)}">
+                                    <i th:class="${hoadonHienTai != null && hoadonHienTai.loaiBan == 'Online' ? 'bi bi-truck me-1' : 'bi bi-check-circle-fill me-1'}"></i>
+                                    <span th:text="${hoadonHienTai != null && hoadonHienTai.loaiBan == 'Online' ? 'Xác nhận & Giao hàng' : 'Thực hiện Thanh Toán'}">Thực hiện Thanh Toán</span>
+                                </button>
+
+                                <small class="text-danger text-center fw-semibold"
+                                       th:if="${hoadonHienTai != null && hoadonHienTai.loaiBan == 'Online' && hoadonHienTai.maKhachHang == null}">
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i> Vui lòng chọn hoặc thêm khách hàng để giao hàng!
+                                </small>
+                            </div>
+                        </form>
+
+                        <div class="d-grid gap-2 mt-2" th:if="${hoadonHienTai != null}">
+                            <a th:href="@{/banhang/inhoadon/{id}(id=${hoadonHienTai.maHoaDon})}"
+                               target="_blank"
+                               class="btn btn-info py-2 fw-bold text-white shadow-sm border-0">
+                                <i class="bi bi-printer-fill me-1"></i> In hóa đơn
+                            </a>
+                        </div>
+
+                        <form th:action="@{/banhang/huyhd}" method="post" class="mt-2">
+                            <input type="hidden" name="mahd" th:value="${hoadonHienTai != null ? hoadonHienTai.maHoaDon : ''}" />
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-outline-secondary py-2 border fw-semibold"
+                                        th:disabled="${hoadonHienTai == null}"
+                                        onclick="return confirm('Bạn có chắc chắn muốn huỷ hoá đơn này không?')">
+                                    Huỷ hoá đơn
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="modal fade" id="sanPhamModal" tabindex="-1" aria-labelledby="sanPhamModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold" id="sanPhamModalLabel"><i class="bi bi-box-seam me-2"></i>Kho Sản Phẩm Chi Tiết</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body bg-light">
+                <div class="card p-3 mb-3 border-0 shadow-sm rounded">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold text-muted small">Mã sản phẩm chi tiết</label>
+                            <input type="text" id="filterMaSPCT" class="form-control form-control-sm" placeholder="Tìm theo mã..." onkeyup="filterProducts()">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold text-muted small">Màu sắc</label>
+                            <select id="filterMauSac" class="form-select form-select-sm" onchange="filterProducts()">
+                                <option value="">-- Tất cả màu sắc --</option>
+                                <option th:each="ms : ${listsanphamms}" th:value="${ms}" th:text="${ms}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold text-muted small">Trạng thái tồn kho</label>
+                            <select id="filterTrangThai" class="form-select form-select-sm" onchange="filterProducts()">
+                                <option value="">-- Tất cả trạng thái --</option>
+                                <option value="ConHang">Còn hàng (Tồn > 0)</option>
+                                <option value="HetHang">Hết hàng (= 0)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="button" class="btn btn-sm btn-secondary w-100" onclick="resetSanPhamFilter()">
+                                <i class="bi bi-arrow-clockwise"></i> Làm mới bộ lọc
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm rounded overflow-hidden">
+                    <div class="table-responsive" style="max-height: 400px;">
+                        <table class="table table-hover align-middle text-center mb-0" id="productTable">
+                            <thead class="table-secondary text-dark sticky-top">
+                            <tr>
+                                <th>Mã SPCT</th>
+                                <th class="text-start">Tên sản phẩm</th>
+                                <th>Màu sắc</th>
+                                <th>Kích thước</th>
+                                <th>Giá bán</th>
+                                <th>Tồn kho</th>
+                                <th style="width: 150px;">Hành động</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="sp : ${listsanpham}" class="product-row"
+                                th:data-ma="${sp.maSanPhamChiTiet}"
+                                th:data-mau="${sp.mauSac.tenMauSac}"
+                                th:data-ton="${sp.soLuongTon}">
+                                <td class="fw-bold text-secondary" th:text="${sp.maSanPhamChiTiet}">1</td>
+                                <td class="text-start fw-semibold text-dark" th:text="${sp.sanPham.tenSanPham}"></td>
+                                <td th:text="${sp.mauSac.tenMauSac}"></td>
+                                <td><span class="badge bg-light text-dark border px-2.5 py-1.5" th:text="${sp.kichThuoc.tenKichThuoc}"></span></td>
+                                <td class="text-danger fw-bold" th:text="${#numbers.formatDecimal(sp.giaBan, 0, 'COMMA', 0, 'POINT') + 'đ'}"></td>
+                                <td class="fw-bold" th:text="${sp.soLuongTon}"></td>
+                                <td>
+                                    <form th:action="@{/banhang/themsphd}" method="post" class="d-flex gap-1 align-items-center justify-content-center">
+                                        <input type="hidden" name="mahd" th:value="${hoadonHienTai != null ? hoadonHienTai.maHoaDon : ''}" />
+                                        <input type="hidden" name="mactsp" th:value="${sp.maSanPhamChiTiet}" />
+                                        <input type="hidden" name="masp" th:value="${sp.sanPham.maSanPham}" />
+                                        <input type="number" name="sluong" value="1" min="1" th:max="${sp.soLuongTon}" class="form-control text-center p-1" style="width: 50px; height: 32px;" required>
+                                        <button type="submit" class="btn btn-sm btn-danger border-0 h-100 px-3"><i class="bi bi-plus-lg"></i> Thêm</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="giamGiaModal" tabindex="-1" aria-labelledby="giamGiaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold" id="giamGiaModalLabel"><i class="bi bi-ticket-perforated-fill me-2"></i>Danh Sách Chương Trình Giảm Giá</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body bg-light">
+                <div class="card border-0 shadow-sm rounded overflow-hidden">
+                    <div class="table-responsive" style="max-height: 350px;">
+                        <table class="table table-hover align-middle text-center mb-0">
+                            <thead class="table-secondary text-dark sticky-top">
+                            <tr>
+                                <th>Mã</th>
+                                <th class="text-start">Tên chương trình</th>
+                                <th>Loại</th>
+                                <th>Mức giảm</th>
+                                <th>Giảm tối đa</th>
+                                <th>Hành động</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="gg : ${listgg}">
+                                <td th:text="${gg.maGiamGia}"></td>
+                                <td class="text-start fw-semibold text-dark" th:text="${gg.tenGiamGia}"></td>
+                                <td th:text="${gg.loaiGiamGia == 'PhanTram' ? 'Phần trăm (%)' : 'Số tiền cố định'}"></td>
+                                <td class="fw-bold text-success"
+                                    th:text="${gg.loaiGiamGia == 'PhanTram' ? (gg.giaTriGiam + '%') : (#numbers.formatDecimal(gg.giaTriGiam, 0, 'COMMA', 0, 'POINT') + 'đ')}"></td>
+                                <td th:text="${gg.giamToiDa != null && gg.giamToiDa > 0 ? #numbers.formatDecimal(gg.giamToiDa, 0, 'COMMA', 0, 'POINT') + 'đ' : 'Không giới hạn'}"></td>
+                                <td>
+                                    <form th:action="@{/banhang/chongg}" method="post">
+                                        <input type="hidden" name="mahd" th:value="${hoadonHienTai != null ? hoadonHienTai.maHoaDon : ''}" />
+                                        <input type="hidden" name="magg" th:value="${gg.maGiamGia}" />
+                                        <button type="submit" class="btn btn-sm btn-danger px-3">Áp dụng</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(listgg)}">
+                                <td colspan="6" class="text-muted py-4">Không có chương trình giảm giá nào khả dụng hiện tại.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="khachHangModal" tabindex="-1" aria-labelledby="khachHangModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fw-bold" id="khachHangModalLabel"><i class="bi bi-people-fill me-2"></i>Danh Sách Khách Hàng</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body bg-light">
+                <div class="mb-3">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-telephone"></i></span>
+                        <input type="text" id="searchKH" class="form-control border-start-0 ps-1" placeholder="Nhập số điện thoại tìm nhanh..." onkeyup="filterKhachHang()">
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm rounded overflow-hidden">
+                    <div class="table-responsive" style="max-height: 350px;">
+                        <table class="table table-hover align-middle text-center mb-0">
+                            <thead class="table-secondary text-dark sticky-top">
+                            <tr>
+                                <th>Mã KH</th>
+                                <th class="text-start">Họ tên</th>
+                                <th>Số điện thoại</th>
+                                <th>Địa chỉ</th>
+                                <th>Hành động</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="khach : ${listkh}" class="khachhang-row" th:data-sdt="${khach.sdt}">
+                                <td th:text="${khach.maKH}"></td>
+                                <td class="text-start fw-semibold text-dark" th:text="${khach.hoTen}"></td>
+                                <td th:text="${khach.sdt}" class="text-secondary fw-bold"></td>
+<!--                                <td th:text="${khach.diaChi}"></td>-->
+                                <td>
+                                    <form th:action="@{/banhang/chonkh}" method="post">
+                                        <input type="hidden" name="mahd" th:value="${hoadonHienTai != null ? hoadonHienTai.maHoaDon : ''}" />
+                                        <input type="hidden" name="makh" th:value="${khach.maKH}" />
+                                        <button type="submit" class="btn btn-sm btn-danger px-3">Chọn</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function filterProducts() {
+        var inputMa = document.getElementById("filterMaSPCT").value.toLowerCase();
+        var selectMau = document.getElementById("filterMauSac").value;
+        var selectTT = document.getElementById("filterTrangThai").value;
+
+        var rows = document.getElementsByClassName("product-row");
+
+        for (var i = 0; i < rows.length; i++) {
+            var row = rows[i];
+            var ma = row.getAttribute("data-ma").toLowerCase();
+            var mau = row.getAttribute("data-mau");
+            var ton = parseInt(row.getAttribute("data-ton"));
+
+            var matchMa = ma.includes(inputMa);
+            var matchMau = (selectMau === "") || (mau === selectMau);
+            var matchTT = (selectTT === "") || (selectTT === "ConHang" && ton > 0) || (selectTT === "HetHang" && ton === 0);
+
+            if (matchMa && matchMau && matchTT) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        }
+    }
+
+    function resetSanPhamFilter() {
+        document.getElementById("filterMaSPCT").value = "";
+        document.getElementById("filterMauSac").value = "";
+        document.getElementById("filterTrangThai").value = "";
+        filterProducts();
+    }
+
+    function filterKhachHang() {
+        var inputSdt = document.getElementById("searchKH").value.trim();
+        var rows = document.getElementsByClassName("khachhang-row");
+
+        for (var i = 0; i < rows.length; i++) {
+            var row = rows[i];
+            var sdt = row.getAttribute("data-sdt");
+            if (sdt.includes(inputSdt)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        }
+    }
+
+    function xuLyThayDoiPhuongThuc() {
+        var phuongThuc = document.getElementById("idPhuongThuc").value;
+        var inputTienKhachDua = document.getElementById("idTienKhachDua");
+
+        if (phuongThuc === "Chuyển khoản") {
+            var tongThanhToan = parseFloat(document.getElementById("tongTienSpan").getAttribute("data-tongtien")) || 0;
+            inputTienKhachDua.value = tongThanhToan;
+            inputTienKhachDua.readOnly = true;
+        } else {
+            inputTienKhachDua.value = "";
+            inputTienKhachDua.readOnly = false;
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        if(document.getElementById("idPhuongThuc")) {
+            xuLyThayDoiPhuongThuc();
+        }
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

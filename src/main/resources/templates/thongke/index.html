@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Thống kê doanh thu</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="wrapper">
+    <div sec:authorize="hasRole('ADMIN')">
+        <div th:replace="~{fragments/sidebaradmin :: sidebar-admin}"></div>
+    </div>
+    <div sec:authorize="hasRole('STAFF')">
+        <div th:replace="~{fragments/sidebarstaff :: sidebar-staff}"></div>
+    </div>
+
+    <div class="content-body">
+        <div th:replace="~{fragments/header :: header('Thống kê doanh thu', 'Báo cáo')}"></div>
+
+        <div class="card p-3 mb-4">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Từ ngày</label>
+                    <input type="date" name="startDate" class="form-control" th:value="${startDate}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Đến ngày</label>
+                    <input type="date" name="endDate" class="form-control" th:value="${endDate}">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Thống kê
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white p-3">
+                    <h6>Tổng đơn hàng</h6>
+                    <h2 th:text="${tongQuan.tongDonHang}">0</h2>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white p-3">
+                    <h6>Tổng doanh thu</h6>
+                    <h2 th:text="${tongQuan.tongDoanhThu}">0</h2>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-dark p-3">
+                    <h6>Trung bình đơn</h6>
+                    <h2 th:text="${tongQuan.trungBinhDon}">0</h2>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white p-3">
+                    <h6>Kỳ thống kê</h6>
+                    <h6 th:text="${tongQuan.ngayDau} + ' → ' + ${tongQuan.ngayCuoi}"></h6>
+                </div>
+            </div>
+        </div>
+
+        <!-- Biểu đồ -->
+        <div class="card mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">Biểu đồ doanh thu theo ngày</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="revenueChart" height="300"></canvas>
+            </div>
+        </div>
+
+        <!-- Bảng chi tiết -->
+        <div class="card mt-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">Chi tiết theo ngày</h5>
+            </div>
+            <div class="table-responsive p-3">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                    <tr>
+                        <th>Ngày</th>
+                        <th>Số đơn hàng</th>
+                        <th>Doanh thu</th>
+                        <th>Trung bình đơn</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="item : ${thongKeNgay}">
+                        <td th:text="${item != null ? item.ngay : ''}"></td>
+                        <td th:text="${item != null ? item.soDonHang : 0}"></td>
+                        <td th:text="${item != null ? item.doanhThu : 0}"></td>
+                        <td th:text="${item != null ? item.trungBinhDon : 0}"></td>
+                    </tr>
+                    <tr th:if="${thongKeNgay.isEmpty()}">
+                        <td colspan="4" class="text-center">Không có dữ liệu</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Script vẽ biểu đồ -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const data = /*[[${thongKeNgay}]]*/ [];
+
+    const labels = data.map(item => item.ngay || '');
+    const revenueData = data.map(item => item.doanhThu || 0);
+    const orderData = data.map(item => item.soDonHang || 0);
+
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Doanh thu (VNĐ)',
+                    data: revenueData,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1,
+                    yAxisID: 'y',
+                    order: 1
+                },
+                {
+                    label: 'Số đơn hàng',
+                    data: orderData,
+                    type: 'line',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    pointBackgroundColor: 'rgba(255, 99, 132, 1)',
+                    pointRadius: 5,
+                    yAxisID: 'y1',
+                    order: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            let value = context.parsed.y;
+                            if (context.dataset.label.includes('Doanh thu')) {
+                                return label + ': ' + value.toLocaleString('vi-VN') + ' VNĐ';
+                            }
+                            return label + ': ' + value;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    type: 'linear',
+                    position: 'left',
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value.toLocaleString('vi-VN') + '₫';
+                        }
+                    },
+                    grid: {
+                        drawOnChartArea: true
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    position: 'right',
+                    beginAtZero: true,
+                    grid: {
+                        drawOnChartArea: false
+                    },
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+    /*]]>*/
+</script>
+
+</body>
+</html>

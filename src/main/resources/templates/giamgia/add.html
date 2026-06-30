@@ -1,0 +1,388 @@
+  <!DOCTYPE html>
+  <html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8">
+    <title>Thông tin giảm giá</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+      .content-body { padding: 20px; }
+      .form-label-custom { font-weight: 600; color: #495057; }
+    </style>
+  </head>
+  <body>
+
+
+
+  <div class="wrapper">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+    <div class="content-body">
+      <div th:replace="~{fragments/header :: header('Quản lý giảm giá', 'Giảm giá')}"></div>
+
+      <div class="container-fluid mt-4 px-4">
+        <div class="card shadow-sm border-0">
+          <div class="card-header bg-danger text-white py-3">
+            <h5 class="mb-0 fw-bold" th:text="${giamGia.maGiamGia == 0 ? 'Thêm mới giảm giá' : 'Cập nhật giảm giá'}"></h5>
+          </div>
+          <div class="card-body p-4">
+            <form th:action="${isEdit} ? @{/giamgia/update} : @{/giamgia/add}" method="post" th:object="${giamGia}">
+              <div class="row mb-3">
+                <div class="row mb-3">
+                  <div class="col-md-9">
+                    <label class="form-label fw-bold">Tên chương trình *</label>
+                    <input type="hidden" th:if="${isEdit}" th:field="*{maGiamGia}">
+                    <input type="text" th:field="*{tenGiamGia}" class="form-control" th:classappend="${#fields.hasErrors('tenGiamGia')} ? 'is-invalid' : ''">
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('tenGiamGia')}" th:errors="*{tenGiamGia}"></div>
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label fw-bold">Loại áp dụng</label>
+                    <select th:field="*{loaiApDung}" class="form-select" id="loaiApDung" onchange="toggleCustomerList()">
+                      <option value="1">Công khai</option>
+                      <option value="2">Cá nhân</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="row mb-3">
+                  <div class="col-md-3">
+                    <label class="form-label fw-bold">Hình thức giảm</label>
+                    <select th:field="*{loaiGiamGia}" class="form-select">
+                      <option value="PhanTram">Phần trăm (%)</option>
+                      <option value="SoTien">Số tiền</option>
+                    </select>
+                    <span class="text-danger small" th:if="${#fields.hasErrors('loaiGiamGia')}" th:errors="*{loaiGiamGia}"></span>
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label fw-bold">Giá trị giảm</label>
+                    <input type="text" class="form-control"
+                           th:value="${giamGia.giaTriGiam != null ? #numbers.formatDecimal(giamGia.giaTriGiam, 1, 'POINT', 0, 'POINT') : ''}"
+                           oninput="formatCurrency(event, 'hiddenGiaTriGiam')" placeholder="Nhập...">
+                    <input type="hidden" th:field="*{giaTriGiam}" id="hiddenGiaTriGiam">
+
+                    <span class="text-danger small" th:if="${#fields.hasErrors('giaTriGiam')}" th:errors="*{giaTriGiam}"></span>
+                    <span class="text-danger small" th:if="${#fields.hasErrors('giaTriGiamValid')}" th:errors="*{giaTriGiamValid}"></span>
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label fw-bold">Giảm tối đa</label>
+                    <input type="text" class="form-control" oninput="formatCurrency(this, 'hiddenGiamToiDa')" placeholder="Nhập...">
+                    <input type="hidden" th:field="*{giamToiDa}" id="hiddenGiamToiDa">
+                    <span class="text-danger small" th:if="${#fields.hasErrors('giamToiDa')}" th:errors="*{giamToiDa}"></span>
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label fw-bold">Đơn tối thiểu</label>
+                    <input type="text" class="form-control"
+                           th:value="${giamGia.donToiThieu != null ? #numbers.formatDecimal(giamGia.donToiThieu, 1, 'POINT', 0, 'POINT') : ''}"
+                           oninput="formatCurrency(this, 'hiddenDonToiThieu')" placeholder="Nhập...">
+                    <input type="hidden" th:field="*{donToiThieu}" id="hiddenDonToiThieu">
+                    <span class="text-danger small" th:if="${#fields.hasErrors('donToiThieu')}" th:errors="*{donToiThieu}"></span>
+                  </div>
+                </div>
+
+                <div class="row mb-3">
+                  <div class="col-md-4">
+                    <label class="form-label fw-bold">Số lượng</label>
+                    <input type="number" th:field="*{soLuong}" class="form-control">
+                    <span class="text-danger small" th:if="${#fields.hasErrors('soLuong')}" th:errors="*{soLuong}"></span>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label fw-bold">Ngày bắt đầu</label>
+                    <input type="datetime-local" th:field="*{ngayBatDau}" class="form-control">
+                    <span class="text-danger small" th:if="${#fields.hasErrors('ngayBatDauValid')}" th:errors="*{ngayBatDauValid}"></span>
+                    <span class="text-danger small" th:if="${#fields.hasErrors('ngayBatDau')}" th:errors="*{ngayBatDau}"></span>
+                  </div>
+
+                  <div class="col-md-4">
+                    <label class="form-label fw-bold">Ngày kết thúc</label>
+                    <input type="datetime-local" th:field="*{ngayKetThuc}" class="form-control">
+                    <span class="text-danger small" th:if="${#fields.hasErrors('ngayKetThucValid')}" th:errors="*{ngayKetThucValid}"></span>
+                    <span class="text-danger small" th:if="${#fields.hasErrors('ngayKetThuc')}" th:errors="*{ngayKetThuc}"></span>
+                  </div>
+                </div>
+
+                <div class="row mb-3">
+                  <div class="col-md-12">
+                    <span class="text-danger fw-bold" th:if="${#fields.hasErrors('global')}" th:errors="global"></span>
+                  </div>
+                </div>
+
+                <input type="hidden" th:field="*{trangThai}" value="Sắp hoạt động">
+
+
+              <div id="customerListSection" class="mt-4" style="display: none; ">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="text-danger fw-bold mb-0"><i class="bi bi-person-check"></i> Danh sách khách hàng</h6>
+                  <span class="badge bg-danger" id="countSelected"
+                        th:data-total="${(isEdit != null && isEdit) ? totalSelectedCount : 0}"
+                        th:text="${(isEdit != null && isEdit) ? totalSelectedCount : 0} + ' đã chọn'">
+                  </span>
+                </div>
+                <div id="searchContainer" class="row g-2 align-items-end mb-2"
+                     th:data-is-edit="${isEdit}"
+                     th:data-ma-giam-gia="${maGiamGia}">
+
+                  <div class="col-md-5">
+                    <label for="sdtInput" class="form-label fw-bold small text-muted">Tìm kiếm khách hàng</label>
+                    <div class="input-group">
+                      <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+                      <input type="text" id="sdtInput" class="form-control" placeholder="Nhập số điện thoại...">
+                    </div>
+                  </div>
+
+                  <div class="col-md-3">
+                    <div class="d-flex gap-2">
+                      <button type="button" class="btn btn-danger flex-grow-1 fw-bold" onclick="searchCustomer()">
+                        <i class="bi bi-funnel"></i> Lọc
+                      </button>
+                      <button type="button" class="btn btn-outline-secondary flex-grow-1 fw-bold" onclick="resetSearch()">
+                        <i class="bi bi-arrow-clockwise"></i> Reset
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row mb-3" th:if="${#fields.hasErrors('loaiApDung')}">
+                  <div class="col-12">
+                    <div class="alert alert-danger py-2 px-3 small d-flex align-items-center">
+                      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                      <span th:errors="*{loaiApDung}"></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="table-responsive border rounded shadow-sm" style="max-height: 450px; overflow-y: auto;">
+                <table class="table table-hover align-middle mb-0" id="customerTable">
+                  <thead class="table-danger">
+                  <tr>
+                    <th class="text-center" style="width: 50px;"><input type="checkbox" id="selectAll"></th>
+                    <th>Họ tên</th>
+                    <th>SĐT</th>
+                    <th>Email</th> <th>Ngày sinh</th> </tr>
+                  </thead>
+                  <tbody>
+                  <tr th:each="kh : ${listKhachHang}">
+                    <td class="text-center">
+                      <input type="checkbox"
+                             class="customer-checkbox"
+                             name="selectedKhachHang"
+                             th:value="${kh.maKH}"
+                             th:checked="${selectedKhachHangIds != null
+    and selectedKhachHangIds.contains(kh.maKH)}">
+                    </td>
+                    <td th:text="${kh.hoTen}"></td>
+                    <td th:text="${kh.sdt}"></td>
+                    <td th:text="${kh.email}"></td>
+                    <td th:text="${kh.ngaySinh}"></td>
+                  </tr>
+                  </tbody>
+                </table>
+
+                    <div class="card-footer bg-white border-top-0 d-flex justify-content-between align-items-center px-4 py-3"
+
+                         th:if="${totalPages > 0}">
+
+                      <div class="small text-muted fw-semibold">
+                        Tổng số khách hàng:
+                        <span class="fw-semibold text-dark" th:text="${totalItems}">0</span>
+                        (Trang
+                        <span class="fw-semibold text-dark" th:text="${currentPage + 1}">1</span>
+                        /
+                        <span th:text="${totalPages}">1</span>)
+                      </div>
+                      <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-sm mb-0 gap-1">
+
+                          <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                            <a class="page-link rounded-2 border-0 d-flex align-items-center justify-content-center text-danger"
+                               th:if="${isEdit}" th:href="@{/giamgia/edit/{id}(id=${maGiamGia}, page=${currentPage - 1}, sdt=${sdt})}">
+                              <i class="bi bi-chevron-left"></i></a>
+                            <a class="page-link rounded-2 border-0 d-flex align-items-center justify-content-center text-danger"
+                               th:unless="${isEdit}" th:href="@{/giamgia/create(page=${currentPage - 1}, sdt=${sdt})}">
+                              <i class="bi bi-chevron-left"></i></a>
+                          </li>
+
+                          <li class="page-item"
+                              th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                              th:class="${currentPage == i} ? 'page-item active' : 'page-item'">
+                            <a class="page-link rounded-2 border-0 d-flex align-items-center justify-content-center fw-semibold"
+                               th:style="${currentPage == i ? 'background-color:#c92327;color:white;' : ''}"
+                               th:if="${isEdit}" th:href="@{/giamgia/edit/{id}(id=${maGiamGia}, page=${i}, sdt=${sdt})}" th:text="${i + 1}"></a>
+                            <a class="page-link rounded-2 border-0 d-flex align-items-center justify-content-center fw-semibold"
+                               th:style="${currentPage == i ? 'background-color:#c92327;color:white;' : ''}"
+                               th:unless="${isEdit}" th:href="@{/giamgia/create(page=${i}, sdt=${sdt})}" th:text="${i + 1}"></a>
+                          </li>
+
+                          <li class="page-item" th:classappend="${currentPage + 1 >= totalPages ? 'disabled' : ''}">
+                            <a class="page-link rounded-2 border-0 d-flex align-items-center justify-content-center text-danger"
+                               th:if="${isEdit}" th:href="@{/giamgia/edit/{id}(id=${maGiamGia}, page=${currentPage + 1}, sdt=${sdt})}">
+                              <i class="bi bi-chevron-right"></i></a>
+                            <a class="page-link rounded-2 border-0 d-flex align-items-center justify-content-center text-danger"
+                               th:unless="${isEdit}" th:href="@{/giamgia/create(page=${currentPage + 1}, sdt=${sdt})}">
+                              <i class="bi bi-chevron-right"></i></a>
+                          </li>
+                        </ul>
+                      </nav>
+                    </div>
+
+                  </div>
+              </div>
+
+              <div class="text-end mt-4 pt-3 border-top">
+                <button type="submit" class ="btn btn-danger px-5 py-2 fw-bold shadow-sm">Lưu chương trình</button>
+              </div>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let selectedSet = new Set();
+    const STORAGE_KEY = "giamGia_FormData";
+
+    document.addEventListener("DOMContentLoaded", function () {
+      restoreFormData();
+
+
+      formatCurrency(document.getElementById('hiddenGiaTriGiam'), 'hiddenGiaTriGiam');
+      formatCurrency(document.getElementById('hiddenDonToiThieu'), 'hiddenDonToiThieu');
+
+      document.querySelectorAll(".customer-checkbox").forEach(cb => {
+        if (cb.checked) selectedSet.add(cb.value);
+        cb.addEventListener("change", function () {
+          if (this.checked) selectedSet.add(this.value);
+          else selectedSet.delete(this.value);
+          updateBadge();
+        });
+      });
+
+      const selectAll = document.getElementById("selectAll");
+      if (selectAll) {
+        selectAll.addEventListener("change", function () {
+          document.querySelectorAll(".customer-checkbox").forEach(cb => {
+            cb.checked = this.checked;
+            if (this.checked) selectedSet.add(cb.value);
+            else selectedSet.delete(cb.value);
+          });
+          updateBadge();
+        });
+      }
+
+      const paginationNav = document.querySelector('nav[aria-label="Page navigation"]');
+      if (paginationNav) {
+        paginationNav.addEventListener('click', function(e) {
+          const targetLink = e.target.closest('a');
+          if (targetLink) {
+            saveFormData();
+          }
+        });
+      }
+
+
+      toggleCustomerList();
+      updateBadge();
+    });
+
+
+    function saveFormData() {
+      const form = document.querySelector('form');
+      const formData = new FormData(form);
+      const data = {};
+
+      formData.forEach((value, key) => {
+        if (key !== 'selectedKhachHang') data[key] = value;
+      });
+
+      data['selectedKhachHangIds'] = Array.from(selectedSet);
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function restoreFormData() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const data = JSON.parse(saved);
+        Object.keys(data).forEach(key => {
+          if(key !== 'selectedKhachHangIds') {
+            const el = document.querySelector(`[name="${key}"]`);
+            if (el) el.value = data[key];
+          }
+        });
+
+        if (data['selectedKhachHangIds']) {
+          data['selectedKhachHangIds'].forEach(id => {
+            selectedSet.add(id.toString());
+            const cb = document.querySelector(`input[value="${id}"]`);
+            if (cb) cb.checked = true;
+          });
+        }
+        updateBadge();
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    }
+
+    function updateBadge() {
+      const badge = document.getElementById("countSelected");
+      if (badge) {
+        badge.innerText = selectedSet.size + " đã chọn";
+      }
+    }
+
+    function toggleCustomerList() {
+      const loaiApDung = document.getElementById("loaiApDung").value;
+      const section = document.getElementById("customerListSection");
+      if (section) {
+        section.style.display = (loaiApDung == "2") ? "block" : "none";
+      }
+    }
+
+    function searchCustomer() {
+      // Lưu dữ liệu trước khi reload trang
+      saveFormData();
+
+      const sdt = document.getElementById("sdtInput").value;
+      const container = document.getElementById("searchContainer");
+      const isEdit = container.dataset.isEdit === "true";
+      const maGiamGia = container.dataset.maGiamGia;
+
+      const url = isEdit
+              ? `/giamgia/edit/${maGiamGia}?sdt=${encodeURIComponent(sdt)}`
+              : `/giamgia/create?sdt=${encodeURIComponent(sdt)}`;
+
+      window.location.href = url;
+    }
+
+    function resetSearch() {
+      localStorage.removeItem(STORAGE_KEY);
+      window.location.href = "/giamgia/create";
+    }
+
+    function formatCurrency(input, hiddenId) {
+      let value = (input instanceof HTMLElement) ? input.value : (input.target ? input.target.value : "");
+      let rawValue = value.replace(/[^0-9]/g, '');
+      const hiddenEl = document.getElementById(hiddenId);
+      if (hiddenEl) hiddenEl.value = rawValue;
+
+      if (rawValue) {
+        let formatted = new Intl.NumberFormat('vi-VN').format(rawValue);
+        if (input instanceof HTMLElement) {
+          let textInput = input.previousElementSibling;
+          if (textInput) textInput.value = formatted;
+        } else if (input.target) {
+          input.target.value = formatted;
+        }
+      }
+    }
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+  </body>
+  </html>
