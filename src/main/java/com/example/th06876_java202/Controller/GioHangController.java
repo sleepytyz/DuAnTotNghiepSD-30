@@ -27,7 +27,7 @@ public class GioHangController {
     private final GioHangService gioHangService;
     private final KhachHangService khachHangService;
 
-    private Integer maKhachHangHienTai(Authentication authentication) {
+    private String maKhachHangHienTai(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()
                 || "anonymousUser".equals(authentication.getPrincipal())) {
             return null;
@@ -45,7 +45,7 @@ public class GioHangController {
 
     /** Thêm vào giỏ qua form HTML thông thường (dùng khi JS bị tắt). */
     @PostMapping("/them")
-    public String themVaoGio(@RequestParam Integer maSanPhamChiTiet,
+    public String themVaoGio(@RequestParam String maSanPhamChiTiet,
                               @RequestParam(defaultValue = "1") Integer soLuong,
                               @RequestParam(required = false) String redirect,
                               RedirectAttributes redirectAttributes) {
@@ -57,7 +57,7 @@ public class GioHangController {
     /** Thêm vào giỏ qua AJAX (dùng cho nút "Thêm vào giỏ" trên trang danh sách/chi tiết, không tải lại trang). */
     @PostMapping("/api/them")
     @ResponseBody
-    public Map<String, Object> themVaoGioAjax(@RequestParam Integer maSanPhamChiTiet,
+    public Map<String, Object> themVaoGioAjax(@RequestParam String maSanPhamChiTiet,
                                                 @RequestParam(defaultValue = "1") Integer soLuong) {
         Map<String, Object> ket = new HashMap<>();
         String loi = gioHangService.themVaoGio(gioHang, maSanPhamChiTiet, soLuong);
@@ -68,13 +68,13 @@ public class GioHangController {
     }
 
     @PostMapping("/cap-nhat")
-    public String capNhatSoLuong(@RequestParam Integer maSanPhamChiTiet, @RequestParam Integer soLuong) {
+    public String capNhatSoLuong(@RequestParam String maSanPhamChiTiet, @RequestParam Integer soLuong) {
         gioHangService.capNhatSoLuong(gioHang, maSanPhamChiTiet, soLuong);
         return "redirect:/gio-hang";
     }
 
     @PostMapping("/xoa")
-    public String xoaSanPham(@RequestParam Integer maSanPhamChiTiet) {
+    public String xoaSanPham(@RequestParam String maSanPhamChiTiet) {
         gioHang.xoaSanPham(maSanPhamChiTiet);
         return "redirect:/gio-hang";
     }

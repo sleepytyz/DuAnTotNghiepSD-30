@@ -13,10 +13,10 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BienTheVM {
-    private Integer maSanPhamChiTiet;
-    private Integer maMauSac;
+    private String maSanPhamChiTiet;
+    private String maMauSac;
     private String tenMauSac;
-    private Integer maKichThuoc;
+    private String maKichThuoc;
     private String tenKichThuoc;
     private BigDecimal giaGoc;
     private BigDecimal giaSauGiam;

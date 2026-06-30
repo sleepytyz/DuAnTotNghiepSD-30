@@ -18,9 +18,9 @@ public interface ChamCongRepository extends JpaRepository<ChamCong, Integer> {
     
     List<ChamCong> findByNgayChamCongBetween(LocalDate tuNgay, LocalDate denNgay);
     
-    List<ChamCong> findByNhanVien_MaNhanVienAndNgayChamCong(Integer maNhanVien, LocalDate ngay);
+    List<ChamCong> findByNhanVien_MaNhanVienAndNgayChamCong(String maNhanVien, LocalDate ngay);
     
-    List<ChamCong> findByNhanVien_MaNhanVienAndNgayChamCongBetween(Integer maNhanVien, LocalDate tuNgay, LocalDate denNgay);
+    List<ChamCong> findByNhanVien_MaNhanVienAndNgayChamCongBetween(String maNhanVien, LocalDate tuNgay, LocalDate denNgay);
     
     @Query("SELECT DISTINCT cc.nhanVien.maNhanVien FROM ChamCong cc WHERE cc.ngayChamCong BETWEEN :tuNgay AND :denNgay")
     List<Integer> findMaNhanVienCoLichTrongKhoang(@Param("tuNgay") LocalDate tuNgay, @Param("denNgay") LocalDate denNgay);

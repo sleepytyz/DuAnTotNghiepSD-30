@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-// SỬA: String -> Long (vì ID là Integer)
 public interface HoaDonChiTietRepository extends JpaRepository<HoaDonChiTiet, Long> {
 
     @Query("SELECT hdct FROM HoaDonChiTiet hdct " +

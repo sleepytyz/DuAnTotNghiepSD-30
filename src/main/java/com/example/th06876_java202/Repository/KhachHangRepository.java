@@ -15,7 +15,7 @@ import java.util.Optional;
 public interface KhachHangRepository extends JpaRepository<KhachHang, String> {
 
     @Query("select k from KhachHang k where k.sdt like concat('%', :sdt, '%')")
-    List<KhachHang> findBySdtt(@Param("sdt") String sdt);
+    Page<KhachHang> findBySdtt(@Param("sdt") String sdt, Pageable pageable);
 
     @Modifying
     @Transactional

@@ -14,8 +14,8 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CartLineVM {
-    private Integer maSanPhamChiTiet;
-    private Integer maSanPham;
+    private String maSanPhamChiTiet;
+    private String maSanPham;
     private String tenSanPham;
     private String tenMauSac;
     private String tenKichThuoc;

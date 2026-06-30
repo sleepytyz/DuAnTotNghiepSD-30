@@ -196,9 +196,9 @@ public class TaiKhoanCaNhanController {
     }
 
     @GetMapping("/don-hang/{id}")
-    public String chiTietDonHang(@PathVariable Integer id, Model model, Authentication authentication) {
+    public String chiTietDonHang(@PathVariable String id, Model model, Authentication authentication) {
         KhachHang kh = khachHangHienTai(authentication);
-        HoaDon hoaDon = hoaDonService.findById(id).orElse(null);
+        HoaDon hoaDon = hoaDonService.findById(id);
         if (hoaDon == null || hoaDon.getMaKhachHang() == null || !hoaDon.getMaKhachHang().getMaKH().equals(kh.getMaKH())) {
             return "redirect:/ca-nhan/don-hang";
         }
@@ -210,9 +210,9 @@ public class TaiKhoanCaNhanController {
     }
 
     @PostMapping("/don-hang/huy/{id}")
-    public String huyDonHang(@PathVariable Integer id, Authentication authentication, RedirectAttributes redirectAttributes) {
+    public String huyDonHang(@PathVariable String id, Authentication authentication, RedirectAttributes redirectAttributes) {
         KhachHang kh = khachHangHienTai(authentication);
-        HoaDon hoaDon = hoaDonService.findById(id).orElse(null);
+        HoaDon hoaDon = hoaDonService.findById(id);
         if (hoaDon == null || hoaDon.getMaKhachHang() == null || !hoaDon.getMaKhachHang().getMaKH().equals(kh.getMaKH())) {
             redirectAttributes.addFlashAttribute("loiDonHang", "Đơn hàng không hợp lệ.");
             return "redirect:/ca-nhan/don-hang";

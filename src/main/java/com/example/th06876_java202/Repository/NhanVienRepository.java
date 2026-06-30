@@ -38,7 +38,6 @@ public interface NhanVienRepository extends JpaRepository<NhanVien, String> {
 
     boolean existsByEmailAndMaNhanVienNot(String email, String maNhanVien);
 
-    // Kiểm tra sdt tồn tại, LOẠI TRỪ bản ghi đang update
     boolean existsBySoDienThoaiAndMaNhanVienNot(String soDienThoai, String maNhanVien);
 
     boolean existsById(String id);

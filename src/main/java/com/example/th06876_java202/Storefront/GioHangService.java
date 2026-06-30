@@ -25,7 +25,7 @@ public class GioHangService {
     private final GiamGiaService giamGiaService;
 
     /** Thêm sản phẩm vào giỏ, có kiểm tra tồn kho. Trả về null nếu OK, hoặc thông báo lỗi. */
-    public String themVaoGio(GioHang gioHang, Integer maSPCT, int soLuong) {
+    public String themVaoGio(GioHang gioHang, String maSPCT, int soLuong) {
         if (soLuong <= 0) return "Số lượng không hợp lệ.";
         SanPhamChiTiet spct = sanPhamChiTietService.findbyId(maSPCT).orElse(null);
         if (spct == null) return "Sản phẩm không tồn tại.";
@@ -43,7 +43,7 @@ public class GioHangService {
         return null;
     }
 
-    public String capNhatSoLuong(GioHang gioHang, Integer maSPCT, int soLuong) {
+    public String capNhatSoLuong(GioHang gioHang, String maSPCT, int soLuong) {
         if (soLuong <= 0) {
             gioHang.xoaSanPham(maSPCT);
             return null;
@@ -63,11 +63,11 @@ public class GioHangService {
     }
 
     /** Build dữ liệu hiển thị đầy đủ của giỏ hàng (đã tính KM, voucher, ship) từ dữ liệu mới nhất trong CSDL. */
-    public GioHangView xemGioHang(GioHang gioHang, Integer maKhachHangDangNhap) {
+    public GioHangView xemGioHang(GioHang gioHang, String maKhachHangDangNhap) {
         GioHangView view = new GioHangView();
 
-        for (Map.Entry<Integer, GioHangItem> e : new java.util.LinkedHashMap<>(gioHang.getDanhSach()).entrySet()) {
-            Integer maSPCT = e.getKey();
+        for (Map.Entry<String, GioHangItem> e : new java.util.LinkedHashMap<>(gioHang.getDanhSach()).entrySet()) {
+            String maSPCT = e.getKey();
             int soLuongTrongGio = e.getValue().getSoLuong();
 
             SanPhamChiTiet spct = sanPhamChiTietService.findbyId(maSPCT).orElse(null);
@@ -150,7 +150,7 @@ public class GioHangService {
         return view;
     }
 
-    public String apDungVoucher(GioHang gioHang, Integer maKhachHangDangNhap, String tenVoucher) {
+    public String apDungVoucher(GioHang gioHang, String maKhachHangDangNhap, String tenVoucher) {
         if (tenVoucher == null || tenVoucher.isBlank()) return "Vui lòng nhập mã giảm giá.";
         GiamGia gg = giamGiaService.findByTen(tenVoucher.trim()).orElse(null);
         if (gg == null) return "Mã giảm giá không tồn tại.";

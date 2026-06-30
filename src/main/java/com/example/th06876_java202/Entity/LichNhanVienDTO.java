@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LichNhanVienDTO {
-    private Integer maNhanVien;
+    private String maNhanVien;
     private Integer maCa;
     private String ngay; // Ngày cụ thể (format: yyyy-MM-dd)
 }

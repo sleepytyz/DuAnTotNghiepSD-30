@@ -191,7 +191,7 @@ public class GiamGiaService {
      * Kiểm tra voucher có dùng được cho khách hàng (đang đăng nhập hoặc khách lẻ) với tổng tiền đơn hàng hiện tại không.
      * Trả về null nếu hợp lệ, hoặc chuỗi lý do không hợp lệ.
      */
-    public String kiemTraVoucherHopLe(GiamGia gg, Integer maKhachHang, BigDecimal tongTienHang) {
+    public String kiemTraVoucherHopLe(GiamGia gg, String maKhachHang, BigDecimal tongTienHang) {
         if (gg == null) return "Mã giảm giá không tồn tại.";
         if (!"Hoạt động".equals(gg.getTrangThai())) return "Mã giảm giá hiện không khả dụng.";
         if (gg.getSoLuong() == null || gg.getSoLuong() <= 0) return "Mã giảm giá đã hết lượt sử dụng.";
@@ -228,7 +228,7 @@ public class GiamGiaService {
     /**
      * Danh sách voucher khách hàng (đăng nhập) có thể dùng: voucher công khai còn lượt + voucher riêng được gán cho khách và chưa dùng.
      */
-    public List<GiamGia> getVoucherKhaDungChoKhachHang(Integer maKhachHang) {
+    public List<GiamGia> getVoucherKhaDungChoKhachHang(String maKhachHang) {
         List<GiamGia> ketQua = new java.util.ArrayList<>();
         for (GiamGia gg : giamGiaRepository.findAll()) {
             if (!"Hoạt động".equals(gg.getTrangThai())) continue;
@@ -248,7 +248,7 @@ public class GiamGiaService {
     }
 
     @Transactional
-    public void danhDauDaSuDungChoKhachHang(Integer maKhachHang, Integer maGiamGia) {
+    public void danhDauDaSuDungChoKhachHang(String maKhachHang, String maGiamGia) {
         if (maKhachHang == null) return;
         giamGiaChiTietRepo.findByKhachHang_MaKHAndGiamGia_MaGiamGia(maKhachHang, maGiamGia)
                 .ifPresent(ct -> {
@@ -258,7 +258,7 @@ public class GiamGiaService {
     }
 
     @Transactional
-    public void hoanLaiVoucher(Integer maGiamGia, Integer maKhachHang) {
+    public void hoanLaiVoucher(String maGiamGia, String maKhachHang) {
         giamGiaRepository.findById(maGiamGia).ifPresent(gg -> {
             gg.setSoLuong(gg.getSoLuong() == null ? 1 : gg.getSoLuong() + 1);
             giamGiaRepository.save(gg);

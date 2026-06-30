@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -46,10 +47,10 @@ public class DonHangOnlineService {
         BigDecimal tongTienHang = BigDecimal.ZERO;
 
         // Dùng bản sao để tránh ConcurrentModification khi đọc qua session bean
-        Map<Integer, GioHangItem> banSao = new LinkedHashMap<>(gioHang.getDanhSach());
+        Map<String, GioHangItem> banSao = new LinkedHashMap<>(gioHang.getDanhSach());
 
-        for (Map.Entry<Integer, GioHangItem> entry : banSao.entrySet()) {
-            Integer maSPCT = entry.getKey();
+        for (Map.Entry<String, GioHangItem> entry : banSao.entrySet()) {
+            String maSPCT = entry.getKey();
             int soLuong = entry.getValue().getSoLuong();
 
             SanPhamChiTiet spct = sanPhamChiTietService.findbyId(maSPCT)
@@ -86,7 +87,7 @@ public class DonHangOnlineService {
         // Áp dụng voucher (nếu có) - kiểm tra lại lần cuối cho chắc chắn
         GiamGia voucher = null;
         BigDecimal soTienGiamVoucher = BigDecimal.ZERO;
-        Integer maKhachHang = khachHang != null ? khachHang.getMaKH() : null;
+        String maKhachHang = khachHang != null ? khachHang.getMaKH() : null;
         if (gioHang.getMaGiamGiaApDung() != null) {
             GiamGia gg = giamGiaService.getGiamGiaById(gioHang.getMaGiamGiaApDung()).orElse(null);
             String loi = giamGiaService.kiemTraVoucherHopLe(gg, maKhachHang, tongTienHang);
@@ -111,7 +112,7 @@ public class DonHangOnlineService {
         hoaDon.setPhuongThucThanhToan(phuongThucThanhToan);
         hoaDon.setTrangThai("Chờ xác nhận");
         hoaDon.setGhiChu(ghiChu);
-        hoaDon.setNgayTao(LocalDate.now());
+        hoaDon.setNgayTao(LocalDateTime.now());
         hoaDon.setLoaiBan("Online");
         hoaDon.setDiaChiGiaoHang(diaChiGiaoHang);
 
@@ -158,7 +159,7 @@ public class DonHangOnlineService {
         }
 
         if (hoaDon.getMaGiamGia() != null) {
-            Integer maKH = hoaDon.getMaKhachHang() != null ? hoaDon.getMaKhachHang().getMaKH() : null;
+            String maKH = hoaDon.getMaKhachHang() != null ? hoaDon.getMaKhachHang().getMaKH() : null;
             giamGiaService.hoanLaiVoucher(hoaDon.getMaGiamGia().getMaGiamGia(), maKH);
         }
 

@@ -25,8 +25,13 @@ public class GiaoCaService {
     private final CaLamViecRepository caLamViecRepository;
     private final NhanVienRepository nhanVienRepository;
 
+    // ===== CA LÀM VIỆC =====
     public List<CaLamViec> findCaAll() {
         return caLamViecRepository.findAll();
+    }
+
+    public CaLamViec findCaById(Integer maCa) {
+        return caLamViecRepository.findById(maCa).orElse(null);
     }
 
     public List<CaLamViec> findCaByTenCa(String tenCa) {
@@ -37,6 +42,20 @@ public class GiaoCaService {
         return caLamViecRepository.findByGio(gioBatDau, gioKetThuc);
     }
 
+    @Transactional
+    public void editCaLamViec(CaLamViec caLamViec) {
+        CaLamViec existing = caLamViecRepository.findById(caLamViec.getMaCa())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy ca làm việc với mã: " + caLamViec.getMaCa()));
+
+        existing.setTenCa(caLamViec.getTenCa().trim());
+        existing.setGioBatDau(caLamViec.getGioBatDau());
+        existing.setGioKetThuc(caLamViec.getGioKetThuc());
+        existing.setMoTa(caLamViec.getMoTa());
+
+        caLamViecRepository.save(existing);
+    }
+
+    // ===== CHẤM CÔNG =====
     public List<ChamCong> findChamCongAll() {
         return chamCongRepository.findAll();
     }
@@ -45,10 +64,43 @@ public class GiaoCaService {
         return chamCongRepository.findByNhanVien_HoTenContaining(hoTen);
     }
 
+    @Transactional
+    public void xoaChamCong(Integer maChamCong) {
+        ChamCong chamCong = chamCongRepository.findById(maChamCong)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy chấm công với mã: " + maChamCong));
+
+        if (chamCong.getTrangThai() != null && !chamCong.getTrangThai()) {
+            throw new RuntimeException("Không thể xóa lịch đã qua hoặc đã chấm công!");
+        }
+
+        chamCongRepository.delete(chamCong);
+    }
+
+    // ===== NHÂN VIÊN =====
     public List<NhanVien> findAllNhanVien() {
         return nhanVienRepository.findAll();
     }
 
+    /**
+     * Lấy danh sách nhân viên chưa có lịch trong khoảng thời gian
+     */
+    public List<NhanVien> getNhanVienChuaCoLich(LocalDate tuNgay, LocalDate denNgay) {
+        List<NhanVien> allNhanVien = nhanVienRepository.findAll();
+        List<ChamCong> allChamCong = chamCongRepository.findAll();
+
+        Set<String> maNhanVienCoLich = allChamCong.stream()
+                .filter(cc -> cc.getNgayChamCong() != null)
+                .filter(cc -> !cc.getNgayChamCong().isBefore(tuNgay)
+                        && !cc.getNgayChamCong().isAfter(denNgay))
+                .map(cc -> cc.getNhanVien().getMaNhanVien())
+                .collect(Collectors.toSet());
+
+        return allNhanVien.stream()
+                .filter(nv -> !maNhanVienCoLich.contains(nv.getMaNhanVien()))
+                .collect(Collectors.toList());
+    }
+
+    // ===== TIỆN ÍCH =====
     /**
      * Lấy danh sách ngày trong khoảng thời gian (tối đa 7 ngày)
      */
@@ -62,7 +114,6 @@ public class GiaoCaService {
             endDate = startDate.plusDays(7);
         }
 
-        // Giới hạn tối đa 7 ngày để tránh lỗi giao diện
         if (startDate.plusDays(7).isBefore(endDate)) {
             endDate = startDate.plusDays(7);
         }
@@ -76,6 +127,7 @@ public class GiaoCaService {
         return listNgay;
     }
 
+    // ===== LẤY DỮ LIỆU CHẤM CÔNG =====
     /**
      * Lấy dữ liệu chấm công theo ngày và ca làm việc
      */
@@ -91,7 +143,6 @@ public class GiaoCaService {
             endDate = startDate.plusDays(7);
         }
 
-        // Giới hạn tối đa 7 ngày
         if (startDate.plusDays(7).isBefore(endDate)) {
             endDate = startDate.plusDays(7);
         }
@@ -157,7 +208,6 @@ public class GiaoCaService {
             endDate = startDate.plusDays(7);
         }
 
-        // Giới hạn tối đa 7 ngày
         if (startDate.plusDays(7).isBefore(endDate)) {
             endDate = startDate.plusDays(7);
         }
@@ -207,27 +257,27 @@ public class GiaoCaService {
         return result;
     }
 
+    // ===== TẠO LỊCH LÀM VIỆC =====
+
     /**
      * Tạo lịch làm việc hàng loạt - Hỗ trợ nhiều ca cho 1 nhân viên trong 1 ngày
+     * SỬA: Tham số Map<String, List<Integer>> thay vì Map<Integer, List<String>>
      */
     @Transactional
     public List<ChamCong> taoLichLamViecHangLoat(LocalDate tuNgay, LocalDate denNgay,
-                                                 Map<Integer, List<Integer>> lichNhanVien) {
+                                                 Map<String, List<Integer>> lichNhanVien) {
         List<ChamCong> listChamCong = new ArrayList<>();
         LocalDate current = tuNgay;
 
-        // Lấy tất cả ChamCong hiện có để kiểm tra
         List<ChamCong> allChamCong = chamCongRepository.findAll();
 
         while (!current.isAfter(denNgay)) {
-            // Tạo biến final cho current để dùng trong lambda
             final LocalDate ngayHienTai = current;
 
-            for (Map.Entry<Integer, List<Integer>> entry : lichNhanVien.entrySet()) {
-                final Integer maNhanVien = entry.getKey();
+            for (Map.Entry<String, List<Integer>> entry : lichNhanVien.entrySet()) {
+                String maNhanVien = entry.getKey();
                 List<Integer> listMaCa = entry.getValue();
 
-                // Kiểm tra nhân viên đã có lịch ngày này chưa (dùng biến final)
                 boolean daCoLich = allChamCong.stream()
                         .anyMatch(cc -> cc.getNhanVien() != null
                                 && cc.getNhanVien().getMaNhanVien().equals(maNhanVien)
@@ -237,7 +287,6 @@ public class GiaoCaService {
                 if (!daCoLich) {
                     NhanVien nv = nhanVienRepository.findById(maNhanVien).orElse(null);
                     if (nv != null) {
-                        // Nếu nhân viên chọn nhiều ca trong 1 ngày
                         for (Integer maCa : listMaCa) {
                             if (maCa == null || maCa <= 0) continue;
 
@@ -247,7 +296,7 @@ public class GiaoCaService {
                                 chamCong.setNhanVien(nv);
                                 chamCong.setCaLamViec(ca);
                                 chamCong.setNgayChamCong(ngayHienTai);
-                                chamCong.setTrangThai(true); // Lịch sắp tới
+                                chamCong.setTrangThai(true);
                                 chamCong.setGhiChu("Lịch đã xếp");
                                 listChamCong.add(chamCong);
                             }
@@ -268,110 +317,50 @@ public class GiaoCaService {
     @Transactional
     public List<ChamCong> taoLichLamViecHangLoatChiTiet(List<LichNhanVienDTO> danhSach) {
         List<ChamCong> listChamCong = new ArrayList<>();
-        
-        // Lấy tất cả ChamCong hiện có để kiểm tra trùng
+
         List<ChamCong> allExisting = chamCongRepository.findAll();
-        
-        // Tạo Set để kiểm tra nhanh: key = "ngay_maNV_maCa"
+
         Set<String> existingKeys = new HashSet<>();
         for (ChamCong cc : allExisting) {
             if (cc.getNgayChamCong() != null && cc.getNhanVien() != null && cc.getCaLamViec() != null) {
-                String key = cc.getNgayChamCong().toString() + "_" 
-                           + cc.getNhanVien().getMaNhanVien() + "_" 
-                           + cc.getCaLamViec().getMaCa();
+                String key = cc.getNgayChamCong().toString() + "_"
+                        + cc.getNhanVien().getMaNhanVien() + "_"
+                        + cc.getCaLamViec().getMaCa();
                 existingKeys.add(key);
             }
         }
-        
+
         for (LichNhanVienDTO item : danhSach) {
             if (item.getMaNhanVien() == null || item.getMaCa() == null || item.getNgay() == null) {
                 continue;
             }
-            
-            // Tạo key để kiểm tra
+
             String key = item.getNgay() + "_" + item.getMaNhanVien() + "_" + item.getMaCa();
-            
-            // Nếu đã tồn tại thì bỏ qua
+
             if (existingKeys.contains(key)) {
                 continue;
             }
-            
-            // Parse ngày từ String sang LocalDate
+
             LocalDate ngay = LocalDate.parse(item.getNgay());
-            
-            // Lấy thông tin nhân viên và ca làm việc
+
             NhanVien nv = nhanVienRepository.findById(item.getMaNhanVien()).orElse(null);
             CaLamViec ca = caLamViecRepository.findById(item.getMaCa()).orElse(null);
-            
+
             if (nv == null || ca == null) {
                 continue;
             }
-            
-            // Tạo ChamCong mới
+
             ChamCong chamCong = new ChamCong();
             chamCong.setNhanVien(nv);
             chamCong.setCaLamViec(ca);
             chamCong.setNgayChamCong(ngay);
-            chamCong.setTrangThai(true); // Lịch sắp tới
+            chamCong.setTrangThai(true);
             chamCong.setGhiChu("Lịch đã xếp");
-            
+
             listChamCong.add(chamCong);
-            existingKeys.add(key); // Thêm vào Set để tránh trùng trong cùng lần lưu
+            existingKeys.add(key);
         }
-        
+
         return chamCongRepository.saveAll(listChamCong);
-    }
-
-    /**
-     * Lấy danh sách nhân viên chưa có lịch trong tuần
-     */
-    public List<NhanVien> getNhanVienChuaCoLich(LocalDate tuNgay, LocalDate denNgay) {
-        List<NhanVien> allNhanVien = nhanVienRepository.findAll();
-        List<ChamCong> allChamCong = chamCongRepository.findAll();
-
-        // Lấy danh sách nhân viên đã có lịch trong khoảng
-        Set<Integer> maNhanVienCoLich = allChamCong.stream()
-                .filter(cc -> cc.getNgayChamCong() != null)
-                .filter(cc -> !cc.getNgayChamCong().isBefore(tuNgay)
-                        && !cc.getNgayChamCong().isAfter(denNgay))
-                .map(cc -> cc.getNhanVien().getMaNhanVien())
-                .collect(Collectors.toSet());
-
-        // Lọc ra nhân viên chưa có lịch
-        return allNhanVien.stream()
-                .filter(nv -> !maNhanVienCoLich.contains(nv.getMaNhanVien()))
-                .collect(Collectors.toList());
-    }
-
-    // Thêm vào GiaoCaService.java
-
-    @Transactional
-    public void xoaChamCong(Integer maChamCong) {
-        ChamCong chamCong = chamCongRepository.findById(maChamCong)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy chấm công với mã: " + maChamCong));
-
-        // Chỉ cho phép xóa nếu chưa chấm công (trangThai = true - sắp tới)
-        if (chamCong.getTrangThai() != null && !chamCong.getTrangThai()) {
-            throw new RuntimeException("Không thể xóa lịch đã qua hoặc đã chấm công!");
-        }
-
-        chamCongRepository.delete(chamCong);
-    }
-
-    public CaLamViec findCaById(Integer maCa) {
-        return caLamViecRepository.findById(maCa).orElse(null);
-    }
-
-    @Transactional
-    public void editCaLamViec(CaLamViec caLamViec) {
-        CaLamViec existing = caLamViecRepository.findById(caLamViec.getMaCa())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy ca làm việc với mã: " + caLamViec.getMaCa()));
-
-        existing.setTenCa(caLamViec.getTenCa().trim());
-        existing.setGioBatDau(caLamViec.getGioBatDau());
-        existing.setGioKetThuc(caLamViec.getGioKetThuc());
-        existing.setMoTa(caLamViec.getMoTa());
-
-        caLamViecRepository.save(existing);
     }
 }

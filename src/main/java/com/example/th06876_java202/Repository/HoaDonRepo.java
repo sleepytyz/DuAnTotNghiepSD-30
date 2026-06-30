@@ -82,12 +82,6 @@ public interface HoaDonRepo extends JpaRepository<HoaDon, String> {
             nativeQuery = true)
     Page<HoaDon> getaddDH(Pageable pageable);
 
-    // ==================== THỐNG KÊ ====================
-    // THÊM CÁC PHƯƠNG THỨC THỐNG KÊ VÀO ĐÂY
-
-    /**
-     * Thống kê doanh thu theo ngày
-     */
     @Query(value = """
             SELECT 
                 CAST(h.NgayTao AS DATE) as ngay,
@@ -119,9 +113,6 @@ public interface HoaDonRepo extends JpaRepository<HoaDon, String> {
             """, nativeQuery = true)
     List<Object[]> thongKeDoanhThuTheoThang(LocalDate startDate, LocalDate endDate);
 
-    /**
-     * Thống kê tổng quan
-     */
     @Query(value = """
             SELECT 
                 ISNULL(COUNT(h.MaHoaDon), 0) as tongDonHang,
@@ -134,7 +125,6 @@ public interface HoaDonRepo extends JpaRepository<HoaDon, String> {
             """, nativeQuery = true)
     List<Object[]> thongKeTongQuan();
 
-    // ==================== CẬP NHẬT TRẠNG THÁI ====================
 
     @Modifying
     @Transactional
@@ -156,58 +146,10 @@ public interface HoaDonRepo extends JpaRepository<HoaDon, String> {
     @Query(value = "update HoaDon set TrangThai = N'Đã huỷ' where MaHoaDon = ?", nativeQuery = true)
     int huy(String mahd);
 
-    @Query(value = """
-    SELECT 
-        CAST(h.NgayTao AS DATE) as ngay,
-        COUNT(h.MaHoaDon) as soDonHang,
-        ISNULL(SUM(h.TongTien), 0) as doanhThu,
-        ISNULL(AVG(h.TongTien), 0) as trungBinhDon
-    FROM HoaDon h
-    WHERE h.TrangThai = N'Đã thanh toán'
-        AND h.NgayTao BETWEEN :startDate AND :endDate
-    GROUP BY CAST(h.NgayTao AS DATE)
-    ORDER BY CAST(h.NgayTao AS DATE) DESC
-""", nativeQuery = true)
-    List<Object[]> thongKeDoanhThuTheoNgay(
-            @Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate
-    );
 
-    @Query(value = """
-        SELECT 
-            YEAR(h.NgayTao) as nam,
-            MONTH(h.NgayTao) as thang,
-            COUNT(h.MaHoaDon) as soDonHang,
-            ISNULL(SUM(h.TongTien), 0) as doanhThu
-        FROM HoaDon h
-        WHERE h.TrangThai = N'Đã thanh toán'
-            AND h.NgayTao BETWEEN :startDate AND :endDate
-        GROUP BY YEAR(h.NgayTao), MONTH(h.NgayTao)
-        ORDER BY YEAR(h.NgayTao) DESC, MONTH(h.NgayTao) DESC
-    """, nativeQuery = true)
-    List<Object[]> thongKeDoanhThuTheoThang(
-            @Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate
-    );
-
-    @Query(value = """
-    SELECT 
-        ISNULL(COUNT(h.MaHoaDon), 0) as tongDonHang,
-        ISNULL(SUM(h.TongTien), 0) as tongDoanhThu,
-        ISNULL(AVG(h.TongTien), 0) as trungBinhDon,
-        MIN(h.NgayTao) as ngayDau,
-        MAX(h.NgayTao) as ngayCuoi
-    FROM HoaDon h
-    WHERE h.TrangThai = N'Đã thanh toán'
-""", nativeQuery = true)
-    List<Object[]> thongKeTongQuan();
-
-
-
-    // Thêm method mới
     List<HoaDon> findByTrangThaiAndLoaiBan(String trangThai, String loaiBan);
     // ==== Website bán hàng (khách hàng) ====
 
-    Page<HoaDon> findByMaKhachHang_MaKHOrderByMaHoaDonDesc(Integer maKH, Pageable pageable);
+    Page<HoaDon> findByMaKhachHang_MaKHOrderByMaHoaDonDesc(String maKH, Pageable pageable);
 
 }

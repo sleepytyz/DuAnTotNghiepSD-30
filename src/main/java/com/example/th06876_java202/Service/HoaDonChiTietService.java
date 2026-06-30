@@ -25,9 +25,7 @@ public class HoaDonChiTietService {
         this.hoaDonChiTietRepository = hoaDonChiTietRepository;
     }
 
-    // HoaDonChiTietService.java
     public HoaDonChiTiet findAll(String maHoaDon, String maSanPhamChiTiet) {
-        // Dùng method có sẵn
         return hoaDonChiTietRepository.findByMaHoaDon_MaHoaDonAndSanPhamChiTiet_MaSanPhamChiTiet(
                 maHoaDon, maSanPhamChiTiet
         );
@@ -41,7 +39,6 @@ public class HoaDonChiTietService {
         return hoaDonChiTietRepository.saveAll(list);
     }
 
-    public List<HoaDonChiTiet> findById(Integer id) {
     public List<HoaDonChiTiet> findById(String id) {
         return hoaDonChiTietRepository.getallsphd(id);
     }
@@ -56,8 +53,6 @@ public class HoaDonChiTietService {
 
     @Transactional
     public void capNhatGiaSanPham(String maHoaDon, String maSPCT) {
-        // Tìm HoaDonChiTiet theo mã hóa đơn và mã sản phẩm chi tiết
-        // Cách 1: Sử dụng @Query (Khuyến nghị)
         HoaDonChiTiet hdct = hoaDonChiTietRepository.findByMaHoaDonAndMaSanPhamChiTiet(maHoaDon, maSPCT);
 
         // Cách 2: Nếu method trên chưa có, dùng cách này
@@ -83,9 +78,6 @@ public class HoaDonChiTietService {
         hoaDonChiTietRepository.save(hdct);
     }
 
-    /**
-     * Cập nhật giá cho nhiều sản phẩm trong hóa đơn
-     */
     @Transactional
     public void capNhatGiaTatCa(String maHoaDon, List<String> maSPCTs) {
         if (maSPCTs == null || maSPCTs.isEmpty()) {

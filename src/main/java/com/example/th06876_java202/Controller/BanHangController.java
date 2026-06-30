@@ -151,7 +151,7 @@ public class BanHangController {
     }
 
     private KhachHang getOrCreateKhachLe() {
-        List<KhachHang> listKH = khachHangService.findBySdt("0000000000");
+        List<KhachHang> listKH = khachHangService.findAllBySdt("0000000000");
 
         if (listKH != null && !listKH.isEmpty()) {
             return listKH.get(0);
@@ -1294,7 +1294,7 @@ public class BanHangController {
     public String khachhang(@RequestParam(value = "sdt", required = false) String sdt, Model model) {
         List<KhachHang> kh = (sdt == null || sdt.trim().isEmpty())
                 ? khachHangService.getAllKhachHang()
-                : khachHangService.findBySdt(sdt);
+                : khachHangService.findAllBySdt(sdt);
         model.addAttribute("listkh", kh != null ? kh : new ArrayList<>());
         model.addAttribute("kh", new KhachHang());
         return "banhang/index";

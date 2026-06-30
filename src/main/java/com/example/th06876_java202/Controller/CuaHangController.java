@@ -16,9 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-/**
- * Trang xem sản phẩm của website bán hàng FS Shoes (công khai, không cần đăng nhập).
- */
+
 @Controller
 @RequiredArgsConstructor
 public class CuaHangController {
@@ -31,9 +29,9 @@ public class CuaHangController {
 
     @GetMapping("/san-pham")
     public String danhSach(
-            @RequestParam(required = false) Integer danhMuc,
-            @RequestParam(required = false) Integer thuongHieu,
-            @RequestParam(required = false) Integer kieuGiay,
+            @RequestParam(required = false) String danhMuc,
+            @RequestParam(required = false) String thuongHieu,
+            @RequestParam(required = false) String kieuGiay,
             @RequestParam(required = false) String q,
             @RequestParam(defaultValue = "0") int page,
             Model model) {
@@ -57,7 +55,7 @@ public class CuaHangController {
     }
 
     @GetMapping("/san-pham/{id}")
-    public String chiTiet(@PathVariable Integer id, Model model) {
+    public String chiTiet(@PathVariable String id, Model model) {
         SanPham sp = sanPhamService.findById(id).orElse(null);
         if (sp == null || sp.getTrangThai() == null || !sp.getTrangThai()) {
             return "redirect:/san-pham";

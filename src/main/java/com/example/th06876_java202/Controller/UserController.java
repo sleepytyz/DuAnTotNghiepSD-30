@@ -180,7 +180,7 @@ public class UserController {
         if (!result.hasFieldErrors("tenDangNhap") && taiKhoanService.isTenDangNhapExist(dangKy.getTenDangNhap())) {
             result.rejectValue("tenDangNhap", "error.dangKy", "Tên đăng nhập đã tồn tại.");
         }
-        if (!result.hasFieldErrors("sdt") && khachHangService.existsBySoDienThoai(dangKy.getSdt())) {
+        if (!result.hasFieldErrors("sdt") && khachHangService.existsBySdt(dangKy.getSdt())) {
             result.rejectValue("sdt", "error.dangKy", "Số điện thoại đã được sử dụng.");
         }
         if (!result.hasFieldErrors("email") && khachHangService.existsByEmail(dangKy.getEmail())) {

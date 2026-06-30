@@ -80,7 +80,7 @@ public class SanPhamHienThiService {
     }
 
     /** Danh sách biến thể (màu/size) còn dùng được, kèm giá khuyến mãi, dùng cho trang chi tiết sản phẩm. */
-    public List<BienTheVM> taoDanhSachBienThe(Integer maSanPham) {
+    public List<BienTheVM> taoDanhSachBienThe(String maSanPham) {
         List<SanPhamChiTiet> bienThe = sanPhamChiTietService.getallsp(maSanPham);
         List<BienTheVM> list = new ArrayList<>();
         if (bienThe == null) return list;

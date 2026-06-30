@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SanPhamCardVM {
-    private Integer maSanPham;
+    private String maSanPham;
     private String tenSanPham;
     private String tenThuongHieu;
     private String anh;

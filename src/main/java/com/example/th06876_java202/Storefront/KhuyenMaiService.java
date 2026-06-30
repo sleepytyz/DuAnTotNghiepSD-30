@@ -22,7 +22,7 @@ public class KhuyenMaiService {
     private final ChiTietDotGiamGiaRepo chiTietDotGiamGiaRepo;
 
     /** % giảm cao nhất đang áp dụng cho 1 biến thể cụ thể, 0 nếu không có khuyến mãi nào. */
-    public int phanTramGiamBienThe(Integer maSanPhamChiTiet) {
+    public int phanTramGiamBienThe(String maSanPhamChiTiet) {
         if (maSanPhamChiTiet == null) return 0;
         List<BigDecimal> list = chiTietDotGiamGiaRepo.findActiveDiscountPercentBySanPhamChiTiet(maSanPhamChiTiet, LocalDate.now());
         if (list == null || list.isEmpty()) return 0;
@@ -30,7 +30,7 @@ public class KhuyenMaiService {
     }
 
     /** % giảm cao nhất đang áp dụng cho 1 sản phẩm (bất kỳ biến thể nào), 0 nếu không có. */
-    public int phanTramGiamSanPham(Integer maSanPham) {
+    public int phanTramGiamSanPham(String maSanPham) {
         if (maSanPham == null) return 0;
         List<BigDecimal> list = chiTietDotGiamGiaRepo.findActiveDiscountPercentBySanPham(maSanPham, LocalDate.now());
         if (list == null || list.isEmpty()) return 0;
@@ -38,7 +38,7 @@ public class KhuyenMaiService {
     }
 
     /** % giảm thực tế áp dụng cho 1 biến thể: lấy max giữa KM gán riêng cho biến thể (nếu có) và KM gán cho sản phẩm cha (cách admin đang dùng). */
-    public int phanTramGiamChoBienThe(SanPham sanPham, Integer maSanPhamChiTiet) {
+    public int phanTramGiamChoBienThe(SanPham sanPham, String maSanPhamChiTiet) {
         int ptBienThe = phanTramGiamBienThe(maSanPhamChiTiet);
         int ptSanPham = sanPham != null ? phanTramGiamSanPham(sanPham.getMaSanPham()) : 0;
         return Math.max(ptBienThe, ptSanPham);

@@ -21,15 +21,15 @@ public class GioHang implements Serializable {
     private static final long serialVersionUID = 1L;
 
     // key = maSanPhamChiTiet, value = dòng giỏ hàng
-    private final Map<Integer, GioHangItem> danhSach = new LinkedHashMap<>();
+    private final Map<String, GioHangItem> danhSach = new LinkedHashMap<>();
 
     // Mã voucher (GiamGia) đang được áp dụng cho giỏ hàng này, null nếu không áp dụng
-    private Integer maGiamGiaApDung;
+    private String maGiamGiaApDung;
 
     // Ghi chú khách nhập ở bước thanh toán (lưu tạm trước khi đặt hàng thành công)
     private String ghiChu;
 
-    public synchronized void themSanPham(Integer maSPCT, int soLuong) {
+    public synchronized void themSanPham(String maSPCT, int soLuong) {
         if (maSPCT == null || soLuong <= 0) return;
         GioHangItem item = danhSach.get(maSPCT);
         if (item == null) {
@@ -39,7 +39,7 @@ public class GioHang implements Serializable {
         }
     }
 
-    public synchronized void capNhatSoLuong(Integer maSPCT, int soLuong) {
+    public synchronized void capNhatSoLuong(String maSPCT, int soLuong) {
         if (maSPCT == null) return;
         if (soLuong <= 0) {
             danhSach.remove(maSPCT);
@@ -51,7 +51,7 @@ public class GioHang implements Serializable {
         }
     }
 
-    public synchronized void xoaSanPham(Integer maSPCT) {
+    public synchronized void xoaSanPham(String maSPCT) {
         danhSach.remove(maSPCT);
     }
 
@@ -61,7 +61,7 @@ public class GioHang implements Serializable {
         ghiChu = null;
     }
 
-    public Map<Integer, GioHangItem> getDanhSach() {
+    public Map<String, GioHangItem> getDanhSach() {
         return danhSach;
     }
 
@@ -73,11 +73,11 @@ public class GioHang implements Serializable {
         return danhSach.isEmpty();
     }
 
-    public Integer getMaGiamGiaApDung() {
+    public String getMaGiamGiaApDung() {
         return maGiamGiaApDung;
     }
 
-    public void setMaGiamGiaApDung(Integer maGiamGiaApDung) {
+    public void setMaGiamGiaApDung(String maGiamGiaApDung) {
         this.maGiamGiaApDung = maGiamGiaApDung;
     }
 

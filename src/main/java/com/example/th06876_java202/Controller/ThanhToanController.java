@@ -145,9 +145,9 @@ public class ThanhToanController {
     }
 
     @GetMapping("/thanh-cong/{id}")
-    public String thanhCong(@PathVariable Integer id, Model model, Authentication authentication) {
+    public String thanhCong(@PathVariable String  id, Model model, Authentication authentication) {
         KhachHang kh = khachHangHienTai(authentication);
-        HoaDon hoaDon = hoaDonService.findById(id).orElse(null);
+        HoaDon hoaDon = hoaDonService.findById(id);
         if (hoaDon == null || kh == null || hoaDon.getMaKhachHang() == null
                 || !hoaDon.getMaKhachHang().getMaKH().equals(kh.getMaKH())) {
             return "redirect:/";

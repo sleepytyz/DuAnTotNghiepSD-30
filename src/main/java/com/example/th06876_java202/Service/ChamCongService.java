@@ -26,14 +26,14 @@ public class ChamCongService {
     /**
      * Lấy danh sách chấm công của nhân viên theo khoảng thời gian
      */
-    public List<ChamCong> getChamCongByNhanVienAndDateRange(Integer maNhanVien, LocalDate tuNgay, LocalDate denNgay) {
+    public List<ChamCong> getChamCongByNhanVienAndDateRange(String maNhanVien, LocalDate tuNgay, LocalDate denNgay) {
         return chamCongRepository.findByNhanVien_MaNhanVienAndNgayChamCongBetween(maNhanVien, tuNgay, denNgay);
     }
 
     /**
      * Lấy danh sách chấm công của nhân viên trong ngày
      */
-    public List<ChamCong> getChamCongByNhanVienAndDate(Integer maNhanVien, LocalDate ngay) {
+    public List<ChamCong> getChamCongByNhanVienAndDate(String maNhanVien, LocalDate ngay) {
         return chamCongRepository.findByNhanVien_MaNhanVienAndNgayChamCong(maNhanVien, ngay);
     }
 
@@ -41,7 +41,7 @@ public class ChamCongService {
      * Chấm công vào (Check-in)
      */
     @Transactional
-    public ChamCong checkin(Integer maChamCong, Integer maNhanVien) {
+    public ChamCong checkin(Integer maChamCong, String maNhanVien) {
         ChamCong chamCong = chamCongRepository.findById(maChamCong)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch chấm công"));
 
@@ -80,7 +80,7 @@ public class ChamCongService {
      * Chấm công ra (Check-out)
      */
     @Transactional
-    public ChamCong checkout(Integer maChamCong, Integer maNhanVien) {
+    public ChamCong checkout(Integer maChamCong, String maNhanVien) {
         ChamCong chamCong = chamCongRepository.findById(maChamCong)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch chấm công"));
 
@@ -125,7 +125,7 @@ public class ChamCongService {
     /**
      * Lấy tổng số giờ làm trong ngày của nhân viên
      */
-    public double getTongGioLamTrongNgay(Integer maNhanVien, LocalDate ngay) {
+    public double getTongGioLamTrongNgay(String maNhanVien, LocalDate ngay) {
         List<ChamCong> list = getChamCongByNhanVienAndDate(maNhanVien, ngay);
         return list.stream()
                 .filter(cc -> cc.getSoGioLam() != null)
@@ -136,7 +136,7 @@ public class ChamCongService {
     /**
      * Kiểm tra nhân viên đã check-in trong ngày chưa
      */
-    public boolean isCheckedIn(Integer maNhanVien, LocalDate ngay) {
+    public boolean isCheckedIn(String maNhanVien, LocalDate ngay) {
         List<ChamCong> list = getChamCongByNhanVienAndDate(maNhanVien, ngay);
         return list.stream().anyMatch(cc -> cc.getGioVao() != null && cc.getGioRa() == null);
     }
@@ -144,7 +144,7 @@ public class ChamCongService {
     /**
      * Kiểm tra nhân viên đã check-out trong ngày chưa
      */
-    public boolean isCheckedOut(Integer maNhanVien, LocalDate ngay) {
+    public boolean isCheckedOut(String maNhanVien, LocalDate ngay) {
         List<ChamCong> list = getChamCongByNhanVienAndDate(maNhanVien, ngay);
         return list.stream().anyMatch(cc -> cc.getGioRa() != null);
     }

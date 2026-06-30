@@ -18,6 +18,6 @@ public class GioHangItem implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private Integer maSanPhamChiTiet;
+    private String maSanPhamChiTiet;
     private Integer soLuong;
 }
