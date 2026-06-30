@@ -44,4 +44,7 @@ public interface NhanVienRepository extends JpaRepository<NhanVien, Integer> {
 
     boolean existsBySoDienThoaiAndMaNhanVienNot(String soDienThoai, Integer maNhanVien);
 
+    List<NhanVien> findByHoTenContaining(String hoTen);
+
+    NhanVien findByTaiKhoan_TenDangNhap(String tenDangNhap);
 }

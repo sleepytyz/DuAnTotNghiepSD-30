@@ -30,27 +30,38 @@ public class ThongKeService {
                     try {
                         ThongKeDoanhThuDTO dto = new ThongKeDoanhThuDTO();
 
+                        // Ngày
                         Object ngayObj = row[0];
                         if (ngayObj != null) {
                             if (ngayObj instanceof LocalDate) {
                                 dto.setNgay((LocalDate) ngayObj);
                             } else if (ngayObj instanceof java.sql.Date) {
                                 dto.setNgay(((java.sql.Date) ngayObj).toLocalDate());
-                            } else if (ngayObj instanceof java.sql.Timestamp) {
-                                dto.setNgay(((java.sql.Timestamp) ngayObj).toLocalDateTime().toLocalDate());
+                            } else if (ngayObj instanceof String) {
+                                dto.setNgay(LocalDate.parse((String) ngayObj));
                             }
                         }
 
-                        dto.setSoDonHang(row[1] != null ? ((Number) row[1]).intValue() : 0);
-                        dto.setDoanhThu(row[2] != null ? (BigDecimal) row[2] : BigDecimal.ZERO);
-                        dto.setTrungBinhDon(row[3] != null ? (BigDecimal) row[3] : BigDecimal.ZERO);
+                        // Số đơn hàng
+                        if (row[1] != null) {
+                            dto.setSoDonHang(((Number) row[1]).intValue());
+                        }
 
-                        // CHỈ THÊM VÀO LIST NẾU NGÀY KHÔNG NULL
+                        // Doanh thu
+                        if (row[2] != null) {
+                            dto.setDoanhThu((BigDecimal) row[2]);
+                        }
+
+                        // Trung bình đơn
+                        if (row[3] != null) {
+                            dto.setTrungBinhDon((BigDecimal) row[3]);
+                        }
+
                         if (dto.getNgay() != null) {
                             list.add(dto);
                         }
                     } catch (Exception e) {
-                        // Bỏ qua lỗi
+                        e.printStackTrace();
                     }
                 }
             }
@@ -70,13 +81,30 @@ public class ThongKeService {
                 if (row != null && row.length >= 4) {
                     try {
                         ThongKeTheoThangDTO dto = new ThongKeTheoThangDTO();
-                        dto.setNam(row[0] != null ? ((Number) row[0]).intValue() : 0);
-                        dto.setThang(row[1] != null ? ((Number) row[1]).intValue() : 0);
-                        dto.setSoDonHang(row[2] != null ? ((Number) row[2]).intValue() : 0);
-                        dto.setDoanhThu(row[3] != null ? (BigDecimal) row[3] : BigDecimal.ZERO);
+
+                        // Năm
+                        if (row[0] != null) {
+                            dto.setNam(((Number) row[0]).intValue());
+                        }
+
+                        // Tháng
+                        if (row[1] != null) {
+                            dto.setThang(((Number) row[1]).intValue());
+                        }
+
+                        // Số đơn hàng
+                        if (row[2] != null) {
+                            dto.setSoDonHang(((Number) row[2]).intValue());
+                        }
+
+                        // Doanh thu
+                        if (row[3] != null) {
+                            dto.setDoanhThu((BigDecimal) row[3]);
+                        }
+
                         list.add(dto);
                     } catch (Exception e) {
-                        // Bỏ qua lỗi
+                        e.printStackTrace();
                     }
                 }
             }
@@ -100,42 +128,42 @@ public class ThongKeService {
 
             ThongKeTongQuanDTO dto = new ThongKeTongQuanDTO();
 
+            // Tổng đơn hàng
             if (row[0] != null) {
                 dto.setTongDonHang(((Number) row[0]).intValue());
             }
 
+            // Tổng doanh thu
             if (row[1] != null) {
                 dto.setTongDoanhThu((BigDecimal) row[1]);
             }
 
+            // Trung bình đơn
             if (row[2] != null) {
                 dto.setTrungBinhDon((BigDecimal) row[2]);
             }
 
-            // Xử lý ngày
+            // Ngày đầu
             Object ngayDauObj = row[3];
             if (ngayDauObj != null) {
                 if (ngayDauObj instanceof LocalDate) {
                     dto.setNgayDau((LocalDate) ngayDauObj);
                 } else if (ngayDauObj instanceof java.sql.Date) {
                     dto.setNgayDau(((java.sql.Date) ngayDauObj).toLocalDate());
-                } else if (ngayDauObj instanceof java.sql.Timestamp) {
-                    dto.setNgayDau(((java.sql.Timestamp) ngayDauObj).toLocalDateTime().toLocalDate());
-                } else if (ngayDauObj instanceof java.time.LocalDateTime) {
-                    dto.setNgayDau(((java.time.LocalDateTime) ngayDauObj).toLocalDate());
+                } else if (ngayDauObj instanceof String) {
+                    dto.setNgayDau(LocalDate.parse((String) ngayDauObj));
                 }
             }
 
+            // Ngày cuối
             Object ngayCuoiObj = row[4];
             if (ngayCuoiObj != null) {
                 if (ngayCuoiObj instanceof LocalDate) {
                     dto.setNgayCuoi((LocalDate) ngayCuoiObj);
                 } else if (ngayCuoiObj instanceof java.sql.Date) {
                     dto.setNgayCuoi(((java.sql.Date) ngayCuoiObj).toLocalDate());
-                } else if (ngayCuoiObj instanceof java.sql.Timestamp) {
-                    dto.setNgayCuoi(((java.sql.Timestamp) ngayCuoiObj).toLocalDateTime().toLocalDate());
-                } else if (ngayCuoiObj instanceof java.time.LocalDateTime) {
-                    dto.setNgayCuoi(((java.time.LocalDateTime) ngayCuoiObj).toLocalDate());
+                } else if (ngayCuoiObj instanceof String) {
+                    dto.setNgayCuoi(LocalDate.parse((String) ngayCuoiObj));
                 }
             }
 

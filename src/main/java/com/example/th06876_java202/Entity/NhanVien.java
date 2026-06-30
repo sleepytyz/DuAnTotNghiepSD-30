@@ -10,6 +10,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "NhanVien")
@@ -17,7 +18,6 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NhanVien {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MaNhanVien")
@@ -73,4 +73,13 @@ public class NhanVien {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "MaTaiKhoan", referencedColumnName = "MaTaiKhoan")
     private TaiKhoan taiKhoan;
+
+    @OneToMany(mappedBy = "nhanVien", fetch = FetchType.LAZY)
+    private List<ChamCong> danhSachChamCong;
+
+    @OneToMany(mappedBy = "nhanVienBanGiao", fetch = FetchType.LAZY)
+    private List<GiaoCa> danhSachBanGiao;
+
+    @OneToMany(mappedBy = "nhanVienNhanGiao", fetch = FetchType.LAZY)
+    private List<GiaoCa> danhSachNhanGiao;
 }

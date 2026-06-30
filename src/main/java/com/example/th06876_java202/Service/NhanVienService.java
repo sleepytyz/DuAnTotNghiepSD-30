@@ -27,4 +27,9 @@ public class NhanVienService {
                         || nv.getTrangThai().equals(status))
                 .toList();
     }
+
+
+    public NhanVien findByUsername(String username) {
+        return nhanVienRepository.findByTaiKhoan_TenDangNhap(username);
+    }
 }
