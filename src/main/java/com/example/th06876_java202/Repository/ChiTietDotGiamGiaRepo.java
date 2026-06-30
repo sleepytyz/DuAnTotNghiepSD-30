@@ -63,4 +63,14 @@ public interface ChiTietDotGiamGiaRepo extends JpaRepository<ChiTietDotGiamGia, 
     // Trong ChiTietDotGiamGiaRepo.java
     List<ChiTietDotGiamGia> findBySanPhamChiTiet_MaSanPhamChiTiet(String maSanPhamChiTiet);
 
+    @Query("SELECT d.giaTriGiam FROM ChiTietDotGiamGia c JOIN c.dotGiamGia d " +
+            "WHERE c.sanPham.maSanPham = :maSanPham AND d.trangThai = 'Hoạt động' AND :today BETWEEN d.ngayBatDau AND d.ngayKetThuc " +
+            "ORDER BY d.giaTriGiam DESC")
+    List<java.math.BigDecimal> findActiveDiscountPercentBySanPham(@Param("maSanPham") Integer maSanPham, @Param("today") java.time.LocalDate today);
+
+    @Query("SELECT d.giaTriGiam FROM ChiTietDotGiamGia c JOIN c.dotGiamGia d " +
+            "WHERE c.sanPhamChiTiet.maSanPhamChiTiet = :maSPCT AND d.trangThai = 'Hoạt động' AND :today BETWEEN d.ngayBatDau AND d.ngayKetThuc " +
+            "ORDER BY d.giaTriGiam DESC")
+    List<java.math.BigDecimal> findActiveDiscountPercentBySanPhamChiTiet(@Param("maSPCT") Integer maSPCT, @Param("today") java.time.LocalDate today);
+
 }

@@ -37,6 +37,11 @@ public class HoaDonChiTietService {
         return hoaDonChiTietRepository.save(hoaDonChiTiet);
     }
 
+    public List<HoaDonChiTiet> luuTatCa(List<HoaDonChiTiet> list) {
+        return hoaDonChiTietRepository.saveAll(list);
+    }
+
+    public List<HoaDonChiTiet> findById(Integer id) {
     public List<HoaDonChiTiet> findById(String id) {
         return hoaDonChiTietRepository.getallsphd(id);
     }

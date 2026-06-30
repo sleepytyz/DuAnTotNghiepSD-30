@@ -66,16 +66,30 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http, UserDetailsService userDetailsService) throws Exception {
         http.authorizeHttpRequests((requests) -> requests
                 // ai cũng vào đc, ko cần đăng nhập
-                .requestMatchers("/", "/login", "/register", "/forgot").permitAll()
+                .requestMatchers("/", "/login", "/register", "/forgot", "/accessDenied").permitAll()
 
                 // ✅ Cho phép truy cập static resources
-                .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/storefront/**").permitAll()
 
                 // ✅ QUAN TRỌNG: Cho phép truy cập ảnh từ thư mục uploads
                 .requestMatchers("/uploads/**", "/images/sanpham/**").permitAll()
 
-                // chỉ user mới vào đc
+                // === Website bán hàng FS Shoes: xem sản phẩm & giỏ hàng không cần đăng nhập ===
+                .requestMatchers("/san-pham", "/san-pham/**").permitAll()
+                .requestMatchers("/gio-hang", "/gio-hang/**").permitAll()
+
+                // === Cần đăng nhập bằng tài khoản khách hàng (USER) ===
+                .requestMatchers("/thanh-toan", "/thanh-toan/**").hasRole("USER")
+                .requestMatchers("/ca-nhan", "/ca-nhan/**").hasRole("USER")
                 .requestMatchers("/user/**").hasRole("USER")
+
+                // === Khu vực quản lý bán hàng (chỉ ADMIN/STAFF) ===
+                .requestMatchers(
+                        "/banhang/**", "/chatlieu/**", "/chi-tiet-dot-giam-gia/**", "/danhmucsp/**",
+                        "/detail/**", "/donhang/**", "/giamgia/**", "/hoa-don/**", "/khach-hang/**",
+                        "/kichthuoc/**", "/kieugiay/**", "/mausac/**", "/nhan-vien/**", "/nhap-hang/**",
+                        "/sanphamct/**", "/sanpham/**", "/tai-khoan/**", "/thong-ke/**", "/thuonghieu/**"
+                ).hasAnyRole("ADMIN", "STAFF")
 
                 // admin và staff mới vào đc
                 .requestMatchers("/staff/**").hasAnyRole("ADMIN", "STAFF")

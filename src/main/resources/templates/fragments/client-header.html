@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<header th:fragment="header(active)" class="fs-header">
+    <div class="fs-header-top">
+        <div class="fs-container">
+            <span><i class="bi bi-truck"></i> Freeship đơn từ 500.000đ — Hotline: 1900 1234</span>
+            <span sec:authorize="!isAuthenticated()">
+                <a th:href="@{/login}">Đăng nhập</a> &nbsp;|&nbsp; <a th:href="@{/register}">Đăng ký</a>
+            </span>
+        </div>
+    </div>
+    <div class="fs-container fs-nav">
+        <a th:href="@{/}" class="fs-logo">
+            <img src="/images/img.png" alt="FS Shoes" onerror="this.style.display='none'">
+            <span>FS <em>Shoes</em></span>
+        </a>
+
+        <nav class="fs-nav-links">
+            <a th:href="@{/}" th:classappend="${active=='home'} ? 'active'">Trang chủ</a>
+            <a th:href="@{/san-pham}" th:classappend="${active=='shop'} ? 'active'">Sản phẩm</a>
+        </nav>
+
+        <form class="fs-search-form" th:action="@{/san-pham}" method="get">
+            <input type="text" name="q" placeholder="Tìm giày, thương hiệu..." th:value="${fQ}">
+            <button type="submit"><i class="bi bi-search"></i></button>
+        </form>
+
+        <div class="fs-nav-actions">
+            <a th:href="@{/gio-hang}" class="fs-icon-btn" title="Giỏ hàng">
+                <i class="bi bi-bag"></i>
+                <span class="fs-cart-badge" th:text="${gioHangSoLuong != null ? gioHangSoLuong : 0}"></span>
+            </a>
+
+            <div class="fs-dropdown" sec:authorize="isAuthenticated()">
+                <button type="button" class="fs-icon-btn" data-fs-dropdown-toggle title="Tài khoản"><i class="bi bi-person"></i></button>
+                <div class="fs-dropdown-menu">
+                    <a th:href="@{/ca-nhan}"><i class="bi bi-person-circle"></i> Thông tin cá nhân</a>
+                    <a th:href="@{/ca-nhan/don-hang}"><i class="bi bi-bag-check"></i> Đơn hàng của tôi</a>
+                    <a th:href="@{/ca-nhan/dia-chi}"><i class="bi bi-geo-alt"></i> Sổ địa chỉ</a>
+                    <a th:href="@{/ca-nhan/voucher}"><i class="bi bi-ticket-perforated"></i> Voucher của tôi</a>
+                    <hr>
+                    <form th:action="@{/logout}" method="post">
+                        <button type="submit"><i class="bi bi-box-arrow-right"></i> Đăng xuất</button>
+                    </form>
+                </div>
+            </div>
+            <a th:href="@{/login}" class="fs-icon-btn" sec:authorize="!isAuthenticated()" title="Đăng nhập"><i class="bi bi-person"></i></a>
+
+            <button type="button" class="fs-mobile-toggle" data-fs-mobile-toggle><i class="bi bi-list"></i></button>
+        </div>
+    </div>
+    <div id="fs-mobile-menu" class="fs-container" style="display:none; padding-bottom:14px;">
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            <a th:href="@{/}" style="color:#fff;font-weight:700;">Trang chủ</a>
+            <a th:href="@{/san-pham}" style="color:#fff;font-weight:700;">Sản phẩm</a>
+            <a th:href="@{/gio-hang}" style="color:#fff;font-weight:700;">Giỏ hàng</a>
+        </div>
+    </div>
+</header>
+<script>
+    document.addEventListener('click', function(e){
+        if (e.target.closest('[data-fs-mobile-toggle]')) {
+            var m = document.getElementById('fs-mobile-menu');
+            m.style.display = (m.style.display === 'none' || !m.style.display) ? 'block' : 'none';
+        }
+    });
+</script>
+</body>
+</html>

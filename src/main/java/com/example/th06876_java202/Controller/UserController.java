@@ -2,10 +2,15 @@ package com.example.th06876_java202.Controller;
 
 import com.example.th06876_java202.Entity.*;
 import com.example.th06876_java202.Service.*;
+import com.example.th06876_java202.Storefront.DangKyKhachHangDTO;
+import com.example.th06876_java202.Storefront.SanPhamCardVM;
+import com.example.th06876_java202.Storefront.SanPhamHienThiService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,6 +28,9 @@ public class UserController {
     private final SanPhamService sanPhamService;
     private final SanPhamChiTietService sanPhamChiTietService;
     private final ThongKeService thongKeService;
+    private final DanhMucSanPhamService danhMucSanPhamService;
+    private final ThuongHieuService thuongHieuService;
+    private final SanPhamHienThiService sanPhamHienThiService;
 
     @GetMapping("/")
     public String index(Authentication authentication, Model model) {
@@ -138,7 +146,16 @@ public class UserController {
                 return "account/staff/home";
             }
         }
-        return "sanpham/index";
+
+        // === KHÁCH / KHÁCH HÀNG: Trang chủ website bán hàng FS Shoes ===
+        List<SanPham> sanPhamMoiNhat = sanPhamService.layMoiNhat();
+        List<SanPhamCardVM> sanPhamNoiBat = sanPhamHienThiService.taoDanhSachCard(sanPhamMoiNhat);
+
+        model.addAttribute("sanPhamNoiBat", sanPhamNoiBat);
+        model.addAttribute("danhMucs", danhMucSanPhamService.getAll().stream().filter(DanhMucSanPham::isTrangThai).toList());
+        model.addAttribute("thuongHieus", thuongHieuService.findAll().stream().filter(ThuongHieu::isTrangThai).toList());
+
+        return "trangchu/index";
     }
 
     @GetMapping("/login")
@@ -148,23 +165,43 @@ public class UserController {
 
     @GetMapping("/register")
     public String register(Model model) {
-        model.addAttribute("taiKhoan", new TaiKhoan());
+        model.addAttribute("dangKy", new DangKyKhachHangDTO());
         return "account/user/register";
     }
 
     @PostMapping("/register")
-    public String register(@ModelAttribute TaiKhoan taiKhoan,
-                           @RequestParam String xnmatKhau,
-                           Model model) {
-        if (!taiKhoan.getMatKhau().equals(xnmatKhau)){
-            model.addAttribute("error", "Mật khẩu không khớp");
+    public String register(@Valid @ModelAttribute("dangKy") DangKyKhachHangDTO dangKy,
+                            BindingResult result,
+                            Model model) {
+
+        if (!result.hasErrors() && !dangKy.getMatKhau().equals(dangKy.getXnMatKhau())) {
+            result.rejectValue("xnMatKhau", "error.dangKy", "Mật khẩu xác nhận không khớp.");
+        }
+        if (!result.hasFieldErrors("tenDangNhap") && taiKhoanService.isTenDangNhapExist(dangKy.getTenDangNhap())) {
+            result.rejectValue("tenDangNhap", "error.dangKy", "Tên đăng nhập đã tồn tại.");
+        }
+        if (!result.hasFieldErrors("sdt") && khachHangService.existsBySoDienThoai(dangKy.getSdt())) {
+            result.rejectValue("sdt", "error.dangKy", "Số điện thoại đã được sử dụng.");
+        }
+        if (!result.hasFieldErrors("email") && khachHangService.existsByEmail(dangKy.getEmail())) {
+            result.rejectValue("email", "error.dangKy", "Email đã được sử dụng.");
+        }
+
+        if (result.hasErrors()) {
             return "account/user/register";
         }
-        if (taiKhoanService.isTenDangNhapExist(taiKhoan.getTenDangNhap())) {
-            model.addAttribute("error", "Tên đăng nhập đã tồn tại");
-            return "account/user/register";
-        }
-        taiKhoanService.createUser(taiKhoan);
+
+        TaiKhoan taiKhoan = new TaiKhoan();
+        taiKhoan.setTenDangNhap(dangKy.getTenDangNhap().trim());
+        taiKhoan.setMatKhau(dangKy.getMatKhau());
+
+        KhachHang khachHang = new KhachHang();
+        khachHang.setHoTen(dangKy.getHoTen().trim());
+        khachHang.setSdt(dangKy.getSdt().trim());
+        khachHang.setEmail(dangKy.getEmail().trim());
+
+        taiKhoanService.registerCustomer(taiKhoan, khachHang);
+
         return "redirect:/login?registered";
     }
 

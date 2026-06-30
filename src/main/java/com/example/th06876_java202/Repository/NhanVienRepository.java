@@ -52,6 +52,9 @@ public interface NhanVienRepository extends JpaRepository<NhanVien, String> {
     @Query("SELECT COUNT(nv) > 0 FROM NhanVien nv WHERE nv.soDienThoai = :soDienThoai AND nv.maNhanVien != :maNhanVien")
     boolean existsBySoDienThoaiAndNotMaNhanVien(@Param("soDienThoai") String soDienThoai, @Param("maNhanVien") String maNhanVien);
 
+    List<NhanVien> findByHoTenContaining(String hoTen);
+
+    NhanVien findByTaiKhoan_TenDangNhap(String tenDangNhap);
     @Query("SELECT nv FROM NhanVien nv WHERE " +
             "(:keyword IS NULL OR :keyword = '' OR nv.hoTen LIKE %:keyword% OR nv.soDienThoai LIKE %:keyword%) " +
             "AND (:role IS NULL OR :role = '' OR nv.chucVu = :role) " +

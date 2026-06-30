@@ -61,6 +61,11 @@ public class SanPhamService {
         return sanPhamRepository.existsByTenSanPhamIgnoreCase(normalizedName);
     }
 
+    public List<SanPham> layMoiNhat() {
+        return sanPhamRepository.findTop8ByTrangThaiTrueOrderByMaSanPhamDesc();
+    }
+
+}
     public long countByTrangThai(boolean trangThai) {
         return sanPhamRepository.countByTrangThai(trangThai);
     }

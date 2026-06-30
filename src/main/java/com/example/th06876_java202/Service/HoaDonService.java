@@ -15,11 +15,11 @@ import java.util.List;
 public class HoaDonService {
 
     @Autowired
-    private HoaDonRepo hoaDonRepo;
+    private HoaDonRepo repo;
 
 
     public List<HoaDon> findByTrangThai(String trangThai) {
-        return hoaDonRepo.findByTrangThai(trangThai);
+        return repo.findByTrangThai(trangThai);
     }
 
     public Page<HoaDon> getALLDH(Pageable pageable) {
@@ -103,6 +103,11 @@ public class HoaDonService {
             hoaDonRepo.save(hd);
         }
     }
+    public Page<HoaDon> findByKhachHang(Integer maKH, Pageable pageable) {
+        return repo.findByMaKhachHang_MaKHOrderByMaHoaDonDesc(maKH, pageable);
+    }
+
+}
 
     public void suattdgg(String mahd) {
         HoaDon hd = hoaDonRepo.findById(mahd).orElse(null);

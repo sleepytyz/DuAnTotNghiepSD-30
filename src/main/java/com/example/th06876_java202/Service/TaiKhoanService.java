@@ -134,4 +134,36 @@ public class TaiKhoanService {
 
         return null;
     }
+
+    /**
+     * Đăng ký tài khoản khách hàng đầy đủ: tạo TaiKhoan (vai trò USER) và hồ sơ KhachHang liên kết.
+     */
+    @org.springframework.transaction.annotation.Transactional
+    public KhachHang registerCustomer(TaiKhoan taiKhoan, KhachHang khachHang) {
+        taiKhoan.setMatKhau(passwordEncoder.encode(taiKhoan.getMatKhau()));
+        taiKhoan.setVaiTro("USER");
+        taiKhoan.setTrangThai(true);
+        TaiKhoan savedTk = taiKhoanRepository.save(taiKhoan);
+
+        khachHang.setTaiKhoan(savedTk);
+        khachHang.setTrangThai(true);
+        khachHang.setNgayDangKy(java.time.LocalDate.now());
+        return khachHangRepository.save(khachHang);
+    }
+
+    /**
+     * Đổi mật khẩu cho tài khoản đang đăng nhập, có kiểm tra mật khẩu cũ.
+     * Trả về null nếu thành công, hoặc thông báo lỗi nếu thất bại.
+     */
+    @org.springframework.transaction.annotation.Transactional
+    public String doiMatKhau(Integer maTaiKhoan, String matKhauCu, String matKhauMoi) {
+        TaiKhoan tk = taiKhoanRepository.findById(maTaiKhoan).orElse(null);
+        if (tk == null) return "Không tìm thấy tài khoản.";
+        if (!passwordEncoder.matches(matKhauCu, tk.getMatKhau())) {
+            return "Mật khẩu hiện tại không đúng.";
+        }
+        tk.setMatKhau(passwordEncoder.encode(matKhauMoi));
+        taiKhoanRepository.save(tk);
+        return null;
+    }
 }

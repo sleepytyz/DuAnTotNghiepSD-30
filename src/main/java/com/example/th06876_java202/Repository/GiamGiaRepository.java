@@ -80,6 +80,8 @@ public interface GiamGiaRepository extends JpaRepository<GiamGia, String> {
 
     boolean existsByTenGiamGia(String tenChuongTrinh);
 
+    java.util.Optional<GiamGia> findByTenGiamGiaIgnoreCase(String tenGiamGia);
+
     @Query("SELECT g FROM GiamGia g WHERE g.trangThai != 'Ngừng hoạt động'")
     List<GiamGia> findDanhSachCanCapNhat();
 

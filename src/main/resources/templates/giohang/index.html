@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/client-head :: head('Giỏ hàng')}"></head>
+<body class="fs-body">
+
+<header th:replace="~{fragments/client-header :: header('shop')}"></header>
+
+<main class="fs-main">
+    <div class="fs-container">
+        <div class="fs-breadcrumb">
+            <a th:href="@{/}">Trang chủ</a><span class="sep">/</span><span class="current">Giỏ hàng</span>
+        </div>
+        <h1 class="fs-h2" style="margin-bottom:24px;">Giỏ hàng của bạn</h1>
+
+        <div class="fs-alert fs-alert-success" th:if="${thongBaoGioHang}" th:text="${thongBaoGioHang}"></div>
+        <div class="fs-alert fs-alert-danger" th:if="${loiVoucher}" th:text="${loiVoucher}"></div>
+        <div class="fs-alert fs-alert-warning" th:if="${loiTaiKhoan}" th:text="${loiTaiKhoan}"></div>
+        <div class="fs-alert fs-alert-warning" th:each="cb : ${gioHang.canhBao}" th:text="${cb}"></div>
+
+        <div th:if="${#lists.isEmpty(gioHang.dongHang)}" class="fs-empty-state">
+            <i class="bi bi-bag-x"></i>
+            <h3>Giỏ hàng đang trống</h3>
+            <p>Hãy chọn cho mình một đôi giày ưng ý nhé!</p>
+            <a th:href="@{/san-pham}" class="fs-btn fs-btn-primary">Mua sắm ngay</a>
+        </div>
+
+        <div class="fs-cart-layout" th:unless="${#lists.isEmpty(gioHang.dongHang)}" style="padding-bottom:60px;">
+            <div>
+                <div class="fs-cart-line" th:each="line : ${gioHang.dongHang}">
+                    <img th:src="${line.anh}" th:alt="${line.tenSanPham}">
+                    <div>
+                        <div class="name" th:text="${line.tenSanPham}">Tên sản phẩm</div>
+                        <div class="opt" th:text="'Màu: ' + ${line.tenMauSac} + ' • Size: ' + ${line.tenKichThuoc}">Tuỳ chọn</div>
+                        <div class="price">
+                            <span th:text="${#numbers.formatDecimal(line.donGia,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
+                            <span th:if="${line.donGiaGoc != null and line.donGiaGoc.compareTo(line.donGia) > 0}"
+                                  style="text-decoration:line-through;color:#9CA3AF;font-weight:400;margin-left:6px;"
+                                  th:text="${#numbers.formatDecimal(line.donGiaGoc,0,'COMMA',0,'POINT')} + 'đ'"></span>
+                        </div>
+                        <form th:action="@{/gio-hang/cap-nhat}" method="post" class="fs-qty-stepper" data-auto-submit style="margin-top:8px;" th:if="${line.conHopLe}">
+                            <input type="hidden" name="maSanPhamChiTiet" th:value="${line.maSanPhamChiTiet}">
+                            <button type="button" data-qty-step="-1">−</button>
+                            <input type="number" name="soLuong" th:value="${line.soLuong}" min="1" th:max="${line.soLuongTon}">
+                            <button type="button" data-qty-step="1">+</button>
+                        </form>
+                        <span th:unless="${line.conHopLe}" class="fs-stock-note" style="color:#B71C1C;">Sản phẩm không còn khả dụng</span>
+                    </div>
+                    <div class="total" th:text="${#numbers.formatDecimal(line.thanhTien,0,'COMMA',0,'POINT')} + 'đ'">0đ</div>
+                    <form th:action="@{/gio-hang/xoa}" method="post">
+                        <input type="hidden" name="maSanPhamChiTiet" th:value="${line.maSanPhamChiTiet}">
+                        <button type="submit" class="fs-cart-remove" title="Xoá"><i class="bi bi-trash3"></i></button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="fs-summary-box">
+                <h3 class="fs-h3" style="margin-bottom:18px;">Tóm tắt đơn hàng</h3>
+
+                <div th:if="${gioHang.voucherApDung == null}">
+                    <form th:action="@{/gio-hang/ap-dung-voucher}" method="post" class="fs-voucher-box">
+                        <input type="text" name="maVoucher" placeholder="Nhập mã giảm giá">
+                        <button type="submit" class="fs-btn fs-btn-outline fs-btn-sm">Áp dụng</button>
+                    </form>
+                </div>
+                <div th:if="${gioHang.voucherApDung != null}" class="fs-voucher-applied">
+                    <span><i class="bi bi-ticket-perforated-fill"></i> <span th:text="${gioHang.voucherApDung.tenGiamGia}">Voucher</span></span>
+                    <form th:action="@{/gio-hang/bo-voucher}" method="post" style="display:inline;">
+                        <button type="submit" title="Bỏ mã"><i class="bi bi-x-circle"></i></button>
+                    </form>
+                </div>
+
+                <div class="fs-summary-row">
+                    <span>Tạm tính (<span th:text="${gioHang.tongSoLuong}">0</span> sản phẩm)</span>
+                    <span th:text="${#numbers.formatDecimal(gioHang.tongTienHang,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
+                </div>
+                <div class="fs-summary-row" th:if="${gioHang.soTienGiamVoucher.signum() > 0}">
+                    <span>Giảm giá voucher</span>
+                    <span th:text="'-' + ${#numbers.formatDecimal(gioHang.soTienGiamVoucher,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
+                </div>
+                <div class="fs-summary-row">
+                    <span>Phí vận chuyển</span>
+                    <span th:if="${gioHang.tienShip.signum() == 0}" class="free">Miễn phí</span>
+                    <span th:if="${gioHang.tienShip.signum() > 0}" th:text="${#numbers.formatDecimal(gioHang.tienShip,0,'COMMA',0,'POINT')} + 'đ'"></span>
+                </div>
+                <div class="fs-summary-row total">
+                    <span>Tổng cộng</span>
+                    <span th:text="${#numbers.formatDecimal(gioHang.tongThanhToan,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
+                </div>
+
+                <a sec:authorize="isAuthenticated()" th:href="@{/thanh-toan}" class="fs-btn fs-btn-primary fs-btn-block" style="margin-top:14px;">
+                    Tiến hành thanh toán <i class="bi bi-arrow-right"></i>
+                </a>
+                <a sec:authorize="!isAuthenticated()" th:href="@{/login}" class="fs-btn fs-btn-primary fs-btn-block" style="margin-top:14px;">
+                    Đăng nhập để thanh toán
+                </a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/client-footer :: footer}"></footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/storefront/js/storefront.js}"></script>
+</body>
+</html>

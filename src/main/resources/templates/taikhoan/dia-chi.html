@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/client-head :: head('Sổ địa chỉ')}"></head>
+<body class="fs-body">
+
+<header th:replace="~{fragments/client-header :: header('account')}"></header>
+
+<main class="fs-main">
+    <div class="fs-container" style="padding:30px 0 60px;">
+        <div class="fs-account-layout">
+            <div th:replace="~{fragments/account-menu :: menu('dia-chi')}"></div>
+
+            <div>
+                <div class="fs-alert fs-alert-success" th:if="${thongBao}" th:text="${thongBao}"></div>
+                <div class="fs-alert fs-alert-danger" th:if="${loiDiaChi}" th:text="${loiDiaChi}"></div>
+
+                <h2 class="fs-h3" style="margin-bottom:16px;">Sổ địa chỉ</h2>
+
+                <div class="fs-addr-card" th:each="dc : ${diaChis}">
+                    <span class="default-pill" th:if="${dc.diaChiMacDinh}" style="position:absolute;top:14px;right:14px;">Mặc định</span>
+                    <b th:text="${dc.tenNguoiNhan}">Tên</b> — <span th:text="${dc.soDienThoaiNguoiNhan}">SĐT</span><br>
+                    <span class="fs-muted" th:text="${dc.diaChiCuThe + ', ' + dc.phuongXa + ', ' + dc.quanHuyen + ', ' + dc.tinhThanh}">Địa chỉ</span>
+                    <div style="margin-top:12px;display:flex;gap:10px;">
+                        <form th:action="@{/ca-nhan/dia-chi/mac-dinh/{id}(id=${dc.maDiaChi})}" method="post" th:unless="${dc.diaChiMacDinh}">
+                            <button type="submit" class="fs-btn fs-btn-outline fs-btn-sm">Đặt mặc định</button>
+                        </form>
+                        <form th:action="@{/ca-nhan/dia-chi/xoa/{id}(id=${dc.maDiaChi})}" method="post" onsubmit="return confirm('Xoá địa chỉ này?')">
+                            <button type="submit" class="fs-btn fs-btn-outline fs-btn-sm">Xoá</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="fs-form-card" style="margin-top:10px;">
+                    <h3 class="fs-h3" style="margin-bottom:16px;">Thêm địa chỉ mới</h3>
+                    <form th:action="@{/ca-nhan/dia-chi/them}" th:object="${diaChiMoi}" method="post">
+                        <div class="fs-row-2">
+                            <div class="fs-field">
+                                <label>Họ tên người nhận <span class="req">*</span></label>
+                                <input type="text" th:field="*{tenNguoiNhan}" class="fs-input">
+                                <div class="fs-field-error" th:if="${#fields.hasErrors('tenNguoiNhan')}" th:errors="*{tenNguoiNhan}"></div>
+                            </div>
+                            <div class="fs-field">
+                                <label>Số điện thoại <span class="req">*</span></label>
+                                <input type="text" th:field="*{soDienThoaiNguoiNhan}" class="fs-input">
+                                <div class="fs-field-error" th:if="${#fields.hasErrors('soDienThoaiNguoiNhan')}" th:errors="*{soDienThoaiNguoiNhan}"></div>
+                            </div>
+                        </div>
+                        <div class="fs-row-2">
+                            <div class="fs-field">
+                                <label>Tỉnh / Thành phố <span class="req">*</span></label>
+                                <input type="text" th:field="*{tinhThanh}" class="fs-input">
+                            </div>
+                            <div class="fs-field">
+                                <label>Quận / Huyện <span class="req">*</span></label>
+                                <input type="text" th:field="*{quanHuyen}" class="fs-input">
+                            </div>
+                        </div>
+                        <div class="fs-field">
+                            <label>Phường / Xã <span class="req">*</span></label>
+                            <input type="text" th:field="*{phuongXa}" class="fs-input">
+                        </div>
+                        <div class="fs-field">
+                            <label>Địa chỉ cụ thể <span class="req">*</span></label>
+                            <input type="text" th:field="*{diaChiCuThe}" class="fs-input">
+                        </div>
+                        <label class="fs-check" style="margin-bottom:14px;"><input type="checkbox" name="macDinh" value="true"> Đặt làm địa chỉ mặc định</label><br>
+                        <button type="submit" class="fs-btn fs-btn-primary">Thêm địa chỉ</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/client-footer :: footer}"></footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

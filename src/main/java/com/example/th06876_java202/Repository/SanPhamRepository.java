@@ -55,6 +55,16 @@ public interface SanPhamRepository extends JpaRepository<SanPham, String> {
             "LOWER(sp.maSanPham) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
             "ORDER BY sp.ngayTao DESC")
     Page<SanPham> searchSanPham(@Param("maDanhMuc") String maDanhMuc,
+    List<SanPham> findTop8ByTrangThaiTrueOrderByMaSanPhamDesc();
+
+    @Query("SELECT s FROM SanPham s WHERE " +
+            "(:maDanhMuc IS NULL OR s.danhMucSanPham.maDanhMuc = :maDanhMuc) AND " +
+            "(:tt IS NULL OR s.trangThai = :tt) AND " +
+            "(:maTH IS NULL OR s.thuongHieu.maThuongHieu = :maTH) AND " +
+            "(:maKG IS NULL OR s.kieuGiay.maKieuGiay = :maKG) AND " +
+            "(:t IS NULL OR s.tenSanPham LIKE %:t% OR CAST(s.maSanPham AS string) LIKE %:t%) " +
+            "ORDER BY s.maSanPham DESC")
+    Page<SanPham> searchSanPham(@Param("maDanhMuc") Integer maDanhMuc,
                                 @Param("tt") Boolean tt,
                                 @Param("maTH") String maTH,
                                 @Param("maKG") String maKG,

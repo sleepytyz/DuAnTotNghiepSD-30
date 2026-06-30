@@ -157,6 +157,15 @@ public class KhachHangService {
         return khachHangRepo.findByTrangThai(trangThai, pageable);
     }
 
+    public boolean existsByEmail(String email) {
+        return khachHangRepo.existsByEmail(email);
+    }
+
+    public KhachHang findByTenDangNhap(String tenDangNhap) {
+        return khachHangRepo.findByTaiKhoan_TenDangNhap(tenDangNhap).orElse(null);
+    }
+}
+
     public List<KhachHang> findAllByTrangThai(boolean trangThai) {
         return khachHangRepo.findAllByTrangThai(trangThai);
     }

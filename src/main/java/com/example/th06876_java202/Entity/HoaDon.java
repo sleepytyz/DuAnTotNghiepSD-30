@@ -7,8 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;  // ⭐ Đổi từ LocalDate sang LocalDateTime
-
+import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
@@ -61,4 +60,7 @@ public class HoaDon {
 
     @Column(name = "LoaiBan")
     private String loaiBan;
+
+    @Column(name = "DiaChiGiaoHang", length = 1000)
+    private String diaChiGiaoHang;
 }

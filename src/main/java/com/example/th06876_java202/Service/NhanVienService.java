@@ -29,6 +29,12 @@ public class NhanVienService {
     }
 
 
+
+    public NhanVien findByUsername(String username) {
+        return nhanVienRepository.findByTaiKhoan_TenDangNhap(username);
+    }
+}
+
     public String generateMaNhanVien() {
         String code;
         boolean exists;
