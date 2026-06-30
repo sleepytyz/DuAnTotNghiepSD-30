@@ -53,34 +53,36 @@ public class UserController {
                 model.addAttribute("tongSanPham", sanPhams != null ? sanPhams.size() : 0);
 
                 // Số sản phẩm sắp hết (tồn kho <= 10)
-                List<SanPhamChiTiet> spct = sanPhamChiTietService.getall();
+                List<SanPhamChiTiet> spct = sanPhamChiTietService.getalll();
                 long sapHet = spct.stream()
                         .filter(s -> s.getSoLuongTon() != null && s.getSoLuongTon() <= 10 && s.getSoLuongTon() > 0)
                         .count();
                 model.addAttribute("sanPhamSapHet", sapHet);
 
+                // SỬA: Dùng getAll() để lấy tất cả đơn hàng
+                List<HoaDon> allHoaDon = hoaDonService.getAll();
+
                 // Đơn hàng gần đây (10 đơn)
-                List<HoaDon> hoaDonGanDay = hoaDonService.getAll().stream()
+                List<HoaDon> hoaDonGanDay = allHoaDon.stream()
                         .limit(10)
                         .toList();
                 model.addAttribute("hoaDonGanDay", hoaDonGanDay);
 
                 // Thống kê trạng thái đơn hàng
-                long dangXuLy = hoaDonService.getAll().stream()
+                long dangXuLy = allHoaDon.stream()
                         .filter(h -> "Đang xử lý".equals(h.getTrangThai()) || "Chờ xác nhận".equals(h.getTrangThai()))
                         .count();
-                long daGiao = hoaDonService.getAll().stream()
+                long daGiao = allHoaDon.stream()
                         .filter(h -> "Đã giao".equals(h.getTrangThai()))
                         .count();
-                long daHuy = hoaDonService.getAll().stream()
-                        .filter(h -> "Đã hủy".equals(h.getTrangThai()))
-                        .count();
+                long daHuy = hoaDonService.getALLDHHUY().size();
+
                 model.addAttribute("donDangXuLy", dangXuLy);
                 model.addAttribute("donDaGiao", daGiao);
                 model.addAttribute("donDaHuy", daHuy);
 
                 // Đơn hàng mới
-                long donMoi = hoaDonService.getAll().stream()
+                long donMoi = allHoaDon.stream()
                         .filter(h -> "Chờ xác nhận".equals(h.getTrangThai()))
                         .count();
                 model.addAttribute("tongDonHangMoi", donMoi);
@@ -94,8 +96,11 @@ public class UserController {
                 List<ThongKeDoanhThuDTO> thongKeNgay = thongKeService.thongKeDoanhThuTheoNgay(startDate, endDate);
                 model.addAttribute("thongKeNgay", thongKeNgay);
 
+                // SỬA: Dùng getAll() để lấy tất cả đơn hàng
+                List<HoaDon> allHoaDon = hoaDonService.getAll();
+
                 // Đơn hàng gần đây (10 đơn)
-                List<HoaDon> hoaDonGanDay = hoaDonService.getAll().stream()
+                List<HoaDon> hoaDonGanDay = allHoaDon.stream()
                         .limit(10)
                         .toList();
                 model.addAttribute("hoaDonGanDay", hoaDonGanDay);
@@ -103,8 +108,8 @@ public class UserController {
                 // Thống kê hôm nay
                 LocalDate today = LocalDate.now();
 
-                // Đơn hàng hôm nay - ngayTao là LocalDate, so sánh trực tiếp
-                List<HoaDon> hoaDonHomNay = hoaDonService.getAll().stream()
+                // Đơn hàng hôm nay
+                List<HoaDon> hoaDonHomNay = allHoaDon.stream()
                         .filter(h -> h.getNgayTao() != null && h.getNgayTao().equals(today))
                         .toList();
                 model.addAttribute("donHomNay", hoaDonHomNay.size());
@@ -117,12 +122,12 @@ public class UserController {
                 model.addAttribute("doanhThuHomNay", String.format("%,.0f", doanhThuHomNay));
 
                 // Đơn đang xử lý
-                long dangXuLy = hoaDonService.getAll().stream()
+                long dangXuLy = allHoaDon.stream()
                         .filter(h -> "Đang xử lý".equals(h.getTrangThai()) || "Chờ xác nhận".equals(h.getTrangThai()))
                         .count();
                 model.addAttribute("donDangXuLy", dangXuLy);
 
-                // Khách mới hôm nay - SỬA: dùng ngayDangKy
+                // Khách mới hôm nay
                 List<KhachHang> khachHangs = khachHangService.getAllKhachHang();
                 long khachMoi = khachHangs.stream()
                         .filter(k -> k.getNgayDangKy() != null && k.getNgayDangKy().equals(today))
@@ -130,7 +135,7 @@ public class UserController {
                 model.addAttribute("khachMoiHomNay", khachMoi);
 
                 // Đơn mới (chưa xử lý)
-                long donMoi = hoaDonService.getAll().stream()
+                long donMoi = allHoaDon.stream()
                         .filter(h -> "Chờ xác nhận".equals(h.getTrangThai()))
                         .count();
                 model.addAttribute("donHangMoi", donMoi);

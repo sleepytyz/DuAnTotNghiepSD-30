@@ -30,10 +30,6 @@ public class TaiKhoan {
     @Column(name = "TrangThai")
     private Boolean trangThai;
 
-    @OneToOne
-    @JoinColumn(name = "MaTaiKhoan", referencedColumnName = "MaTaiKhoan")
-    private TaiKhoan taiKhoan;
-
     @OneToOne(mappedBy = "taiKhoan", fetch = FetchType.EAGER)
     @JoinColumn(name = "MaTaiKhoan", referencedColumnName = "MaTaiKhoan")
     private NhanVien nhanVien;
