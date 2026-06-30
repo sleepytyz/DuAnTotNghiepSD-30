@@ -1,16 +1,65 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
->
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title>Quản Lý Khách Hàng</title>
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-
     <link rel="stylesheet" th:href="@{/css/style.css}">
+
+    <!-- Meta tags để truyền thông báo -->
+    <meta name="successMess" th:content="${successMess}">
+    <meta name="errorMess" th:content="${errorMess}">
+
     <style>
+        /* ===== TOAST ===== */
+        .toast-container-custom {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            max-width: 420px;
+            width: 100%;
+        }
+        .toast-custom {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            border-left: 5px solid #dc3545;
+            animation: slideInRight 0.4s ease;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .toast-custom.success { border-left-color: #28a745; }
+        .toast-custom.warning { border-left-color: #ffc107; }
+        .toast-custom.error { border-left-color: #dc3545; }
+        .toast-custom .toast-content { flex: 1; }
+        .toast-custom .toast-title { font-weight: 700; font-size: 0.95rem; color: #2d3748; }
+        .toast-custom .toast-message { font-size: 0.85rem; color: #6c757d; margin-top: 2px; white-space: pre-line; }
+        .toast-custom .toast-close {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: #adb5bd;
+            cursor: pointer;
+            padding: 0 4px;
+            transition: color 0.2s;
+        }
+        .toast-custom .toast-close:hover { color: #dc3545; }
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+
+        /* ===== SWITCH ===== */
         .form-switch .form-check-input {
             width: 3.5em;
             height: 1.75em;
@@ -20,65 +69,77 @@
             border-color: #dc3545;
         }
         .form-switch .form-check-input:checked {
-            background-color: #b02a37;
-            border-color: #b02a37;
+            background-color: #28a745;
+            border-color: #28a745;
         }
         .form-switch .form-check-input:focus {
             box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
         }
-        .pagination-bar {
-            padding: 12px 16px;
-            border-top: 1px solid #E5E7EB;
+
+        /* ===== PAGINATION ===== */
+        .pagination-custom {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            font-size: 12.5px;
-            color: #6B7280;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .page-btns {
-            display: flex;
             gap: 4px;
-            align-items: center;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            flex-wrap: wrap;
         }
-
-        .page-btn {
-            width: 30px;
-            height: 30px;
-            border-radius: 6px;
-            border: 1.5px solid #E5E7EB;
-            background: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12.5px;
-            font-weight: 500;
-            color: #1A1A1A;
+        .pagination-custom .page-item {
+            display: inline-block;
+        }
+        .pagination-custom .page-item .page-link {
+            border: none;
+            border-radius: 8px;
+            padding: 6px 14px;
+            color: #495057;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            background: transparent;
+            min-width: 36px;
+            text-align: center;
             text-decoration: none;
-            transition: background .12s, border-color .12s, color .12s;
-            cursor: pointer;
+            display: block;
         }
-
-        .page-btn:hover {
-            background: #F5F6FA;
-            border-color: #9CA3AF;
+        .pagination-custom .page-item .page-link:hover {
+            background: #fff5f5;
+            color: #c92327;
         }
-
-        .page-btn.active {
-            background: #E53935;
-            border-color: #E53935;
-            color: #fff;
-            font-weight: 700;
+        .pagination-custom .page-item.active .page-link {
+            background: linear-gradient(135deg, #c92327, #a01a1e);
+            color: white;
+            box-shadow: 0 2px 8px rgba(201, 35, 39, 0.3);
         }
-
-        .page-btn.disabled {
-            opacity: .4;
+        .pagination-custom .page-item.disabled .page-link {
+            color: #adb5bd;
+            cursor: not-allowed;
             pointer-events: none;
-            cursor: default;
+            opacity: 0.5;
         }
 
+        /* ===== TABLE FOOTER ===== */
+        .table-footer {
+            background: #f8f9fa;
+            padding: 12px 20px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-radius: 0 0 16px 16px;
+        }
+        .table-footer .info-text {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        .table-footer .info-text strong {
+            color: #2d3748;
+        }
+
+        /* ===== BADGE ===== */
         .badge-active {
             background: #10B981;
             color: white;
@@ -86,7 +147,6 @@
             border-radius: 20px;
             font-size: 11px;
         }
-
         .badge-locked {
             background: #EF4444;
             color: white;
@@ -95,303 +155,498 @@
             font-size: 11px;
         }
 
+        /* ===== FILTER - CUSTOM ===== */
+        .filter-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px 15px 16px 15px;
+        }
 
+        /* Container chính - dùng display:flex */
+        .filter-container {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            width: 100%;
+            gap: 12px;
+        }
+
+        /* Item tìm kiếm - TO, chiếm nhiều diện tích */
+        .filter-item-search {
+            flex: 2 1 350px;
+            min-width: 250px;
+        }
+
+        /* Item trạng thái - TO, chiếm vừa phải */
+        .filter-item-status {
+            flex: 1.5 1 220px;
+            min-width: 180px;
+        }
+
+        /* Item reset - NHỎ, cố định */
+        .filter-item-reset {
+            flex: 0 0 85px;
+            min-width: 75px;
+        }
+
+        /* Item actions - NHỎ, các nút nhỏ */
+        .filter-item-actions {
+            flex: 0 1 auto;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 6px;
+            min-width: 140px;
+        }
+
+        /* Label */
+        .filter-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 4px;
+            height: 20px;
+            line-height: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Input - TO, CHIẾM HẾT KHÔNG GIAN */
+        .filter-input {
+            height: 44px;
+            border-radius: 6px 0 0 6px;
+            font-size: 15px;
+            border: 1px solid #ced4da;
+            border-right: none;
+            background: #fff;
+            padding: 0 14px;
+            width: 100%;
+            outline: none;
+            flex: 1;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        .filter-input:focus {
+            border-color: #c92327;
+            box-shadow: 0 0 0 0.2rem rgba(201, 35, 39, 0.25);
+        }
+
+        /* Select - TO, CHIẾM HẾT KHÔNG GIAN */
+        .filter-select {
+            height: 44px;
+            border-radius: 6px;
+            font-size: 15px;
+            border: 1px solid #ced4da;
+            background: #fff;
+            padding: 0 36px 0 14px;
+            width: 100%;
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23495057' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        .filter-select:focus {
+            border-color: #c92327;
+            box-shadow: 0 0 0 0.2rem rgba(201, 35, 39, 0.25);
+        }
+
+        /* Input group - chiếm hết chiều ngang */
+        .filter-input-group {
+            display: flex;
+            width: 100%;
+        }
+
+        .filter-input-group .filter-btn-search {
+            border-radius: 0 6px 6px 0;
+            padding: 0 18px;
+            background: #c92327;
+            color: #fff;
+            border: none;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background 0.2s ease;
+            font-size: 16px;
+        }
+
+        .filter-input-group .filter-btn-search:hover {
+            background: #a01a1e;
+        }
+
+        /* Button chung - NHỎ GỌN */
+        .filter-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            text-decoration: none;
+            white-space: nowrap;
+            padding: 0 12px;
+            height: 32px;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        /* Reset - NHỎ */
+        .filter-btn-secondary {
+            background: #6c757d;
+            color: #fff;
+            width: 100%;
+            font-size: 12px;
+            height: 32px;
+            padding: 0 8px;
+        }
+        .filter-btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        /* Thêm - NHỎ */
+        .filter-btn-danger {
+            background: #c92327;
+            color: #fff;
+            height: 32px;
+            font-size: 12px;
+            padding: 0 12px;
+        }
+        .filter-btn-danger:hover {
+            background: #a01a1e;
+        }
+
+        /* Xuất Excel - NHỎ */
+        .filter-btn-success {
+            background: #28a745;
+            color: #fff;
+            height: 32px;
+            font-size: 12px;
+            padding: 0 12px;
+        }
+        .filter-btn-success:hover {
+            background: #1e7e34;
+        }
+
+        .filter-hidden-label {
+            visibility: hidden;
+            display: block;
+            height: 20px;
+            line-height: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .filter-container {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            .filter-item-search,
+            .filter-item-status,
+            .filter-item-reset,
+            .filter-item-actions {
+                flex: 1 1 100%;
+                min-width: unset;
+            }
+            .filter-item-actions {
+                justify-content: stretch;
+                flex-wrap: wrap;
+            }
+            .filter-item-actions .filter-btn {
+                flex: 1;
+                height: 38px;
+                font-size: 14px;
+            }
+            .filter-item-reset .filter-btn {
+                height: 38px;
+                font-size: 14px;
+            }
+            .filter-input,
+            .filter-select,
+            .filter-input-group .filter-btn-search {
+                height: 44px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .filter-item-actions .filter-btn {
+                font-size: 13px;
+                padding: 0 10px;
+            }
+            .filter-btn-danger i,
+            .filter-btn-success i {
+                display: none;
+            }
+        }
     </style>
 </head>
-
 <body>
 
 <div class="wrapper">
-
     <div sec:authorize="hasRole('ADMIN')">
         <div th:replace="fragments/sidebaradmin :: sidebar-admin"></div>
     </div>
-
     <div sec:authorize="hasRole('STAFF')">
         <div th:replace="fragments/sidebarstaff :: sidebar-staff"></div>
     </div>
 
     <div class="content-body">
-
         <div th:replace="~{fragments/header :: header('Quản lý khách hàng', 'Khách hàng')}"></div>
 
-        <div class="card card-custom mb-4">
+        <div class="page-content">
+            <!-- Toast Container -->
+            <div class="toast-container-custom" id="toastContainer"></div>
 
-            <div class="card-header text-white" style="background:#c92327;">
-                <h5 class="mb-0">
-                    <i class="bi bi-pencil-square me-2"></i>
-                    Thông tin khách hàng
-                </h5>
-            </div>
-
-            <div class="card p-3 mb-3">
-                <div class="row g-2">
-                    <form th:action="@{/khach-hang/locsdt}" method="get" class="col-md-6 row g-2">
-                        <input type="hidden" name="page" value="0">
-                        <div class="col-md-8">
-                            <input type="text" name="sdt" th:value="${sdt}" class="form-control" placeholder="Tìm theo số điện thoại">
-                        </div>
-                        <div class="col-md-4">
-                            <button class="btn btn-danger w-100">Tìm SĐT</button>
-                        </div>
-                    </form>
-
+            <div class="card card-custom mb-4">
+                <div class="card-header text-white" style="background:#c92327;">
+                    <h5 class="mb-0">
+                        <i class="bi bi-funnel-fill me-2"></i>
+                        Bộ lọc tìm kiếm
+                    </h5>
                 </div>
 
-                <div class="row mt-3">
-                    <div class="col-md-6">
-                        <a th:href="@{/khach-hang/hien-thi}" class="btn btn-secondary">
-                            <i class="bi bi-arrow-clockwise"></i> Reset
-                        </a>
-                    </div>
-                    <div class="col-md-6 text-end">
-                        <a th:href="@{/khach-hang/add-view}" class="btn btn-danger">
-                            <i class="bi bi-plus-circle"></i> Thêm khách hàng
-                        </a>
+                <div class="card-body filter-section">
+                    <!-- FILTER -->
+                    <div class="filter-container">
+
+                        <!-- 1. Tìm theo SĐT - TO -->
+                        <div class="filter-item filter-item-search">
+                            <form th:action="@{/khach-hang/locsdt}" method="get" style="display:contents;">
+                                <input type="hidden" name="page" value="0">
+                                <label class="filter-label">Tìm theo SĐT</label>
+                                <div class="filter-input-group">
+                                    <input type="text" name="sdt" th:value="${sdt}" class="filter-input" placeholder="Nhập số điện thoại...">
+                                    <button class="filter-btn-search" type="submit">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- 2. Trạng thái - TO -->
+                        <div class="filter-item filter-item-status">
+                            <form th:action="@{/khach-hang/hien-thi}" method="get" style="display:contents;">
+                                <label class="filter-label">Trạng thái</label>
+                                <select class="filter-select" name="status" onchange="this.closest('form').submit()">
+                                    <option value="">Tất cả</option>
+                                    <option value="true" th:selected="${selectedStatus == 'true'}">Hoạt động</option>
+                                    <option value="false" th:selected="${selectedStatus == 'false'}">Ngừng hoạt động</option>
+                                </select>
+                            </form>
+                        </div>
+
+                        <!-- 3. Reset - NHỎ -->
+                        <div class="filter-item filter-item-reset">
+                            <span class="filter-hidden-label">Reset</span>
+                            <a th:href="@{/khach-hang/hien-thi}" class="filter-btn filter-btn-secondary">
+                                <i class="bi bi-arrow-clockwise"></i> Reset
+                            </a>
+                        </div>
+
+                        <!-- 4. Actions - NHỎ -->
+                        <div class="filter-item filter-item-actions">
+                            <span class="filter-hidden-label">Hành động</span>
+                            <a th:href="@{/khach-hang/add-view}" class="filter-btn filter-btn-danger">
+                                <i class="bi bi-plus-circle"></i> Thêm
+                            </a>
+                            <a th:href="@{/khach-hang/export-excel}"
+                               class="filter-btn filter-btn-success">
+                                <i class="bi bi-file-earmark-excel"></i> Excel
+                            </a>
+                        </div>
+
                     </div>
                 </div>
             </div>
 
-            <div class="table-card mt-4">
-                <table class="table-custom">
-                    <thead>
-                    <tr>
-                        <th>STT</th>
-                        <th>Mã Khách hàng</th>
-                        <th>Họ tên</th>
-                        <th>SĐT</th>
-                        <th>Email</th>
-                        <th>Trạng thái</th>
-                        <th>Hành động</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="ok, row : ${khachHangs}">
-                        <td th:text="${row.count + (currentPage * size)}"></td>
-                        <td th:text="${'KH' + ok.maKH}"></td>
-                        <td th:text="${ok.hoTen}"></td>
-                        <td th:text="${ok.sdt}"></td>
-                        <td th:text="${ok.email}"></td>
-                        <td>
-                            <span th:if="${ok.trangThai == true}" class="badge-active">Hoạt động</span>
-                            <span th:if="${ok.trangThai == false}" class="badge-locked">Ngừng hoạt động</span>
-                        </td>
-                        <td class="text-center align-middle">
-                            <a class="btn btn-sm btn-outline-danger"
-                               th:href="@{/khach-hang/edit/{id}(id=${ok.maKH})}"
-                               title="Xem chi tiết">
-                                <i class="bi bi-eye-fill"></i>
-                            </a>
+            <!-- Table Card -->
+            <div class="card shadow-sm border-0" style="border-radius: 16px; overflow: hidden;">
+                <div class="card-body p-0">
+                    <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                        <h5 class="mb-0 fw-bold text-secondary">
+                            <i class="bi bi-people-fill text-danger me-2"></i>Danh Sách Khách Hàng
+                            <span class="badge bg-secondary ms-2" th:text="${totalItems} + ' khách hàng'"></span>
+                        </h5>
+                    </div>
 
-                            <div class="form-check form-switch d-inline-block align-middle ms-2">
-                                <input class="form-check-input" type="checkbox" role="switch"
-                                       th:checked="${ok.trangThai}"
-                                       th:onchange="|toggleStatus('${ok.maKH}', this.checked, this)|"
-                                       title="Bật/Tắt trạng thái">
-                            </div>
-                        </td>
-                    </tr>
-                    <tr th:if="${khachHangs == null or khachHangs.isEmpty()}">
-                        <td colspan="12" class="text-center py-4" style="color:#9CA3AF">
-                            <i class="bi bi-inbox" style="font-size:24px;display:block;margin-bottom:6px"></i>
-                            Không có dữ liệu khách hàng
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light text-uppercase fs-7">
+                            <tr>
+                                <th width="50" class="text-center">STT</th>
+                                <th class="text-center">Mã KH</th>
+                                <th class="text-center">Họ tên</th>
+                                <th class="text-center">SĐT</th>
+                                <th class="text-center">Email</th>
+                                <th class="text-center">Trạng thái</th>
+                                <th width="150" class="text-center">Hành động</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="ok, row : ${khachHangs}">
+                                <td class="text-center" th:text="${row.count + (currentPage * size)}"></td>
+                                <td class="fw-bold" th:text="${ok.maKH}"></td>
+                                <td class="text-center" th:text="${ok.hoTen}"></td>
+                                <td class="text-center" th:text="${ok.sdt}"></td>
+                                <td class="text-center" th:text="${ok.email}"></td>
+                                <td class="text-center">
+                                    <span th:if="${ok.trangThai == true}" class="badge-active">Hoạt động</span>
+                                    <span th:if="${ok.trangThai == false}" class="badge-locked">Ngừng hoạt động</span>
+                                </td>
+                                <td class="text-center">
+                                    <a class="btn btn-sm btn-outline-danger"
+                                       th:href="@{/khach-hang/edit/{id}(id=${ok.maKH})}"
+                                       title="Xem chi tiết">
+                                        <i class="bi bi-eye-fill"></i>
+                                    </a>
 
-                <!-- PAGINATION -->
-                <div class="pagination-bar" th:if="${khachHangPage != null and totalPages > 0}">
-                    <span th:text="${'Hiển thị ' + ((currentPage * size) + 1) + ' – ' + ((currentPage * size) + khachHangs.size()) + ' của ' + totalItems + ' khách hàng'}"></span>
+                                    <div class="form-check form-switch d-inline-block align-middle ms-2">
+                                        <input class="form-check-input" type="checkbox" role="switch"
+                                               th:checked="${ok.trangThai}"
+                                               th:data-id="${ok.maKH}"
+                                               th:data-status="${selectedStatus}"
+                                               onchange="toggleStatus(this)"
+                                               title="Bật/Tắt trạng thái">
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${khachHangs == null or khachHangs.isEmpty()}">
+                                <td colspan="7" class="text-center py-4 text-muted">
+                                    <i class="bi bi-inbox" style="font-size:24px;display:block;margin-bottom:6px"></i>
+                                    Không có dữ liệu khách hàng
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
 
-                    <div class="page-btns">
-                        <th:block th:with="
-            isSdt=${sdt != null},
-            isHang=${hang != null},
-            targetUrl=${isSdt ? '/khach-hang/locsdt' : (isHang ? '/khach-hang/lochang' : '/khach-hang/hien-thi')}">
+                    <!-- ===== PAGINATION ===== -->
+                    <div class="table-footer" th:if="${totalPages > 0}">
+                        <div class="info-text">
+                            <i class="bi bi-database me-1"></i>
+                            Tổng: <strong th:text="${totalItems}">0</strong> bản ghi
+                            <span class="mx-1">|</span>
+                            Trang <strong th:text="${currentPage + 1}">1</strong> / <strong th:text="${totalPages}">1</strong>
+                        </div>
 
-                            <a class="page-btn" th:classappend="${currentPage == 0} ? 'disabled'"
-                               th:href="@{{url}(url=${targetUrl}, page=0, size=${size}, sdt=${sdt}, hang=${hang})}">
-                                <i class="bi bi-chevron-bar-left"></i>
-                            </a>
-
-                            <a class="page-btn" th:classappend="${currentPage == 0} ? 'disabled'"
-                               th:href="@{{url}(url=${targetUrl}, page=${currentPage - 1}, size=${size}, sdt=${sdt}, hang=${hang})}">
-                                <i class="bi bi-chevron-left"></i>
-                            </a>
-
-                            <th:block th:with="cur=${currentPage}, tot=${totalPages}, from=${T(java.lang.Math).max(0, cur - 2)}, to=${T(java.lang.Math).min(tot - 1, cur + 2)}">
-                                <a class="page-btn" th:each="i : ${#numbers.sequence(from, to)}"
-                                   th:text="${i + 1}" th:classappend="${i == cur} ? 'active'"
-                                   th:href="@{{url}(url=${targetUrl}, page=${i}, size=${size}, sdt=${sdt}, hang=${hang})}"></a>
-                            </th:block>
-
-                            <a class="page-btn" th:classappend="${currentPage == totalPages - 1} ? 'disabled'"
-                               th:href="@{{url}(url=${targetUrl}, page=${currentPage + 1}, size=${size}, sdt=${sdt}, hang=${hang})}">
-                                <i class="bi bi-chevron-right"></i>
-                            </a>
-
-                            <a class="page-btn" th:classappend="${currentPage == totalPages - 1} ? 'disabled'"
-                               th:href="@{{url}(url=${targetUrl}, page=${totalPages - 1}, size=${size}, sdt=${sdt}, hang=${hang})}">
-                                <i class="bi bi-chevron-bar-right"></i>
-                            </a>
-
-                        </th:block>
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination-custom">
+                                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                    <a class="page-link" th:href="@{/khach-hang/hien-thi(page=0, size=${size}, status=${selectedStatus})}">
+                                        <i class="bi bi-chevron-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                    <a class="page-link" th:href="@{/khach-hang/hien-thi(page=${currentPage - 1}, size=${size}, status=${selectedStatus})}">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                                    th:if="${i >= 0 && i < totalPages && ((i >= currentPage - 2 && i <= currentPage + 2) || i == 0 || i == totalPages - 1)}"
+                                    th:classappend="${currentPage == i} ? 'active' : ''">
+                                    <span class="page-link" th:if="${i == 2 && currentPage > 3}" style="border: none; background: transparent; cursor: default;">...</span>
+                                    <a class="page-link" th:unless="${i == 2 && currentPage > 3}"
+                                       th:href="@{/khach-hang/hien-thi(page=${i}, size=${size}, status=${selectedStatus})}"
+                                       th:text="${i + 1}">
+                                    </a>
+                                    <span class="page-link" th:if="${i == totalPages - 3 && currentPage < totalPages - 4}" style="border: none; background: transparent; cursor: default;">...</span>
+                                </li>
+                                <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+                                    <a class="page-link" th:href="@{/khach-hang/hien-thi(page=${currentPage + 1}, size=${size}, status=${selectedStatus})}">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+                                    <a class="page-link" th:href="@{/khach-hang/hien-thi(page=${totalPages - 1}, size=${size}, status=${selectedStatus})}">
+                                        <i class="bi bi-chevron-double-right"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <form action=""></form>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-
-<div class="modal fade" id="modalXem" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-
-            <div class="modal-header" style="background:#c92327; color:white;">
-                <h5 class="modal-title"><i class="bi bi-person-lines-fill me-2"></i>Thông tin khách hàng</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-
-            <div class="modal-body" th:object="${kh}">
-                <div class="row g-3">
-
-                    <!-- Mã KH -->
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold text-muted">Mã khách hàng</label>
-                        <input class="form-control bg-light" th:value="*{maKH}" readonly>
-                    </div>
-
-                    <!-- Họ tên -->
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold text-muted">Họ tên</label>
-                        <input class="form-control bg-light" th:value="*{hoTen}" readonly>
-                    </div>
-
-                    <!-- SĐT -->
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold text-muted">Số điện thoại</label>
-                        <input class="form-control bg-light" th:value="*{sdt}" readonly>
-                    </div>
-
-                    <!-- Email -->
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold text-muted">Email</label>
-                        <input class="form-control bg-light" th:value="*{email}" readonly>
-                    </div>
-
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold text-muted">Ngày sinh</label>
-                        <input type="date" class="form-control bg-light" th:value="*{ngaySinh}" readonly>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold text-muted d-block">Giới tính</label>
-                        <div class="d-flex align-items-center gap-4 mt-1">
-                            <div class="form-check mb-0">
-                                <input class="form-check-input" type="radio" disabled
-                                       th:checked="*{gioiTinh == true}" id="xemNam">
-                                <label class="form-check-label" for="xemNam">Nam</label>
-                            </div>
-                            <div class="form-check mb-0">
-                                <input class="form-check-input" type="radio" disabled
-                                       th:checked="*{gioiTinh == false}" id="xemNu">
-                                <label class="form-check-label" for="xemNu">Nữ</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold text-muted d-block">Trạng thái</label>
-                        <span th:if="*{trangThai == true}" class="badge-active">Hoạt động</span>
-                        <span th:if="*{trangThai == false}" class="badge-locked">Ngừng hoạt động</span>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold text-muted">Ngày đăng ký</label>
-                        <input type="date" class="form-control bg-light" th:value="*{ngayDangKy}" readonly>
-                    </div>
-
-                    <div class="col-md-12">
-                        <label class="form-label fw-semibold text-muted">Ghi chú</label>
-                        <input class="form-control bg-light" th:value="*{ghiChu}" readonly>
-                    </div>
-
-                    <div class="col-md-12 mt-4">
-                        <label class="form-label fw-bold text-danger">
-                            <i class="bi bi-geo-alt-fill"></i> Danh sách địa chỉ
-                        </label>
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-sm align-middle">
-                                <thead class="table-light">
-                                <tr>
-                                    <th>Người nhận</th>
-                                    <th>Địa chỉ chi tiết</th>
-                                    <th class="text-center">Mặc định</th>
-                                    <th class="text-center">Thao tác</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr th:if="${danhSachDiaChi == null or danhSachDiaChi.isEmpty()}">
-                                    <td colspan="4" class="text-center text-muted py-3">Chưa có địa chỉ nào được lưu.</td>
-                                </tr>
-
-                                <tr th:each="dc : ${danhSachDiaChi}">
-                                    <td th:text="${dc.tenNguoiNhan}"></td>
-                                    <td>
-                    <span th:text="${(dc.diaChiCuThe != null ? dc.diaChiCuThe + ', ' : '') +
-                                     (dc.phuongXa != null ? dc.phuongXa + ', ' : '') +
-                                     (dc.quanHuyen != null ? dc.quanHuyen + ', ' : '') +
-                                     (dc.tinhThanh != null ? dc.tinhThanh : '')}">
-                    </span>
-                                    </td>
-                                    <td class="text-center">
-                                        <i th:if="${dc.diaChiMacDinh == true}" class="bi bi-check-circle-fill text-success" title="Địa chỉ mặc định"></i>
-                                        <span th:unless="${dc.diaChiMacDinh == true}" class="text-muted">-</span>
-                                    </td>
-                                    <td class="text-center">
-                                        <a th:href="@{/khach-hang/xoa-dia-chi/{id}(id=${dc.maDiaChi}, maKH=${kh.maKH})}"
-                                           class="btn btn-sm btn-outline-danger" title="Xóa địa chỉ"
-                                           onclick="return confirm('Bạn có chắc chắn muốn xóa địa chỉ này?')">
-                                            <i class="bi bi-trash"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-            </div>
-
-        </div>
-    </div>
-</div>
-
-
 <script>
-    function toggleStatus(id, isChecked, element) {
-        let action = isChecked ? 'unlock' : 'lock';
-        let confirmMsg = isChecked ? 'Bạn có chắc chắn muốn MỞ KHÓA tài khoản này?' : 'Bạn có chắc chắn muốn KHÓA tài khoản này?';
+    function showToast(message, type, title) {
+        var container = document.getElementById('toastContainer');
+        if (!container) return;
+
+        var titles = {
+            error: 'Lỗi!',
+            success: 'Thành công!',
+            warning: 'Cảnh báo!',
+            info: 'Thông tin'
+        };
+
+        var toast = document.createElement('div');
+        toast.className = 'toast-custom ' + type;
+        toast.innerHTML = `
+            <div class="toast-content">
+                <div class="toast-title">${title || titles[type] || 'Thông báo'}</div>
+                <div class="toast-message">${message}</div>
+            </div>
+            <button class="toast-close" onclick="this.closest('.toast-custom').remove()">
+                ×
+            </button>
+        `;
+        container.appendChild(toast);
+
+        setTimeout(function() {
+            if (toast.parentNode) {
+                toast.style.animation = 'slideOutRight 0.3s ease forwards';
+                setTimeout(function() { toast.remove(); }, 300);
+            }
+        }, 5000);
+    }
+
+    function toggleStatus(element) {
+        var id = element.getAttribute('data-id');
+        var status = element.getAttribute('data-status') || '';
+        var isChecked = element.checked;
+        var action = isChecked ? 'unlock' : 'lock';
+        var confirmMsg = isChecked ? 'Bạn có chắc chắn muốn MỞ KHÓA tài khoản này?' : 'Bạn có chắc chắn muốn KHÓA tài khoản này?';
 
         if (confirm(confirmMsg)) {
-            window.location.href = '/khach-hang/' + action + '/' + id;
+            var url = '/khach-hang/' + action + '/' + id;
+            if (status && status !== '') {
+                url += '?status=' + status;
+            }
+            window.location.href = url;
         } else {
-            // Nếu hủy, trả lại trạng thái check cũ của nút gạt
             element.checked = !isChecked;
         }
     }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        var successMsg = document.querySelector('meta[name="successMess"]')?.getAttribute('content') || '';
+        var errorMsg = document.querySelector('meta[name="errorMess"]')?.getAttribute('content') || '';
+
+        if (successMsg && successMsg !== '' && successMsg !== 'null' && successMsg !== 'undefined') {
+            showToast(successMsg, 'success');
+        }
+        if (errorMsg && errorMsg !== '' && errorMsg !== 'null' && errorMsg !== 'undefined') {
+            showToast(errorMsg, 'error');
+        }
+    });
 </script>
 
 </body>

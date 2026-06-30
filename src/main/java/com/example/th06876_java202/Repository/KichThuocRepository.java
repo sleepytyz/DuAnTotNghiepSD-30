@@ -5,18 +5,20 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface KichThuocRepository extends JpaRepository<KichThuoc, Integer> {
+public interface KichThuocRepository extends JpaRepository<KichThuoc, String> {
 
     boolean existsByTenKichThuoc(String tenKichThuoc);
 
-    Page<KichThuoc> findAllByOrderByMaKichThuocDesc(Pageable pageable);
+    Page<KichThuoc> findAllByOrderByNgayTaoDesc(Pageable pageable);
 
     List<KichThuoc> findAllByOrderByTenKichThuocAsc();
 
-
+    @Query("SELECT COUNT(k) > 0 FROM KichThuoc k WHERE LOWER(REPLACE(k.tenKichThuoc, ' ', '')) = LOWER(REPLACE(:ten, ' ', ''))")
+    boolean existsByTenKichThuocNormalized(@Param("ten") String ten);
 }

@@ -7,9 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface MauSacRepository extends JpaRepository<MauSac, Integer> {
+public interface MauSacRepository extends JpaRepository<MauSac, String> {
     boolean existsByTenMauSac(String tenMauSac);
 
-    Page<MauSac> findAllByOrderByMaMauSacDesc(Pageable pageable);
-
+    Page<MauSac> findAllByOrderByNgayTaoDesc(Pageable pageable);
 }

@@ -7,26 +7,37 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table( name = "DanhMucSanPham")
+@Table(name = "DanhMucSanPham")
 public class DanhMucSanPham {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MaDanhMuc")
-    private int maDanhMuc;
+    private String maDanhMuc;
 
     @NotBlank(message = "Tên danh mục không để trống")
     @Pattern(regexp = "^[\\p{L}\\s]*$", message = "Tên danh mục chỉ được chứa chữ cái và khoảng trắng")
-    @Column( name = "TenDanhMuc")
+    @Column(name = "TenDanhMuc")
     private String tenDanhMuc;
 
-    @Pattern(regexp = "^[\\p{L}\\s]*$", message = "Mô tả danh mục chỉ được chứa chữ cái và khoảng trắng")
-    @Column( name = "MoTa")
+    @Column(name = "MoTa")
     private String moTa;
 
-    @Column( name = "TrangThai")
+    @Column(name = "TrangThai")
     private boolean trangThai;
+
+    @Column(name = "NgayTao", updatable = false)
+    private LocalDateTime ngayTao;
+
+    @PrePersist
+    protected void onCreate() {
+        if (ngayTao == null) {
+            ngayTao = LocalDateTime.now();
+        }
+    }
 }

@@ -7,9 +7,77 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <style>
+        /* ===== TOAST ===== */
+        .toast-container-custom {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            max-width: 420px;
+            width: 100%;
+        }
+        .toast-custom {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            border-left: 5px solid #dc3545;
+            animation: slideInRight 0.4s ease;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .toast-custom.success {
+            border-left-color: #28a745;
+        }
+        .toast-custom.warning {
+            border-left-color: #ffc107;
+        }
+        .toast-custom.error {
+            border-left-color: #dc3545;
+        }
+        .toast-custom .toast-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .toast-custom .toast-content {
+            flex: 1;
+        }
+        .toast-custom .toast-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #2d3748;
+        }
+        .toast-custom .toast-message {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 2px;
+        }
+        .toast-custom .toast-close {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: #adb5bd;
+            cursor: pointer;
+            padding: 0 4px;
+            transition: color 0.2s;
+        }
+        .toast-custom .toast-close:hover {
+            color: #dc3545;
+        }
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+
         .form-control:focus, .form-select:focus {
             border-color: #c92327 !important;
             box-shadow: 0 0 0 0.25rem rgba(201, 35, 39, 0.15) !important;
@@ -20,6 +88,147 @@
         .transition-all:hover {
             opacity: 0.9;
             transform: translateY(-1px);
+        }
+
+        /* ===== TABLE ===== */
+        .table-card {
+            background: #fff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e9ecef;
+        }
+        .table-custom {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        .table-custom thead {
+            background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f5 100%);
+            border-bottom: 2px solid #e9ecef;
+        }
+        .table-custom thead th {
+            padding: 10px 14px;
+            font-weight: 700;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #495057;
+            border-bottom: none;
+            white-space: nowrap;
+            text-align: center;
+        }
+        .table-custom tbody tr {
+            transition: all 0.2s ease;
+            border-bottom: 1px solid #f1f3f5;
+        }
+        .table-custom tbody tr:hover {
+            background: #fff5f5 !important;
+        }
+        .table-custom tbody td {
+            padding: 10px 14px;
+            vertical-align: middle;
+            color: #2d3748;
+            text-align: center;
+        }
+
+        .badge-status {
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* ===== PAGINATION ===== */
+        .pagination-custom {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            flex-wrap: wrap;
+        }
+        .pagination-custom .page-item {
+            display: inline-block;
+        }
+        .pagination-custom .page-item .page-link {
+            border: none;
+            border-radius: 8px;
+            padding: 6px 14px;
+            color: #495057;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            background: transparent;
+            min-width: 36px;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+        }
+        .pagination-custom .page-item .page-link:hover {
+            background: #fff5f5;
+            color: #c92327;
+        }
+        .pagination-custom .page-item.active .page-link {
+            background: linear-gradient(135deg, #c92327, #a01a1e);
+            color: white;
+            box-shadow: 0 2px 8px rgba(201, 35, 39, 0.3);
+        }
+        .pagination-custom .page-item.disabled .page-link {
+            color: #adb5bd;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .table-custom {
+                font-size: 0.75rem;
+            }
+            .table-custom thead th,
+            .table-custom tbody td {
+                padding: 6px 8px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .table-custom {
+                font-size: 0.7rem;
+            }
+            .table-custom thead th,
+            .table-custom tbody td {
+                padding: 4px 6px;
+            }
+            .badge-status {
+                font-size: 0.6rem;
+                padding: 2px 8px;
+            }
+        }
+
+        .input-group-text {
+            border-radius: 8px 0 0 8px !important;
+        }
+        .form-control {
+            border-radius: 0 8px 8px 0 !important;
+        }
+        .form-control[readonly] {
+            background-color: #fff8f8 !important;
+            border-color: #c92327 !important;
+            color: #c92327 !important;
+            font-weight: 700 !important;
         }
     </style>
 </head>
@@ -38,155 +247,182 @@
 
     <div class="content-body">
 
+        <!-- Toast Container -->
+        <div class="toast-container-custom" id="toastContainer"></div>
+
         <div th:replace="fragments/header :: header('Danh mục sản phẩm','Danh mục sản phẩm')"></div>
 
         <div class="page-content px-3">
 
-            <div th:if="${mess}" class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${mess}"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <!-- ===== ẨN ALERT CŨ, CHỈ DÙNG ĐỂ LẤY DỮ LIỆU ===== -->
+            <div id="alertData" style="display: none;">
+                <div id="successMessage" th:text="${successMess}"></div>
+                <div id="warningMessage" th:text="${mess}"></div>
+                <div id="errorMessage" th:text="${errorMess}"></div>
             </div>
 
-            <div th:if="${successMess}" class="alert alert-success alert-dismissible fade show mt-3 shadow-sm border-0" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i>
-                <span th:text="${successMess}" class="fw-medium"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-
+            <!-- Form Card -->
             <div class="card card-custom mb-4 shadow-sm border-0 mt-3">
                 <div class="card-header text-white" style="background:#c92327;">
                     <h5 class="mb-0 d-flex align-items-center gap-2 py-1">
-                        <i class="bi bi-pencil-square"></i>
-                        <span>Thông tin danh mục</span>
+                        <i class="bi bi-plus-circle-fill"></i>
+                        <span>Thêm danh mục sản phẩm</span>
                     </h5>
                 </div>
 
-                <div class="card border-0 shadow-sm rounded-3">
-                    <div class="card-body bg-white p-4">
-                        <form method="post" th:object="${danhmuc}">
-                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <div class="card-body bg-white p-4">
+                    <form method="post" th:object="${danhmuc}" id="addForm" th:action="@{/danhmucsp/add}">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
-                            <div class="row g-4 align-items-end">
-                                <div class="col-lg-4 col-md-6">
-                                    <label class="form-label fw-bold text-secondary small mb-2">
-                                        Tên danh mục <span class="text-danger">*</span>
-                                    </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light border-secondary-subtle text-muted"><i class="bi bi-tag"></i></span>
-                                        <input type="text" class="form-control border-secondary-subtle shadow-none" th:field="*{tenDanhMuc}" placeholder="Nhập tên danh mục...">
-                                    </div>
-                                    <div class="text-danger small mt-1 d-block" th:errors="*{tenDanhMuc}"></div>
-                                </div>
-
-                                <div class="col-lg-5 col-md-6">
-                                    <label class="form-label fw-bold text-secondary small mb-2">Mô tả</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light border-secondary-subtle text-muted"><i class="bi bi-justify-left"></i></span>
-                                        <input type="text" class="form-control border-secondary-subtle shadow-none" th:field="*{moTa}" placeholder="Nhập mô tả ngắn...">
-                                    </div>
-                                </div>
-
-                                <div class="col-lg-3 col-md-12 d-flex gap-2 justify-content-md-start justify-content-lg-end">
-                                    <button class="btn fw-semibold text-white px-4 py-2 d-flex align-items-center gap-2 shadow-sm transition-all"
-                                            type="submit"
-                                            formaction="/danhmucsp/add"
-                                            style="background-color: #c92327; border-color: #c92327;">
-                                        <i class="bi bi-plus-circle-fill"></i> Thêm mới
-                                    </button>
-
+                        <div class="row g-4 align-items-end">
+                            <!-- Mã danh mục (tự động) -->
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label fw-bold text-secondary small mb-2">
+                                    Mã danh mục <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-secondary-subtle text-muted">
+                                        <i class="bi bi-tag"></i>
+                                    </span>
+                                    <input type="text" class="form-control bg-light border-secondary-subtle fw-bold text-danger"
+                                           th:field="*{maDanhMuc}"
+                                           readonly
+                                           style="background-color: #f8f9fa !important; cursor: not-allowed;">
                                 </div>
                             </div>
-                        </form>
-                    </div>
-                </div>
 
+                            <div class="col-lg-5 col-md-6">
+                                <label class="form-label fw-bold text-secondary small mb-2">
+                                    Tên danh mục <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-secondary-subtle text-muted">
+                                        <i class="bi bi-tag-fill"></i>
+                                    </span>
+                                    <input type="text" class="form-control border-secondary-subtle shadow-none"
+                                           th:field="*{tenDanhMuc}"
+                                           placeholder="Nhập tên danh mục..."
+                                           id="tenDanhMucInput">
+                                </div>
+                                <div class="text-danger small mt-1 d-block" th:errors="*{tenDanhMuc}"></div>
+                            </div>
+
+                            <div class="col-lg-4 col-md-6">
+                                <label class="form-label fw-bold text-secondary small mb-2">Mô tả</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-secondary-subtle text-muted">
+                                        <i class="bi bi-justify-left"></i>
+                                    </span>
+                                    <input type="text" class="form-control border-secondary-subtle shadow-none"
+                                           th:field="*{moTa}"
+                                           placeholder="Nhập mô tả ngắn...">
+                                </div>
+                            </div>
+
+                            <div class="col-lg-12 d-flex justify-content-end">
+                                <button class="btn fw-semibold text-white px-4 py-2 d-flex align-items-center gap-2 shadow-sm transition-all"
+                                        type="submit"
+                                        style="background-color: #c92327; border-color: #c92327;">
+                                    <i class="bi bi-plus-circle-fill"></i> Thêm mới
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
 
+            <!-- Table Card -->
             <div class="card card-custom border-0 shadow-sm mt-4">
                 <div class="card-header bg-white border-bottom py-3">
                     <h5 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
                         <i class="bi bi-list-ul text-danger"></i>
                         <span>Danh sách danh mục sản phẩm</span>
+                        <span class="badge bg-secondary ms-2" th:text="${#lists.size(listdmsp)} + ' danh mục'"></span>
                     </h5>
                 </div>
 
                 <div class="table-card p-3">
-                    <table class="table-custom">
-                        <thead>
-                        <tr>
-                            <th style="width:80px">STT</th>
-                            <th style="width:120px">Mã DM</th>
-                            <th>Tên danh mục</th>
-                            <th>Mô tả</th>
-                            <th>Trạng Thái</th>
-                            <th>Hành động</th>
-                        </tr>
-                        </thead>
+                    <div class="table-responsive">
+                        <table class="table-custom">
+                            <thead>
+                            <tr>
+                                <th style="width:50px;">STT</th>
+                                <th style="min-width:100px;">Mã DM</th>
+                                <th style="min-width:150px; text-align:left;">Tên danh mục</th>
+                                <th style="min-width:200px; text-align:left;">Mô tả</th>
+                                <th style="min-width:100px;">Trạng thái</th>
+                                <th style="min-width:100px;">Hành động</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="kg,stt : ${listdmsp}">
+                                <td class="fw-semibold" th:text="${(currentPage * 5) + stt.count}"></td>
+                                <td class="fw-semibold text-danger" th:text="${kg.maDanhMuc}"></td>
+                                <td class="fw-bold text-dark text-start" th:text="${kg.tenDanhMuc}"></td>
+                                <td class="text-start text-muted small" th:text="${kg.moTa}"></td>
+                                <td>
+                                    <span th:if="${kg.trangThai}" class="badge-status badge-success">
+                                        <i class="bi bi-check-circle-fill"></i>Đang hoạt động
+                                    </span>
+                                    <span th:unless="${kg.trangThai}" class="badge-status badge-danger">
+                                        <i class="bi bi-x-circle-fill"></i>Ngừng hoạt động
+                                    </span>
+                                </td>
+                                <td>
+                                    <a th:if="${kg.trangThai}"
+                                       th:href="@{/danhmucsp/capnhatt/{id}(id=${kg.maDanhMuc})}"
+                                       class="btn btn-sm btn-link text-success p-1 border-0"
+                                       title="Đang hoạt động - Nhấn để ngừng"
+                                       onclick="return confirm('Bạn có chắc chắn muốn NGỪNG hoạt động danh mục này?')">
+                                        <i class="bi bi-toggle2-on fs-4"></i>
+                                    </a>
 
-                        <tbody>
-                        <tr th:each="kg,stt : ${listdmsp}">
-                            <td th:text="${(currentPage * 5) + stt.count}"></td>
-                            <td class="fw-semibold text-secondary" th:text="${'DM' + kg.maDanhMuc}"></td>
-                            <td class="fw-bold text-dark" th:text="${kg.tenDanhMuc}"></td>
-                            <td th:text="${kg.moTa}"></td>
-                            <td>
-                                <span th:if="${kg.trangThai}" class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Đang hoạt động</span>
-                                <span th:unless="${kg.trangThai}" class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">Ngừng hoạt động</span>
-                            </td>
-
-                            <td>
-                                <a th:if="${kg.trangThai}"
-                                   th:href="@{/danhmucsp/capnhatt/{id}(id=${kg.maDanhMuc})}"
-                                   class="btn btn-sm btn-link text-success p-1 border-0"
-                                   title="Đang hoạt động - Nhấn để ngừng"
-                                   onclick="return confirm('Bạn có chắc chắn muốn NGỪNG hoạt động danh mục này?')">
-                                    <i class="bi bi-toggle2-on fs-4"></i>
-                                </a>
-
-                                <a th:unless="${kg.trangThai}"
-                                   th:href="@{/danhmucsp/capnhatt/{id}(id=${kg.maDanhMuc})}"
-                                   class="btn btn-sm btn-link text-secondary p-1 border-0"
-                                   title="Đang ngừng hoạt động - Nhấn để kích hoạt lại"
-                                   onclick="return confirm('Bạn có muốn KÍCH HOẠT LẠI danh mục này không?')">
-                                    <i class="bi bi-toggle2-off fs-4"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        <tr th:if="${#lists.isEmpty(listdmsp)}">
-                            <td colspan="5" class="text-center text-muted py-4">Chưa có dữ liệu kiểu giày nào được tạo.</td>
-                        </tr>
-                        </tbody>
-                    </table>
+                                    <a th:unless="${kg.trangThai}"
+                                       th:href="@{/danhmucsp/capnhatt/{id}(id=${kg.maDanhMuc})}"
+                                       class="btn btn-sm btn-link text-secondary p-1 border-0"
+                                       title="Đang ngừng hoạt động - Nhấn để kích hoạt lại"
+                                       onclick="return confirm('Bạn có muốn KÍCH HOẠT LẠI danh mục này không?')">
+                                        <i class="bi bi-toggle2-off fs-4"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(listdmsp)}">
+                                <td colspan="6" class="text-center text-muted py-4">
+                                    <i class="bi bi-inbox" style="font-size: 2rem; display: block; margin-bottom: 8px;"></i>
+                                    Chưa có danh mục sản phẩm nào.
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="card-footer bg-white border-top d-flex justify-content-between align-items-center px-4 py-3" th:if="${totalPages > 0}">
+
+                <!-- Pagination -->
+                <div class="card-footer bg-white border-top d-flex justify-content-between align-items-center px-4 py-3 flex-wrap gap-2" th:if="${totalPages > 0}">
                     <div class="small text-muted fw-semibold">
-                        Hiển thị trang <span class="fw-semibold text-dark" th:text="${currentPage + 1}">1</span> / <span th:text="${totalPages}">1</span>
+                        <i class="bi bi-database me-1"></i>
+                        Tổng: <strong class="text-dark" th:text="${totalItems}">0</strong> bản ghi
+                        <span class="mx-1">|</span>
+                        Trang <strong class="text-dark" th:text="${currentPage + 1}">1</strong> / <strong th:text="${totalPages}">1</strong>
                     </div>
 
                     <nav aria-label="Page navigation">
-                        <ul class="pagination pagination-sm m-0 gap-1">
-                            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled' : ''">
-                                <a class="page-link rounded-2 border-0 d-flex align-items-center justify-content-center text-danger"
-                                   th:href="@{/danhmucsp/index(page=${currentPage - 1})}"
-                                   style="width: 32px; height: 32px;">
+                        <ul class="pagination-custom">
+                            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                <a class="page-link" th:href="@{/danhmucsp/index(page=${currentPage - 1})}">
                                     <i class="bi bi-chevron-left"></i>
                                 </a>
                             </li>
 
-                            <li class="page-item"
-                                th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
-                                th:classappend="${currentPage == i} ? 'active' : ''">
-                                <a class="page-link rounded-2 border-0 d-flex align-items-center justify-content-center fw-semibold"
-                                   th:href="@{/danhmucsp/index(page=${i})}"
-                                   th:text="${i + 1}"
-                                   th:style="${currentPage == i} ? 'background-color:#c92327; border-color:#c92327; color:#fff;' : 'color:#212529; width: 32px; height: 32px;'">
+                            <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                                th:classappend="${currentPage == i} ? 'active'">
+                                <a class="page-link" th:href="@{/danhmucsp/index(page=${i})}"
+                                   th:text="${i + 1}">
                                 </a>
                             </li>
 
-                            <li class="page-item" th:classappend="${currentPage + 1 == totalPages} ? 'disabled' : ''">
-                                <a class="page-link rounded-2 border-0 d-flex align-items-center justify-content-center text-danger"
-                                   th:href="@{/danhmucsp/index(page=${currentPage + 1})}"
-                                   style="width: 32px; height: 32px;">
+                            <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+                                <a class="page-link" th:href="@{/danhmucsp/index(page=${currentPage + 1})}">
                                     <i class="bi bi-chevron-right"></i>
                                 </a>
                             </li>
@@ -199,13 +435,96 @@
     </div>
 </div>
 
-<script>
-    function resetForm() {
-        window.location.href = "/danhmucsp/index";
-    }
-</script>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // ===== SHOW TOAST =====
+    function showToast(message, type, title) {
+        var container = document.getElementById('toastContainer');
+        if (!container) return;
+
+        var icons = {
+            error: 'bi bi-x-circle-fill text-danger',
+            success: 'bi bi-check-circle-fill text-success',
+            warning: 'bi bi-exclamation-triangle-fill text-warning'
+        };
+
+        var titles = {
+            error: ' Lỗi!',
+            success: ' Thành công!',
+            warning: 'Cảnh báo!'
+        };
+
+        var toast = document.createElement('div');
+        toast.className = 'toast-custom ' + type;
+        toast.innerHTML = `
+            <div class="toast-icon">
+                <i class="${icons[type] || icons.error}"></i>
+            </div>
+            <div class="toast-content">
+                <div class="toast-title">${title || titles[type] || 'Thông báo'}</div>
+                <div class="toast-message">${message}</div>
+            </div>
+            <button class="toast-close" onclick="this.closest('.toast-custom').remove()">
+                <i class="bi bi-x"></i>
+            </button>
+        `;
+
+        container.appendChild(toast);
+
+        setTimeout(function() {
+            if (toast.parentNode) {
+                toast.style.animation = 'slideOutRight 0.3s ease forwards';
+                setTimeout(function() { toast.remove(); }, 300);
+            }
+        }, 5000);
+    }
+
+    // ===== HIỂN THỊ TOAST KHI TRANG LOAD =====
+    document.addEventListener("DOMContentLoaded", function() {
+        console.log("=== DOM Loaded ===");
+
+        // Lấy message từ flash attribute (ẩn trong div)
+        var successMsg = document.getElementById('successMessage')?.textContent?.trim();
+        var warningMsg = document.getElementById('warningMessage')?.textContent?.trim();
+        var errorMsg = document.getElementById('errorMessage')?.textContent?.trim();
+
+        console.log("successMsg:", successMsg);
+        console.log("warningMsg:", warningMsg);
+        console.log("errorMsg:", errorMsg);
+
+        if (successMsg && successMsg !== '' && successMsg !== 'null' && successMsg !== 'undefined') {
+            console.log(" Hiển thị toast success:", successMsg);
+            showToast(successMsg, 'success');
+        } else if (warningMsg && warningMsg !== '' && warningMsg !== 'null' && warningMsg !== 'undefined') {
+            console.log(" Hiển thị toast warning:", warningMsg);
+            showToast(warningMsg, 'warning');
+        } else if (errorMsg && errorMsg !== '' && errorMsg !== 'null' && errorMsg !== 'undefined') {
+            console.log(" Hiển thị toast error:", errorMsg);
+            showToast(errorMsg, 'error');
+        } else {
+            console.log("ℹ️ Không có thông báo nào.");
+        }
+
+        // Lấy message từ sessionStorage (nếu có)
+        var storedMessage = sessionStorage.getItem('toastMessage');
+        var storedType = sessionStorage.getItem('toastType');
+
+        if (storedMessage && storedMessage !== '' && storedMessage !== 'null' && storedMessage !== 'undefined') {
+            console.log(" Toast từ sessionStorage:", storedMessage);
+            showToast(storedMessage, storedType || 'success');
+            sessionStorage.removeItem('toastMessage');
+            sessionStorage.removeItem('toastType');
+        }
+    });
+
+    // Lưu message vào sessionStorage trước khi form submit
+    document.addEventListener('submit', function(e) {
+        console.log("📤 Form submitted, clearing sessionStorage");
+        sessionStorage.removeItem('toastMessage');
+        sessionStorage.removeItem('toastType');
+    });
+</script>
 
 </body>
 </html>

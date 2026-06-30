@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Data
 @NoArgsConstructor
@@ -15,9 +17,8 @@ import lombok.NoArgsConstructor;
 public class KieuGiay {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MaKieuGiay")
-    private Integer maKieuGiay;
+    private String maKieuGiay;
 
     @NotBlank(message = "Không bỏ trống kiểu giày")
     @Pattern(regexp = "^[\\p{L}\\s]+$", message = "Kiểu giày chỉ chứa chữ cái, khoảng trắng ")
@@ -27,4 +28,13 @@ public class KieuGiay {
     @Column(name = "TrangThai")
     private boolean trangThai;
 
+    @Column(name = "NgayTao", updatable = false)
+    private LocalDateTime ngayTao;
+
+    @PrePersist
+    protected void onCreate() {
+        if (ngayTao == null) {
+            ngayTao = LocalDateTime.now();
+        }
+    }
 }

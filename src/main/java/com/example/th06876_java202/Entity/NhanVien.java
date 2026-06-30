@@ -9,7 +9,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "NhanVien")
@@ -19,9 +19,8 @@ import java.util.Date;
 public class NhanVien {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "MaNhanVien")
-    private Integer maNhanVien;
+    @Column(name = "MaNhanVien", length = 20)
+    private String maNhanVien;
 
     @NotBlank(message = "Họ tên không được để trống")
     @Size(max = 100, message = "Họ tên không quá 100 ký tự")
@@ -61,8 +60,8 @@ public class NhanVien {
     private BigDecimal luongCoBan;
 
     @Column(name = "NgayVaoLam")
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private LocalDate ngayVaoLam;
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    private LocalDateTime ngayVaoLam;
 
     @Column(name = "TrangThai")
     private Boolean trangThai;

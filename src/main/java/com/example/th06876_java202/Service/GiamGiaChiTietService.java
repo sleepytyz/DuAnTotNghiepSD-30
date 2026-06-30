@@ -30,7 +30,7 @@ public class GiamGiaChiTietService {
     }
 
     @Transactional
-    public void updateTrangThaiToNgungHoatDong(Integer id) {
+    public void updateTrangThaiToNgungHoatDong(String id) {
         GiamGia giamGia = giamGiaRepository.findById(id).orElse(null);
         if (giamGia != null) {
             giamGia.setTrangThai("Ngừng hoạt động");
@@ -41,7 +41,7 @@ public class GiamGiaChiTietService {
     }
 
     @Transactional
-    public void ganVoucher(Integer maKhachHang, Integer maGiamGia) {
+    public void ganVoucher(String maKhachHang, String maGiamGia) {
         GiamGiaChiTietId id = new GiamGiaChiTietId(maKhachHang, maGiamGia);
 
         if (giamGiaChiTietRepo.existsById(id)) return;

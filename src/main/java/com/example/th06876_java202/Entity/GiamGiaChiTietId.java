@@ -15,8 +15,8 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class GiamGiaChiTietId implements Serializable {
     @Column(name = "MaKhachHang")
-    private Integer maKhachHang;
+    private String maKhachHang;
 
     @Column(name = "MaGiamGia")
-    private Integer maGiamGia;
+    private String maGiamGia;
 }

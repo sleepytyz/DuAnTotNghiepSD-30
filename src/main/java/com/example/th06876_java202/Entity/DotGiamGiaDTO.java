@@ -10,6 +10,7 @@ public class DotGiamGiaDTO {
         @Valid
         private DotGiamGia dotGiamGia = new DotGiamGia();
 
-        private List<Integer> listMaSanPham;
-        private List<Integer> listMaSanPhamChiTiet;
+        private List<String > listMaSanPham;
+
+        private List<String> listMaSanPhamChiTiet;
 }

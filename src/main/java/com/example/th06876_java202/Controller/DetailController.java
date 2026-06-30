@@ -48,7 +48,7 @@ public class DetailController {
     }
 
     @GetMapping("/edit/{id}")
-    public String edit(@PathVariable("id") int id,
+    public String edit(@PathVariable("id") String id,
                        @RequestParam(value = "page", defaultValue = "0") int page,
                        @RequestParam(value = "size", required = false) String size,
                        @RequestParam(value = "msac", required = false) String msac,
@@ -107,9 +107,8 @@ public class DetailController {
         old.setKichThuoc(sanPhamChiTiet.getKichThuoc());
         old.setMauSac(sanPhamChiTiet.getMauSac());
         old.setGiaBan(sanPhamChiTiet.getGiaBan());
-        old.setGiaNhap(sanPhamChiTiet.getGiaNhap());
         old.setSoLuongTon(sanPhamChiTiet.getSoLuongTon());
-        old.setNgayCapNhat(LocalDate.now());
+
 
         sanPhamChiTietService.them(old);
 

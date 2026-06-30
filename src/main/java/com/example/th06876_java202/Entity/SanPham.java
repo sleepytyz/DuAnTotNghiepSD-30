@@ -8,7 +8,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -19,9 +21,8 @@ import java.util.List;
 public class SanPham {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MaSanPham")
-    private Integer maSanPham;
+    private String maSanPham;
 
     @ManyToOne
     @JoinColumn(name = "MaDanhMuc")
@@ -32,7 +33,6 @@ public class SanPham {
     @Column(name = "TenSanPham")
     private String tenSanPham;
 
-    @NotBlank(message = "Không bỏ trống mô tả")
     @Pattern( regexp = "^[\\p{L}\\d\\s]*$", message = "Mô tả sản phẩm chỉ được chứa chữ cái và khoảng trắng")
     @Column(name = "MoTa")
     private String moTa;
@@ -46,10 +46,7 @@ public class SanPham {
     private Boolean trangThai;
 
     @Column(name = "NgayTao")
-    private LocalDate ngayTao;
-
-    @Column(name = "NgayCapNhat")
-    private LocalDate ngayCapNhat;
+    private LocalDateTime ngayTao;
 
     @ManyToOne
     @JoinColumn(name = "MaThuongHieu")
@@ -58,6 +55,9 @@ public class SanPham {
     @ManyToOne
     @JoinColumn(name = "MaKieuGiay")
     private KieuGiay kieuGiay;
+
+    @Column( name = "GiaBanTrungBinh")
+    private BigDecimal giaBanTrungBinh;
 
     @OneToMany(mappedBy = "sanPham")
     private List<SanPhamChiTiet> sanPhamChiTiets;

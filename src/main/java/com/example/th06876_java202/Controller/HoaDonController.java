@@ -1,20 +1,29 @@
 package com.example.th06876_java202.Controller;
 
 import com.example.th06876_java202.Entity.HoaDon;
+import com.example.th06876_java202.Entity.HoaDonChiTiet;
+import com.example.th06876_java202.Service.ExcelExportService;
 import com.example.th06876_java202.Service.HoaDonChiTietService;
 import com.example.th06876_java202.Service.HoaDonService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.ByteArrayInputStream;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("/hoa-don")
@@ -23,92 +32,235 @@ public class HoaDonController {
     @Autowired
     private HoaDonService service;
 
+    @Autowired
+    private ExcelExportService excelExportService;
+
     private final HoaDonChiTietService hoaDonChiTietService;
 
-    public HoaDonController( HoaDonChiTietService hoaDonChiTietService ) {
+    public HoaDonController(HoaDonChiTietService hoaDonChiTietService) {
         this.hoaDonChiTietService = hoaDonChiTietService;
-    }
-
-    @GetMapping("/hoa-don")
-    public String hoaDon(Model model){
-        model.addAttribute("pageTitle", "Hóa đơn");
-        return "hoadon/index";
     }
 
     @GetMapping("/index")
     public String index(
             @PageableDefault(size = 5, sort = "maHoaDon", direction = Sort.Direction.DESC) Pageable pageable,
-            @RequestParam(required = false) Integer mahd,
+            @RequestParam(required = false) String mahd,
             @RequestParam(required = false) String tt,
-            @RequestParam(required = false) LocalDate ngay,
-            @RequestParam(required = false) LocalDate ngay2,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate ngay,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate ngay2,
+            @RequestParam(required = false) String filterType,
             Model model) {
 
         model.addAttribute("activeMenu", "hoadon");
 
-        Page<HoaDon> page = service.getHoaDonKhac(pageable);
+        // Xử lý lọc nhanh
+        if (filterType != null && !filterType.isEmpty()) {
+            LocalDate today = LocalDate.now();
+            switch (filterType) {
+                case "today":
+                    ngay = today;
+                    ngay2 = today;
+                    break;
+                case "yesterday":
+                    ngay = today.minusDays(1);
+                    ngay2 = today.minusDays(1);
+                    break;
+                case "week":
+                    ngay = today.minusDays(7);
+                    ngay2 = today;
+                    break;
+                case "month":
+                    ngay = today.minusDays(30);
+                    ngay2 = today;
+                    break;
+                case "thisMonth":
+                    ngay = today.withDayOfMonth(1);
+                    ngay2 = today;
+                    break;
+                default:
+                    break;
+            }
+            model.addAttribute("filterType", filterType);
+        }
+
+        Page<HoaDon> page = service.getALLDH(pageable);
 
         if (tt != null && !tt.trim().isEmpty()) {
             page = service.findByTrangThai(tt, pageable);
         } else if (ngay != null || ngay2 != null) {
-            page = service.searchByNgayTao(ngay, ngay2, pageable);
+            // ⭐ SỬA: Chuyển LocalDate sang LocalDateTime
+            LocalDateTime startDateTime = ngay != null ? ngay.atStartOfDay() : null;
+            LocalDateTime endDateTime = ngay2 != null ? ngay2.atTime(23, 59, 59) : null;
+            page = service.searchByNgayTaodh(startDateTime, endDateTime, pageable);
         }
 
         model.addAttribute("list", page.getContent());
         model.addAttribute("currentPage", page.getNumber());
         model.addAttribute("totalPages", page.getTotalPages());
+        model.addAttribute("totalItems", page.getTotalElements());
+        model.addAttribute("tt", tt);
+        model.addAttribute("ngay", ngay);
+        model.addAttribute("ngay2", ngay2);
+
+        // Thống kê
+        model.addAttribute("totalDaThanhToan", service.countByTrangThai("Đã thanh toán"));
+        model.addAttribute("totalDaGiao", service.countByTrangThai("Đã giao"));
+        model.addAttribute("totalDaTraHang", service.countByTrangThai("Đã trả hàng"));
+        model.addAttribute("totalDaHuy", service.countByTrangThai("Đã huỷ"));
 
         HoaDon hd = null;
         if (mahd != null) {
-            hd = service.findById(mahd).orElse(null);
-        }
-
-        model.addAttribute("hd", hd);
-
-        if (hd != null) {
+            hd = service.findById(mahd);
             model.addAttribute("listsp", hoaDonChiTietService.findById(mahd));
         } else {
             model.addAttribute("listsp", List.of());
         }
 
+        model.addAttribute("hd", hd);
         model.addAttribute("hoaDon", new HoaDon());
 
         return "hoadon/index";
     }
 
+    // ===== XUẤT EXCEL HÓA ĐƠN =====
+    @GetMapping("/export-excel")
+    public ResponseEntity<InputStreamResource> exportExcel(
+            @RequestParam(required = false) String mahd,
+            @RequestParam(required = false) String tt,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate ngay,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate ngay2,
+            @RequestParam(required = false) String filterType) {
 
-    @GetMapping("/edit/{id}")
-    public String edit(
-            @PathVariable Integer id,
-            @PageableDefault(size = 5, sort = "maHoaDon", direction = Sort.Direction.DESC) Pageable pageable,
-            Model model){
+        try {
+            System.out.println("========== EXPORT EXCEL HÓA ĐƠN ==========");
+            System.out.println("mahd: [" + mahd + "]");
+            System.out.println("tt: [" + tt + "]");
+            System.out.println("ngay: [" + ngay + "]");
+            System.out.println("ngay2: [" + ngay2 + "]");
+            System.out.println("filterType: [" + filterType + "]");
 
-        model.addAttribute("hoaDon", service.findById(id).orElse(new HoaDon()));
+            // Xử lý lọc nhanh
+            if (filterType != null && !filterType.isEmpty()) {
+                LocalDate today = LocalDate.now();
+                switch (filterType) {
+                    case "today":
+                        ngay = today;
+                        ngay2 = today;
+                        break;
+                    case "yesterday":
+                        ngay = today.minusDays(1);
+                        ngay2 = today.minusDays(1);
+                        break;
+                    case "week":
+                        ngay = today.minusDays(7);
+                        ngay2 = today;
+                        break;
+                    case "month":
+                        ngay = today.minusDays(30);
+                        ngay2 = today;
+                        break;
+                    case "thisMonth":
+                        ngay = today.withDayOfMonth(1);
+                        ngay2 = today;
+                        break;
+                    default:
+                        break;
+                }
+            }
 
-        Page<HoaDon> page = service.getallpage(pageable);
+            List<HoaDon> hoaDonList;
 
-        model.addAttribute("list", page.getContent());
-        model.addAttribute("currentPage", page.getNumber());
-        model.addAttribute("totalPages", page.getTotalPages());
-        model.addAttribute("activeMenu", "hoadon");
+            if (mahd != null) {
+                List<HoaDonChiTiet> chiTietList = hoaDonChiTietService.findById(mahd);
+                if (chiTietList != null && !chiTietList.isEmpty()) {
+                    ByteArrayInputStream in = excelExportService.exportChiTietHoaDonToExcel(chiTietList);
+                    if (in == null) {
+                        return ResponseEntity.badRequest().build();
+                    }
 
-        return "hoadon/index";
+                    String fileName = "Chi_tiet_hoa_don_HD" + mahd + "_" +
+                            LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".xlsx";
+
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.add("Content-Disposition", "attachment; filename=" + fileName);
+                    headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+                    return ResponseEntity.ok()
+                            .headers(headers)
+                            .body(new InputStreamResource(in));
+                }
+
+                HoaDon hd = service.findById(mahd);
+                if (hd != null) {
+                    hoaDonList = List.of(hd);
+                } else {
+                    return ResponseEntity.badRequest().build();
+                }
+            } else {
+                // Lọc theo điều kiện
+                if (tt != null && !tt.trim().isEmpty()) {
+                    hoaDonList = service.findAllByTrangThai(tt);
+                } else if (ngay != null || ngay2 != null) {
+                    // ⭐ SỬA: Chuyển LocalDate sang LocalDateTime
+                    LocalDateTime startDateTime = ngay != null ? ngay.atStartOfDay() : null;
+                    LocalDateTime endDateTime = ngay2 != null ? ngay2.atTime(23, 59, 59) : null;
+                    hoaDonList = service.searchByNgayTaodh(startDateTime, endDateTime);
+                } else {
+                    hoaDonList = service.getAllDH();
+                }
+            }
+
+            if (hoaDonList == null || hoaDonList.isEmpty()) {
+                System.out.println("⚠️ Không có dữ liệu để xuất!");
+                return ResponseEntity.badRequest().build();
+            }
+
+            System.out.println("✅ Số lượng hóa đơn: " + hoaDonList.size());
+
+            ByteArrayInputStream in = excelExportService.exportHoaDonToExcel(hoaDonList);
+
+            if (in == null) {
+                System.err.println("❌ InputStream bị null!");
+                return ResponseEntity.badRequest().build();
+            }
+
+            String fileName = "Danh_sach_hoa_don_" +
+                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".xlsx";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Disposition", "attachment; filename=" + fileName);
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setCacheControl("no-cache, no-store, must-revalidate");
+            headers.setPragma("no-cache");
+            headers.setExpires(0);
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(new InputStreamResource(in));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("❌ Lỗi export Excel: " + e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
     }
 
-
-    @PostMapping("/cap-nhat-trang-thai")
-    @ResponseBody
-    public String capNhatTrangThai(
-            @RequestParam Integer maHoaDon,
-            @RequestParam String trangThai){
-
-        HoaDon hd = service.findById(maHoaDon).get();
-
-        hd.setTrangThai(trangThai);
-
-        service.save(hd);
-
-        return "OK";
+    // ===== CÁC HÀM CHUYỂN TRẠNG THÁI =====
+    @GetMapping("/suatt")
+    public String suatt(@RequestParam(required = false) String mahd) {
+        service.suatt(mahd);
+        return "redirect:/hoa-don/index";
     }
 
+    @GetMapping("/suattdg")
+    public String suattdg(@RequestParam(required = false) String mahd) {
+        service.suattdg(mahd);
+        return "redirect:/hoa-don/index";
+    }
+
+    @GetMapping("/suattdgg")
+    public String suattdgg(@RequestParam(required = false) String mahd) {
+        service.suattdgg(mahd);
+        return "redirect:/hoa-don/index";
+    }
 }

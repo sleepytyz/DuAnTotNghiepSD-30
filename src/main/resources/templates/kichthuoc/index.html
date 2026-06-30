@@ -14,7 +14,6 @@
             border-color: #c92327 !important;
             box-shadow: 0 0 0 0.25rem rgba(201, 35, 39, 0.15) !important;
         }
-        /* Custom Pagination Đồng bộ hệ thống */
         .pagination .page-item .page-link {
             color: #495057;
             background-color: #f8f9fa;
@@ -35,6 +34,88 @@
             color: #6c757d;
             opacity: 0.5;
         }
+
+        /* ===== TOAST STYLES ===== */
+        .toast-container-custom {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            max-width: 420px;
+            width: 100%;
+        }
+        .toast-custom {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            border-left: 5px solid #dc3545;
+            animation: slideInRight 0.4s ease;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .toast-custom.success {
+            border-left-color: #28a745;
+        }
+        .toast-custom.warning {
+            border-left-color: #ffc107;
+        }
+        .toast-custom.error {
+            border-left-color: #dc3545;
+        }
+        .toast-custom .toast-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .toast-custom .toast-content {
+            flex: 1;
+        }
+        .toast-custom .toast-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #2d3748;
+        }
+        .toast-custom .toast-message {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 2px;
+        }
+        .toast-custom .toast-close {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: #adb5bd;
+            cursor: pointer;
+            padding: 0 4px;
+            transition: color 0.2s;
+        }
+        .toast-custom .toast-close:hover {
+            color: #dc3545;
+        }
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+
+        .input-group-text {
+            border-radius: 8px 0 0 8px !important;
+        }
+        .form-control {
+            border-radius: 0 8px 8px 0 !important;
+        }
+        .form-control[readonly] {
+            background-color: #fff8f8 !important;
+            border-color: #c92327 !important;
+            color: #c92327 !important;
+            font-weight: 700 !important;
+        }
     </style>
 </head>
 <body>
@@ -49,18 +130,18 @@
         <div th:replace="fragments/sidebarstaff :: sidebar-staff"></div>
     </div>
 
-    <div class="content-body px-3"> <div th:replace="fragments/header :: header('Quản lý kích thước', 'Kích thước')"></div>
+    <div class="content-body px-3">
 
-        <div th:if="${mess}" class="alert alert-danger alert-dismissible fade show mt-3 shadow-sm border-0" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-            <span th:text="${mess}" class="fw-medium"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
+        <!-- Toast Container -->
+        <div class="toast-container-custom" id="toastContainer"></div>
 
-        <div th:if="${successMess}" class="alert alert-success alert-dismissible fade show mt-3 shadow-sm border-0" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i>
-            <span th:text="${successMess}" class="fw-medium"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div th:replace="fragments/header :: header('Quản lý kích thước', 'Kích thước')"></div>
+
+        <!-- ===== ẨN ALERT CŨ, CHỈ DÙNG ĐỂ LẤY DỮ LIỆU ===== -->
+        <div id="alertData" style="display: none;">
+            <div id="successMessage" th:text="${successMess}"></div>
+            <div id="warningMessage" th:text="${mess}"></div>
+            <div id="errorMessage" th:text="${errorMess}"></div>
         </div>
 
         <section class="card card-custom mb-4 shadow-sm border-0 mt-3">
@@ -72,16 +153,32 @@
             </div>
 
             <div class="card-body bg-white p-4">
-                <form th:action="@{/kichthuoc/add}" th:object="${kichthuoc}" method="post">
+                <form th:action="@{/kichthuoc/add}" th:object="${kichthuoc}" method="post" id="addForm">
                     <div class="row g-3 align-items-end">
 
-                        <div class="col-xl-6 col-md-8">
+                        <!-- Mã kích thước (tự động) -->
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label fw-semibold text-dark small mb-2">Mã kích thước <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-secondary-subtle text-muted">
+                                    <i class="bi bi-tag"></i>
+                                </span>
+                                <input type="text"
+                                       class="form-control bg-light border-secondary-subtle fw-bold text-danger"
+                                       th:field="*{maKichThuoc}"
+                                       readonly
+                                       style="background-color: #f8f9fa !important; cursor: not-allowed;">
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6 col-md-8">
                             <label class="form-label fw-semibold text-dark small mb-2">Tên kích thước <span class="text-danger">*</span></label>
                             <input type="text"
                                    class="form-control border-secondary-subtle"
                                    th:field="*{tenKichThuoc}"
-                                   placeholder="Nhập kích thước (VD: S, M, L, 39, 40...)"
-                                   style="height: 38px;">
+                                   placeholder="Nhập kích thước (VD: 39, 40, 41...)"
+                                   style="height: 38px;"
+                                   id="tenKichThuocInput">
 
                             <div class="text-danger small mt-1 fw-medium"
                                  th:if="${#fields.hasErrors('tenKichThuoc')}"
@@ -89,7 +186,7 @@
                             </div>
                         </div>
 
-                        <div class="col-xl-3 col-md-4">
+                        <div class="col-lg-3 col-md-4">
                             <button type="submit" class="btn text-white fw-semibold px-4 w-100 d-flex align-items-center justify-content-center gap-2" style="background: #c92327; height: 38px;">
                                 <i class="bi bi-plus-circle"></i> Thêm mới
                             </button>
@@ -104,6 +201,7 @@
             <div class="table-header bg-white border-bottom p-3">
                 <h5 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
                     <i class="bi bi-list-stars text-danger"></i> Danh sách kích thước hệ thống
+                    <span class="badge bg-secondary ms-2" th:text="${#lists.size(listk)} + ' kích thước'"></span>
                 </h5>
             </div>
 
@@ -114,14 +212,14 @@
                         <th style="width: 80px;">STT</th>
                         <th>MÃ KÍCH THƯỚC</th>
                         <th>TÊN KÍCH THƯỚC</th>
-                        <th>TRẠNG THÁI KÍCH THƯỚC</th>
+                        <th>TRẠNG THÁI</th>
                         <th>HÀNH ĐỘNG</th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr th:each="kg,stt : ${listk}">
                         <td th:text="${(currentPage * 5) + stt.count}"></td>
-                        <td class="fw-semibold text-secondary" th:text="${'KT' + kg.maKichThuoc}"></td>
+                        <td class="fw-semibold text-secondary" th:text="${kg.maKichThuoc}"></td>
                         <td class="fw-bold text-dark" th:text="${kg.tenKichThuoc}"></td>
                         <td>
                             <span th:if="${kg.trangThai}" class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Đang hoạt động</span>
@@ -133,7 +231,7 @@
                                th:href="@{/kichthuoc/capnhatt/{id}(id=${kg.maKichThuoc})}"
                                class="btn btn-sm btn-link text-success p-1 border-0"
                                title="Đang hoạt động - Nhấn để ngừng"
-                               onclick="return confirm('Bạn có chắc chắn muốn NGỪNG hoạt động kiểu giày này?')">
+                               onclick="return confirm('Bạn có chắc chắn muốn NGỪNG hoạt động kích thước này?')">
                                 <i class="bi bi-toggle2-on fs-4"></i>
                             </a>
 
@@ -141,13 +239,13 @@
                                th:href="@{/kichthuoc/capnhatt/{id}(id=${kg.maKichThuoc})}"
                                class="btn btn-sm btn-link text-secondary p-1 border-0"
                                title="Đang ngừng hoạt động - Nhấn để kích hoạt lại"
-                               onclick="return confirm('Bạn có muốn KÍCH HOẠT LẠI kiểu giày này không?')">
+                               onclick="return confirm('Bạn có muốn KÍCH HOẠT LẠI kích thước này không?')">
                                 <i class="bi bi-toggle2-off fs-4"></i>
                             </a>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(listk)}">
-                        <td colspan="5" class="text-center text-muted py-4">Chưa có dữ liệu kiểu giày nào được tạo.</td>
+                        <td colspan="5" class="text-center text-muted py-4">Chưa có dữ liệu kích thước nào được tạo.</td>
                     </tr>
                     </tbody>
                 </table>
@@ -195,5 +293,79 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // ===== SHOW TOAST =====
+    function showToast(message, type, title) {
+        var container = document.getElementById('toastContainer');
+        if (!container) return;
+
+        var icons = {
+            error: 'bi bi-x-circle-fill text-danger',
+            success: 'bi bi-check-circle-fill text-success',
+            warning: 'bi bi-exclamation-triangle-fill text-warning'
+        };
+
+        var titles = {
+            error: 'Lỗi!',
+            success: 'Thành công!',
+            warning: 'Cảnh báo!'
+        };
+
+        var toast = document.createElement('div');
+        toast.className = 'toast-custom ' + type;
+        toast.innerHTML = `
+            <div class="toast-icon">
+                <i class="${icons[type] || icons.error}"></i>
+            </div>
+            <div class="toast-content">
+                <div class="toast-title">${title || titles[type] || 'Thông báo'}</div>
+                <div class="toast-message">${message}</div>
+            </div>
+            <button class="toast-close" onclick="this.closest('.toast-custom').remove()">
+                <i class="bi bi-x"></i>
+            </button>
+        `;
+
+        container.appendChild(toast);
+
+        setTimeout(function() {
+            if (toast.parentNode) {
+                toast.style.animation = 'slideOutRight 0.3s ease forwards';
+                setTimeout(function() { toast.remove(); }, 300);
+            }
+        }, 5000);
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // Lấy message từ flash attribute (ẩn trong div)
+        var successMsg = document.getElementById('successMessage')?.textContent?.trim();
+        var warningMsg = document.getElementById('warningMessage')?.textContent?.trim();
+        var errorMsg = document.getElementById('errorMessage')?.textContent?.trim();
+
+        if (successMsg && successMsg !== '' && successMsg !== 'null' && successMsg !== 'undefined') {
+            showToast(successMsg, 'success');
+        } else if (warningMsg && warningMsg !== '' && warningMsg !== 'null' && warningMsg !== 'undefined') {
+            showToast(warningMsg, 'warning');
+        } else if (errorMsg && errorMsg !== '' && errorMsg !== 'null' && errorMsg !== 'undefined') {
+            showToast(errorMsg, 'error');
+        }
+
+        var storedMessage = sessionStorage.getItem('toastMessage');
+        var storedType = sessionStorage.getItem('toastType');
+
+        if (storedMessage && storedMessage !== '' && storedMessage !== 'null' && storedMessage !== 'undefined') {
+            showToast(storedMessage, storedType || 'success');
+            sessionStorage.removeItem('toastMessage');
+            sessionStorage.removeItem('toastType');
+        }
+    });
+
+    document.addEventListener('submit', function(e) {
+        sessionStorage.removeItem('toastMessage');
+        sessionStorage.removeItem('toastType');
+    });
+</script>
+
 </body>
 </html>

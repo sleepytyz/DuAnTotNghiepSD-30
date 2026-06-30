@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class VoucherEmailDTO {
-    private int maGiamGia;
+    private String maGiamGia;
     private String tenGiamGia;
     private String loaiGiamGia;
     private BigDecimal giaTri;
@@ -15,4 +15,5 @@ public class VoucherEmailDTO {
     private BigDecimal giamToiDa;
     private LocalDateTime ngayBatDau;
     private LocalDateTime ngayKetThuc;
+    private String loaiApDung;
 }

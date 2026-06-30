@@ -31,7 +31,6 @@ public class ChiTietDotGiamGiaCon {
     @Autowired
     private SanPhamRepository sanPhamRepository;
 
-    // 👉 ĐÃ SỬA: Bổ sung tiếp nhận tham số lọc 'searchMaGiamGia'
     @GetMapping("/hien-thi")
     public String hienThi(Model model,
                           @RequestParam(defaultValue = "0") int page,
@@ -42,27 +41,21 @@ public class ChiTietDotGiamGiaCon {
         Pageable pageable = PageRequest.of(page, pageSize);
         List<ChiTietDotGiamGia> fullList;
 
-        // 👉 ĐÃ SỬA: Kiểm tra nếu có lọc thì lấy danh sách lọc, không có thì lấy tất cả dữ liệu
         if (searchMaGiamGia != null && !searchMaGiamGia.isEmpty()) {
             fullList = service.filterByMaGiamGia(searchMaGiamGia);
             model.addAttribute("selectedMaGiamGia", searchMaGiamGia);
         } else {
-            // Lấy toàn bộ danh sách không cắt trang từ database bằng cách truyền chuỗi rỗng
-            // (hoặc nếu service có hàm service.getAll() bạn có thể thay thế vào)
             fullList = service.filterByMaGiamGia("");
             if (fullList == null || fullList.isEmpty()) {
-                // Phương án dự phòng lấy toàn bộ phần tử
                 fullList = service.getAllPage(PageRequest.of(0, Integer.MAX_VALUE)).getContent();
             }
         }
 
-        // 👉 ĐÃ SỬA: Thực hiện phân trang thủ công trên List để đảm bảo thanh phân trang hiển thị chuẩn xác
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), fullList.size());
         List<ChiTietDotGiamGia> pageContent = (start <= fullList.size()) ? fullList.subList(start, end) : Collections.emptyList();
         Page<ChiTietDotGiamGia> pageResult = new PageImpl<>(pageContent, pageable, fullList.size());
 
-        // Đẩy dữ liệu phân trang ổn định qua HTML
         model.addAttribute("listCTDGG", pageResult.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", pageResult.getTotalPages());
@@ -81,8 +74,8 @@ public class ChiTietDotGiamGiaCon {
     }
 
     @PostMapping("/add")
-    public String add(@RequestParam(required = false) Integer maGiamGia,
-                      @RequestParam(required = false) List<Integer> maSanPhams,
+    public String add(@RequestParam(required = false) String maGiamGia,
+                      @RequestParam(required = false) List<String> maSanPhams,
                       RedirectAttributes redirectAttributes) {
 
         if (maGiamGia == null || maSanPhams == null || maSanPhams.isEmpty()) {
@@ -97,7 +90,7 @@ public class ChiTietDotGiamGiaCon {
         }
 
         int countAdded = 0;
-        for (Integer maSp : maSanPhams) {
+        for (String maSp : maSanPhams) {
             if (!service.exists(maGiamGia, maSp)) {
                 var sanPham = sanPhamRepository.findById(maSp).orElse(null);
                 if (sanPham != null) {
@@ -119,7 +112,6 @@ public class ChiTietDotGiamGiaCon {
         return "redirect:/chi-tiet-dot-giam-gia/hien-thi";
     }
 
-    // 👉 ĐÃ SỬA: Đồng bộ tham số redirect chuẩn xác về hàm hien-thi
     @GetMapping("/loc")
     public String locTheoMaGiamGia(@RequestParam(value = "searchMaGiamGia", required = false) String searchMaGiamGia) {
         return "redirect:/chi-tiet-dot-giam-gia/hien-thi?searchMaGiamGia=" + (searchMaGiamGia != null ? searchMaGiamGia : "");
@@ -127,8 +119,9 @@ public class ChiTietDotGiamGiaCon {
 
     @GetMapping("/api/da-giam-gia/{maGiamGia}")
     @ResponseBody
-    public List<Integer> getMaSanPhamsDaGiamTheoDot(@PathVariable Integer maGiamGia) {
+    public List<String> getMaSanPhamsDaGiamTheoDot(@PathVariable Integer maGiamGia) {
         List<ChiTietDotGiamGia> chiTiets = service.filterByMaGiamGia(String.valueOf(maGiamGia));
+
         return chiTiets.stream()
                 .map(ct -> ct.getSanPham().getMaSanPham())
                 .collect(Collectors.toList());

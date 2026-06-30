@@ -9,66 +9,164 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" th:href="@{/css/style.css}">
 
+  <!-- Meta tags cho thông báo -->
+  <meta name="successMess" th:content="${successMess}">
+  <meta name="errorMess" th:content="${errorMess}">
+
   <style>
-    .modal-content {
-      border: none;
+    .toast-container-custom {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      max-width: 420px;
+      width: 100%;
+    }
+    .toast-custom {
+      background: #fff;
       border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-      overflow: hidden;
+      padding: 16px 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+      border-left: 5px solid #dc3545;
+      animation: slideInRight 0.4s ease;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 12px;
     }
-    .modal-header-custom {
-      background: #c92327;
-      color: white;
-      padding: 1rem 1.5rem;
-      border-bottom: none;
+    .toast-custom.success { border-left-color: #28a745; }
+    .toast-custom.warning { border-left-color: #ffc107; }
+    .toast-custom.error { border-left-color: #dc3545; }
+    .toast-custom .toast-icon { font-size: 1.5rem; flex-shrink: 0; margin-top: 2px; }
+    .toast-custom .toast-content { flex: 1; }
+    .toast-custom .toast-title { font-weight: 700; font-size: 0.95rem; color: #2d3748; }
+    .toast-custom .toast-message { font-size: 0.85rem; color: #6c757d; margin-top: 2px; white-space: pre-line; }
+    .toast-custom .toast-close {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      color: #adb5bd;
+      cursor: pointer;
+      padding: 0 4px;
+      transition: color 0.2s;
     }
-    .modal-body {
-      padding: 2rem 1.5rem;
-      background-color: #f8f9fa;
+    .toast-custom .toast-close:hover { color: #dc3545; }
+    @keyframes slideInRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
     }
-    .modal-footer {
-      background-color: #ffffff;
-      border-top: 1px solid #dee2e6;
-      padding: 1rem 1.5rem;
+    @keyframes slideOutRight {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
     }
-    .form-label-custom {
-      font-weight: 600;
+
+    .table-custom {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .table-custom thead {
+      background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f5 100%);
+      border-bottom: 2px solid #e9ecef;
+    }
+    .table-custom thead th {
+      padding: 10px 12px;
+      font-weight: 700;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
       color: #495057;
-      margin-bottom: 0.4rem;
-      font-size: 0.9rem;
+      border-bottom: none;
+      white-space: nowrap;
+      text-align: center;
     }
-    .form-control, .form-select {
-      border-radius: 6px;
-      border: 1px solid #ced4da;
-      padding: 0.55rem 0.75rem;
-      transition: all 0.2s ease-in-out;
+    .table-custom tbody tr {
+      transition: all 0.2s ease;
+      border-bottom: 1px solid #f1f3f5;
     }
-    .form-control:focus, .form-select:focus {
-      border-color: #c92327 !important;
-      box-shadow: 0 0 0 0.25rem rgba(201, 35, 39, 0.15) !important;
+    .table-custom tbody tr:hover {
+      background: #fff5f5 !important;
     }
-    .radio-group {
-      background: #ffffff;
-      border: 1px solid #ced4da;
-      border-radius: 6px;
-      padding: 0.55rem 0.75rem;
+    .table-custom tbody td {
+      padding: 10px 12px;
+      vertical-align: middle;
+      color: #2d3748;
+      text-align: center;
+      word-break: break-word;
+    }
+
+    .pagination-custom {
       display: flex;
       align-items: center;
-      gap: 15px;
+      gap: 4px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      flex-wrap: wrap;
     }
-    .radio-group input[type="radio"] {
-      accent-color: #c92327;
+    .pagination-custom .page-item {
+      display: inline-block;
+    }
+    .pagination-custom .page-item .page-link {
+      border: none;
+      border-radius: 8px;
+      padding: 6px 14px;
+      color: #495057;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: all 0.3s ease;
+      background: transparent;
+      min-width: 36px;
+      text-align: center;
+      text-decoration: none;
+      display: block;
+    }
+    .pagination-custom .page-item .page-link:hover {
+      background: #fff5f5;
+      color: #c92327;
+    }
+    .pagination-custom .page-item.active .page-link {
+      background: linear-gradient(135deg, #c92327, #a01a1e);
+      color: white;
+      box-shadow: 0 2px 8px rgba(201, 35, 39, 0.3);
+    }
+    .pagination-custom .page-item.disabled .page-link {
+      color: #adb5bd;
+      cursor: not-allowed;
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    .badge-sap-hoat-dong { background: #fff3cd; color: #856404; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; }
+    .badge-hoat-dong { background: #d4edda; color: #155724; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; }
+    .badge-ngung-hoat-dong { background: #f8d7da; color: #721c24; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; }
+    .badge-da-huy { background: #e2e3e5; color: #383d41; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; }
+    .badge-cong-khai { background: #dc3545; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; }
+    .badge-ca-nhan { background: #dc3545; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; }
+
+    .text-red { color: #dc3545; }
+
+    .btn-excel {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 6px;
+      transition: all 0.3s;
+    }
+    .btn-excel:hover {
+      background: #1e7e34;
+      color: white;
+      transform: scale(1.02);
     }
   </style>
 </head>
-
 <body>
 
 <div class="wrapper">
   <div sec:authorize="hasRole('ADMIN')">
     <div th:replace="fragments/sidebaradmin :: sidebar-admin"></div>
   </div>
-
   <div sec:authorize="hasRole('STAFF')">
     <div th:replace="fragments/sidebarstaff :: sidebar-staff"></div>
   </div>
@@ -76,223 +174,302 @@
   <div class="content-body">
     <div th:replace="fragments/header :: header('Quản lý giảm giá', 'Giảm giá')"></div>
 
-    <div th:if="${mess}" class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
-      <span th:text="${mess}"></span>
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
-      <span th:text="${param.error}"></span>
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
+    <div class="page-content">
+      <!-- Toast Container -->
+      <div class="toast-container-custom" id="toastContainer"></div>
 
-    <div class="card card-custom mt-3">
-      <div class="card-header text-white" style="background:#c92327;">
-        <h5 class="mb-0 d-flex align-items-center gap-2" style="font-size: 1rem; font-weight: 600;">
-          <i class="bi bi-search"></i>
-          <span>Bộ lọc tìm kiếm chương trình giảm giá</span>
-        </h5>
-      </div>
-
-      <div class="card-body bg-light p-3">
-        <div class="row g-3 align-items-end">
-
-          <form th:action="@{/giamgia/index}" method="get" id="searchForm" class="row g-3 align-items-end">
-
-            <div class="col-md-3">
-              <label class="form-label-custom mb-1 d-block">Tìm kiếm</label>
-              <div class="input-group">
-                <span class="input-group-text bg-light text-secondary fw-bold">GG</span>
-                <input type="text" name="keyword" th:value="${param.keyword}" class="form-control" placeholder="Nhập tên/mã...">
-              </div>
-            </div>
-
-            <div class="col-md-2">
-              <label class="form-label-custom mb-1 d-block">Trạng thái</label>
-              <select name="tt" class="form-select" onchange="document.getElementById('searchForm').submit()">
-                <option value="">Tất cả</option>
-                <option value="Hoạt động" th:selected="${param.tt == 'Hoạt động'}">Hoạt động</option>
-                <option value="Sắp hoạt động" th:selected="${param.tt == 'Sắp hoạt động'}">Sắp hoạt động</option>
-                <option value="Ngừng hoạt động" th:selected="${param.tt == 'Ngừng hoạt động'}">Ngừng hoạt động</option>
-              </select>
-            </div>
-
-            <div class="col-md-2">
-              <label class="form-label-custom mb-1 d-block">Loại giảm</label>
-              <select name="lg" class="form-select" onchange="document.getElementById('searchForm').submit()">
-                <option value="">Tất cả</option>
-                <option value="PhanTram" th:selected="${param.lg == 'PhanTram'}">Phần trăm</option>
-                <option value="Sotien" th:selected="${param.lg == 'Sotien'}">Số tiền cụ thể</option>
-              </select>
-            </div>
-
-            <div class="col-md-5 d-flex gap-2">
-              <div class="flex-grow-1">
-                <label class="form-label-custom mb-1 d-block">Từ ngày</label>
-                <input type="datetime-local" name="ngaybdau" th:value="${param.ngaybdau}" class="form-control">
-              </div>
-              <div class="flex-grow-1">
-                <label class="form-label-custom mb-1 d-block">Đến ngày</label>
-                <input type="datetime-local" name="ngaykthuc" th:value="${param.ngaykthuc}" class="form-control">
-              </div>
-              <button type="submit" class="btn text-white" style="background:#c92327; margin-top: 22px;">
-                <i class="bi bi-funnel"></i> Lọc
-              </button>
-            </div>
-          </form>
-
+      <!-- Filter Card -->
+      <div class="card card-custom mt-3">
+        <div class="card-header text-white" style="background:#c92327;">
+          <h5 class="mb-0 d-flex align-items-center gap-2" style="font-size: 1rem; font-weight: 600;">
+            <i class="bi bi-search"></i>
+            <span>Bộ lọc tìm kiếm chương trình giảm giá</span>
+          </h5>
         </div>
 
-        <div class="row mt-3">
-          <div class="col-md-12 d-flex justify-content-between">
-            <a th:href="@{/giamgia/index}" class="btn btn-outline-secondary fw-semibold">
-              <i class="bi bi-arrow-clockwise"></i> Reset bộ lọc
-            </a>
-            <a th:href="@{/giamgia/create}" class="btn fw-semibold text-white px-4" style="background:#c92327;">
-              <i class="bi bi-plus-lg"></i> Thêm mới giảm giá
-            </a>
+        <form th:action="@{/giamgia/index}" method="get" id="filterForm">
+          <div class="card-body bg-light p-3">
+            <div class="row g-3 align-items-end">
+              <div class="col-md-3">
+                <label class="form-label fw-semibold small">Tìm kiếm</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light text-secondary fw-bold">GG</span>
+                  <input type="text" name="keyword" th:value="${param.keyword}" class="form-control" placeholder="Nhập tên/mã...">
+                </div>
+              </div>
+
+              <div class="col-md-2">
+                <label class="form-label fw-semibold small">Trạng thái</label>
+                <select name="tt" class="form-select" onchange="document.getElementById('filterForm').submit()">
+                  <option value="">Tất cả</option>
+                  <option value="Hoạt động" th:selected="${param.tt == 'Hoạt động'}">Hoạt động</option>
+                  <option value="Sắp hoạt động" th:selected="${param.tt == 'Sắp hoạt động'}">Sắp hoạt động</option>
+                  <option value="Ngừng hoạt động" th:selected="${param.tt == 'Ngừng hoạt động'}">Ngừng hoạt động</option>
+                  <option value="Đã huỷ" th:selected="${param.tt == 'Đã huỷ'}">Đã huỷ</option>
+                </select>
+              </div>
+
+              <div class="col-md-2">
+                <label class="form-label fw-semibold small">Loại giảm</label>
+                <select name="lg" class="form-select" onchange="document.getElementById('filterForm').submit()">
+                  <option value="">Tất cả</option>
+                  <option value="PhanTram" th:selected="${param.lg == 'PhanTram'}">Phần trăm</option>
+                  <option value="SoTien" th:selected="${param.lg == 'SoTien'}">Số tiền cụ thể</option>
+                </select>
+              </div>
+
+              <div class="col-md-2">
+                <label class="form-label fw-semibold small">Loại áp dụng</label>
+                <select name="loaiApDung" class="form-select" onchange="document.getElementById('filterForm').submit()">
+                  <option value="">Tất cả</option>
+                  <option value="1" th:selected="${param.loaiApDung == '1'}">Công khai</option>
+                  <option value="2" th:selected="${param.loaiApDung == '2'}">Cá nhân</option>
+                </select>
+              </div>
+
+              <div class="col-md-3">
+                <label class="form-label fw-semibold small">Khoảng ngày</label>
+                <div class="d-flex gap-2">
+                  <input type="date" name="ngaybdau" th:value="${param.ngaybdau}" class="form-control" placeholder="Từ ngày">
+                  <input type="date" name="ngaykthuc" th:value="${param.ngaykthuc}" class="form-control" placeholder="Đến ngày">
+                </div>
+              </div>
+
+              <div class="col-md-12 d-flex gap-2 mt-2">
+                <button type="submit" class="btn btn-danger">
+                  <i class="bi bi-funnel"></i> Lọc
+                </button>
+                <a th:href="@{/giamgia/index}" class="btn btn-outline-secondary">
+                  <i class="bi bi-arrow-clockwise"></i> Reset
+                </a>
+                <a th:href="@{/giamgia/export-excel}" class="btn btn-excel ms-auto">
+                  <i class="bi bi-file-earmark-excel me-1"></i> Xuất Excel
+                </a>
+                <a th:href="@{/giamgia/create}" class="btn btn-danger">
+                  <i class="bi bi-plus-lg"></i> Thêm mới giảm giá
+                </a>
+              </div>
+            </div>
           </div>
-        </div>
+        </form>
       </div>
-    </div>
 
-    <div class="table-card mt-3" style="overflow-x: auto;">
-      <table class="table-custom">
-        <thead>
-        <tr>
-          <th>STT</th>
-          <th>Mã giảm gi</th>
-          <th>Tên giảm giá</th>
-          <th>Loại phiếu</th>
-          <th>Giá trị giảm</th>
-          <th>Đơn tối thiếu</th>
-          <th>Số lượng</th>
-          <th>Giảm tối đa</th>
-          <th>Bắt đầu</th>
-          <th>Kết thúc</th>
-          <th>Trạng thái</th>
-          <th>Hành động</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="gg, stt : ${list}">
-          <td th:text="${stt.count}"></td>
-          <td th:text="${ 'GG' + gg.maGiamGia}"></td>
-          <td th:text="${gg.tenGiamGia}"></td>
+      <!-- Table -->
+      <div class="table-card mt-3" style="overflow-x: auto;">
+        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+          <h5 class="mb-0 fw-bold text-secondary">
+            <i class="bi bi-tags-fill text-danger me-2"></i>Danh Sách Chương Trình Giảm Giá
+            <span class="badge bg-secondary ms-2" th:text="${totalItems} + ' chương trình'"></span>
+          </h5>
+        </div>
 
-          <td>
-            <span th:if="${gg.loaiApDung == 1}" class="badge bg-danger text-white">Công khai</span>
-            <span th:if="${gg.loaiApDung == 2}" class="badge bg-danger text-white">Cá nhân</span>
-            <span th:if="${gg.loaiApDung == null}" class="text-muted">-</span>
-          </td>
-
-          <td th:text="${#numbers.formatDecimal(gg.giaTriGiam, 0, 'COMMA', 0, 'POINT') + (gg.loaiGiamGia == 'PhanTram' ? '%' : 'đ')}"></td>
-          <td th:text="${#numbers.formatDecimal(gg.donToiThieu, 0, 'COMMA', 0, 'POINT') + (gg.donToiThieu == 'PhanTram' ? '%' : 'đ')}"></td>
-          <td class="fw-bold" th:text="${gg.soLuong}">0</td>
-          <td th:text="${gg.giamToiDa != null && gg.giamToiDa > 0 ? #numbers.formatDecimal(gg.giamToiDa, 0, 'COMMA', 0, 'POINT') + 'đ' : 'Không giới hạn'}"></td>
-          <td th:text="${gg.ngayBatDau != null ? #temporals.format(gg.ngayBatDau, 'dd/MM/yyyy HH:mm') : '-'}"></td>
-          <td th:text="${gg.ngayKetThuc != null ? #temporals.format(gg.ngayKetThuc, 'dd/MM/yyyy HH:mm') : '-'}"></td>
-          <td>
-    <span th:if="${gg.trangThai != null}"
-          class="badge bg-danger text-white"
+        <table class="table-custom">
+          <thead>
+          <tr>
+            <th width="50">STT</th>
+            <th>Mã</th>
+            <th>Tên chương trình</th>
+            <th>Loại áp dụng</th>
+            <th>Bắt đầu</th>
+            <th>Kết thúc</th>
+            <th>Trạng thái</th>
+            <th>Hành động</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="gg, stt : ${list}">
+            <td th:text="${stt.count + (currentPage * 5)}"></td>
+            <td class="fw-bold text-danger" th:text="${gg.maGiamGia}"></td>
+            <td th:text="${gg.tenGiamGia}"></td>
+            <td>
+              <span th:if="${gg.loaiApDung == 1}" class="badge badge-cong-khai">Công khai</span>
+              <span th:if="${gg.loaiApDung == 2}" class="badge badge-ca-nhan">Cá nhân</span>
+            </td>
+            <td th:text="${#temporals.format(gg.ngayBatDau, 'dd/MM/yyyy HH:mm')}"></td>
+            <td th:text="${#temporals.format(gg.ngayKetThuc, 'dd/MM/yyyy HH:mm')}"></td>
+            <td>
+    <span class="badge"
+          th:classappend="
+            ${gg.trangThai == 'Hoạt động'} ? 'badge-hoat-dong' :
+            (${gg.trangThai == 'Sắp hoạt động'} ? 'badge-sap-hoat-dong' :
+            (${gg.trangThai == 'Đã huỷ'} ? 'badge-da-huy' :
+            'badge-ngung-hoat-dong'))"
           th:text="${gg.trangThai}">
     </span>
-            <span th:if="${gg.trangThai == null}" class="text-muted">-</span>
-          </td>
-          <td>
-            <a class="btn btn-sm btn-danger text-white" th:href="@{/giamgia/edit/{id}(id=${gg.maGiamGia})}">
-              <i class="bi bi-pencil-square"></i>
-            </a>
-            <a class="btn btn-sm btn-danger ms-2 text-white" th:href="@{/giamgia/delete/{id}(id=${gg.maGiamGia})}" onclick="return confirm('Bạn có chắc chắn muốn ngừng hoạt động chương trình này?')">
-              <i class="bi bi-trash3"></i>
-            </a>
-          </td>
-        </tr>
-        <tr th:if="${#lists.isEmpty(list)}">
-          <td colspan="12" class="text-center text-muted py-4">Không tìm thấy chương trình giảm giá nào.</td>
-        </tr>
-        </tbody>
-      </table>
-      <div class="card-footer bg-white border-top-0 d-flex justify-content-between align-items-center px-4 py-3" th:if="${totalPages > 0}">
-        <div class="small text-muted fw-semibold">
-          Tổng số bản ghi: <span class="fw-semibold text-dark" th:text="${totalItems}">0</span>
-          (Trang <span class="fw-semibold text-dark" th:text="${currentPage + 1}">1</span> / <span th:text="${totalPages}">1</span>)
+              <!-- ===== HÀNH ĐỘNG ===== -->
+            <td>
+              <!-- Trạng thái Sắp hoạt động: Kích hoạt + Cập nhật + Huỷ -->
+              <th:block th:if="${gg.trangThai == 'Sắp hoạt động'}">
+                <!-- Nút Kích hoạt sớm -->
+                <a class="btn btn-success btn-sm"
+                   th:href="@{/giamgia/activate/{id}(id=${gg.maGiamGia})}"
+                   onclick="return confirm('Bạn có chắc chắn muốn kích hoạt sớm chương trình này? Ngày bắt đầu sẽ được set thành thời điểm hiện tại.')"
+                   title="Kích hoạt sớm">
+                  <i class="bi bi-play-fill"></i>
+                </a>
+                <!-- Nút Cập nhật -->
+                <a class="btn btn-danger btn-sm ms-1"
+                   th:href="@{/giamgia/edit/{id}(id=${gg.maGiamGia})}"
+                   title="Cập nhật">
+                  <i class="bi bi-pencil-square"></i>
+                </a>
+                <!-- Nút Huỷ -->
+                <a class="btn btn-warning btn-sm ms-1"
+                   th:href="@{/giamgia/cancel/{id}(id=${gg.maGiamGia})}"
+                   onclick="return confirm('Bạn có chắc chắn muốn huỷ đợt giảm giá này?')"
+                   title="Huỷ">
+                  <i class="bi bi-x-circle"></i>
+                </a>
+              </th:block>
+
+              <!-- Trạng thái Hoạt động: Xem + Ngừng hoạt động -->
+              <th:block th:if="${gg.trangThai == 'Hoạt động'}">
+                <a class="btn btn-info btn-sm"
+                   th:href="@{/giamgia/detail/{id}(id=${gg.maGiamGia})}"
+                   title="Xem chi tiết">
+                  <i class="bi bi-eye"></i>
+                </a>
+                <a class="btn btn-secondary btn-sm ms-1"
+                   th:href="@{/giamgia/stop/{id}(id=${gg.maGiamGia})}"
+                   onclick="return confirm('Bạn có chắc chắn muốn chuyển trạng thái sang Ngừng hoạt động?')"
+                   title="Ngừng hoạt động">
+                  <i class="bi bi-stop-circle"></i>
+                </a>
+              </th:block>
+
+              <!-- Trạng thái Đã huỷ: Chỉ Xem -->
+              <th:block th:if="${gg.trangThai == 'Đã huỷ'}">
+                <a class="btn btn-info btn-sm"
+                   th:href="@{/giamgia/detail/{id}(id=${gg.maGiamGia})}"
+                   title="Xem chi tiết">
+                  <i class="bi bi-eye"></i>
+                </a>
+              </th:block>
+
+              <!-- Trạng thái Ngừng hoạt động: Chỉ Xem -->
+              <th:block th:if="${gg.trangThai == 'Ngừng hoạt động'}">
+                <a class="btn btn-info btn-sm"
+                   th:href="@{/giamgia/detail/{id}(id=${gg.maGiamGia})}"
+                   title="Xem chi tiết">
+                  <i class="bi bi-eye"></i>
+                </a>
+              </th:block>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div class="card-footer bg-white border-top-0 d-flex justify-content-between align-items-center px-4 py-3"
+             th:if="${totalPages > 0}">
+          <div class="small text-muted fw-semibold">
+            <i class="bi bi-database me-1"></i>
+            Tổng: <span class="fw-semibold text-dark" th:text="${totalItems}">0</span> bản ghi
+            <span class="mx-1">|</span>
+            Trang <span class="fw-semibold text-dark" th:text="${currentPage + 1}">1</span>
+            / <span class="fw-semibold text-dark" th:text="${totalPages}">1</span>
+          </div>
+
+          <nav aria-label="Page navigation">
+            <ul class="pagination-custom">
+              <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                <a class="page-link" th:href="@{/giamgia/index(page=0, keyword=${param.keyword}, tt=${param.tt}, lg=${param.lg}, loaiApDung=${param.loaiApDung}, ngaybdau=${param.ngaybdau}, ngaykthuc=${param.ngaykthuc})}">
+                  <i class="bi bi-chevron-double-left"></i>
+                </a>
+              </li>
+              <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                <a class="page-link" th:href="@{/giamgia/index(page=${currentPage - 1}, keyword=${param.keyword}, tt=${param.tt}, lg=${param.lg}, loaiApDung=${param.loaiApDung}, ngaybdau=${param.ngaybdau}, ngaykthuc=${param.ngaykthuc})}">
+                  <i class="bi bi-chevron-left"></i>
+                </a>
+              </li>
+              <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                  th:if="${i >= 0 && i < totalPages && ((i >= currentPage - 2 && i <= currentPage + 2) || i == 0 || i == totalPages - 1)}"
+                  th:classappend="${currentPage == i} ? 'active' : ''">
+                <span class="page-link" th:if="${i == 2 && currentPage > 3}" style="border: none; background: transparent; cursor: default;">...</span>
+                <a class="page-link" th:unless="${i == 2 && currentPage > 3}"
+                   th:href="@{/giamgia/index(page=${i}, keyword=${param.keyword}, tt=${param.tt}, lg=${param.lg}, loaiApDung=${param.loaiApDung}, ngaybdau=${param.ngaybdau}, ngaykthuc=${param.ngaykthuc})}"
+                   th:text="${i + 1}">
+                </a>
+                <span class="page-link" th:if="${i == totalPages - 3 && currentPage < totalPages - 4}" style="border: none; background: transparent; cursor: default;">...</span>
+              </li>
+              <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+                <a class="page-link" th:href="@{/giamgia/index(page=${currentPage + 1}, keyword=${param.keyword}, tt=${param.tt}, lg=${param.lg}, loaiApDung=${param.loaiApDung}, ngaybdau=${param.ngaybdau}, ngaykthuc=${param.ngaykthuc})}">
+                  <i class="bi bi-chevron-right"></i>
+                </a>
+              </li>
+              <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+                <a class="page-link" th:href="@{/giamgia/index(page=${totalPages - 1}, keyword=${param.keyword}, tt=${param.tt}, lg=${param.lg}, loaiApDung=${param.loaiApDung}, ngaybdau=${param.ngaybdau}, ngaykthuc=${param.ngaykthuc})}">
+                  <i class="bi bi-chevron-double-right"></i>
+                </a>
+              </li>
+            </ul>
+          </nav>
         </div>
-
-        <nav aria-label="Page navigation">
-          <ul class="pagination pagination-sm mb-0 gap-1">
-            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-              <a class="page-link rounded-2 border-0 d-flex align-items-center justify-content-center text-danger"
-                 th:href="@{/giamgia/index(page=${currentPage - 1}, keyword=${param.keyword}, tt=${param.tt}, lg=${param.lg})}">
-                <i class="bi bi-chevron-left"></i>
-              </a>
-            </li>
-
-            <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
-                th:classappend="${currentPage == i} ? 'active'">
-              <a class="page-link rounded-2 border-0 d-flex align-items-center justify-content-center fw-semibold"
-                 th:style="${currentPage == i} ? 'background-color:#c92327; color:#fff;' : ''"
-                 th:href="@{/giamgia/index(page=${i}, keyword=${param.keyword}, tt=${param.tt}, lg=${param.lg})}"
-                 th:text="${i + 1}">
-              </a>
-            </li>
-
-            <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
-              <a class="page-link rounded-2 border-0 d-flex align-items-center justify-content-center text-danger"
-                 th:href="@{/giamgia/index(page=${currentPage + 1}, keyword=${param.keyword}, tt=${param.tt}, lg=${param.lg})}">
-                <i class="bi bi-chevron-right"></i>
-              </a>
-            </li>
-          </ul>
-        </nav>
       </div>
     </div>
   </div>
-
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // =============================================
+  // TOAST
+  // =============================================
+  function showToast(message, type, title) {
+    var container = document.getElementById('toastContainer');
+    if (!container) return;
 
-<script th:inline="javascript">
-  document.addEventListener("DOMContentLoaded", function () {
-    /*[Th:inline]*/
-    var showModalValue = /*[[${showModal != null ? showModal : false}]]*/ false;
+    var icons = {
+      error: 'bi bi-x-circle-fill text-danger',
+      success: 'bi bi-check-circle-fill text-success',
+      warning: 'bi bi-exclamation-triangle-fill text-warning',
+      info: 'bi bi-info-circle-fill text-info'
+    };
 
-    if (showModalValue) {
-      var myModal = new bootstrap.Modal(document.getElementById('giamGiaModal'));
-      myModal.show();
+    var titles = {
+      error: 'Lỗi!',
+      success: 'Thành công!',
+      warning: 'Cảnh báo!',
+      info: 'Thông tin'
+    };
 
-      var maGiamGia = document.getElementById("modalMaGiamGia").value;
-      if (maGiamGia && maGiamGia !== "0") {
-        document.getElementById("btn-add-submit").style.display = "none";
-        document.getElementById("btn-update-submit").style.display = "block";
-      } else {
-        document.getElementById("btn-add-submit").style.display = "block";
-        document.getElementById("btn-update-submit").style.display = "none";
+    var toast = document.createElement('div');
+    toast.className = 'toast-custom ' + type;
+    toast.innerHTML = `
+      <div class="toast-icon"><i class="${icons[type] || icons.success}"></i></div>
+      <div class="toast-content">
+        <div class="toast-title">${title || titles[type] || 'Thông báo'}</div>
+        <div class="toast-message">${message}</div>
+      </div>
+      <button class="toast-close" onclick="this.closest('.toast-custom').remove()">
+        <i class="bi bi-x"></i>
+      </button>
+    `;
+    container.appendChild(toast);
+
+    setTimeout(function() {
+      if (toast.parentNode) {
+        toast.style.animation = 'slideOutRight 0.3s ease forwards';
+        setTimeout(function() { toast.remove(); }, 300);
       }
+    }, 5000);
+  }
+
+  // =============================================
+  // DOM READY
+  // =============================================
+  document.addEventListener("DOMContentLoaded", function() {
+    var successMsg = document.querySelector('meta[name="successMess"]')?.getAttribute('content') || '';
+    var errorMsg = document.querySelector('meta[name="errorMess"]')?.getAttribute('content') || '';
+
+    if (successMsg && successMsg !== '' && successMsg !== 'null' && successMsg !== 'undefined') {
+      showToast(successMsg, 'success');
+    }
+    if (errorMsg && errorMsg !== '' && errorMsg !== 'null' && errorMsg !== 'undefined') {
+      showToast(errorMsg, 'error');
     }
   });
-
-  function openAddModal() {
-    document.getElementById("modalMaGiamGia").value = "0";
-    document.getElementById("tenGiamGia").value = "";
-    document.getElementById("giaTriGiam").value = "";
-    document.getElementById("giamToiDa").value = "";
-    document.getElementById("soLuong").value = "";
-    document.getElementById("ngayBatDau").value = "";
-    document.getElementById("ngayKetThuc").value = "";
-    document.getElementById("loaiGiamGia").selectedIndex = 0;
-    document.getElementById("loaiVoucher").selectedIndex = 0;
-
-    document.querySelectorAll("input[name='trangThai']").forEach(r => r.checked = false);
-
-    document.getElementById("btn-add-submit").style.display = "block";
-    document.getElementById("btn-update-submit").style.display = "none";
-  }
-
-
-    function submitForm() {
-    document.getElementById('filterForm').submit();
-  }
-
 </script>
+
 </body>
 </html>

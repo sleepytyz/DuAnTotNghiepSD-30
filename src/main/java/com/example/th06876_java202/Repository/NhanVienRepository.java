@@ -14,13 +14,13 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface NhanVienRepository extends JpaRepository<NhanVien, Integer> {
+public interface NhanVienRepository extends JpaRepository<NhanVien, String> {
     Optional<NhanVien> findByEmail(String email);
 
     @Modifying
     @Transactional
     @Query(value = "Update NhanVien set TrangThai = N'Đã nghỉ việc' where MaNhanVien = ?", nativeQuery = true)
-    int updateTrangThai(Integer maNhanVien);
+    int updateTrangThai(String maNhanVien);
 
     @Query(value = "SELECT * FROM NhanVien WHERE " +
             "(:keyword IS NULL OR :keyword = '' OR HoTen LIKE %:keyword% OR SoDienThoai LIKE %:keyword%) AND " +
@@ -36,12 +36,27 @@ public interface NhanVienRepository extends JpaRepository<NhanVien, Integer> {
                           @Param("status") String status,
                           Pageable pageable);
 
-    boolean existsByEmail(String email);
+    boolean existsByEmailAndMaNhanVienNot(String email, String maNhanVien);
 
+    // Kiểm tra sdt tồn tại, LOẠI TRỪ bản ghi đang update
+    boolean existsBySoDienThoaiAndMaNhanVienNot(String soDienThoai, String maNhanVien);
+
+    boolean existsById(String id);
+    boolean existsByEmail(String email);
     boolean existsBySoDienThoai(String soDienThoai);
 
-    boolean existsByEmailAndMaNhanVienNot(String email, Integer maNhanVien);
+    // Dùng cho UPDATE - loại trừ chính nó
+    @Query("SELECT COUNT(nv) > 0 FROM NhanVien nv WHERE nv.email = :email AND nv.maNhanVien != :maNhanVien")
+    boolean existsByEmailAndNotMaNhanVien(@Param("email") String email, @Param("maNhanVien") String maNhanVien);
 
-    boolean existsBySoDienThoaiAndMaNhanVienNot(String soDienThoai, Integer maNhanVien);
+    @Query("SELECT COUNT(nv) > 0 FROM NhanVien nv WHERE nv.soDienThoai = :soDienThoai AND nv.maNhanVien != :maNhanVien")
+    boolean existsBySoDienThoaiAndNotMaNhanVien(@Param("soDienThoai") String soDienThoai, @Param("maNhanVien") String maNhanVien);
 
+    @Query("SELECT nv FROM NhanVien nv WHERE " +
+            "(:keyword IS NULL OR :keyword = '' OR nv.hoTen LIKE %:keyword% OR nv.soDienThoai LIKE %:keyword%) " +
+            "AND (:role IS NULL OR :role = '' OR nv.chucVu = :role) " +
+            "AND (:status IS NULL OR :status = '' OR nv.trangThai = CAST(:status AS boolean))")
+    List<NhanVien> findAllByFilter(@Param("keyword") String keyword,
+                                   @Param("role") String role,
+                                   @Param("status") String status);
 }

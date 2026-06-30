@@ -11,18 +11,24 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
-public interface SanPhamRepository extends JpaRepository<SanPham, Integer> {
+public interface SanPhamRepository extends JpaRepository<SanPham, String> {
     boolean existsByTenSanPham(String TenSanPham);
+
+    boolean existsByMaSanPham(String maSanPham);
+
+    // Trong SanPhamRepository.java
+    Optional<SanPham> findByTenSanPham(String tenSanPham);
 
     @Modifying
     @Transactional
-    @Query(value = "UPDATE SanPham SET TrangThai = ?2, NgayCapNhat = GETDATE() WHERE MaSanPham = ?1", nativeQuery = true)
-    int updateTrangThai(int maSanPham, boolean trangThai);
+    @Query(value = "UPDATE SanPham SET TrangThai = ?2 WHERE MaSanPham = ?1", nativeQuery = true)
+    int updateTrangThai(String maSanPham, boolean trangThai);
 
     @Query(value = "Select * from SanPham where MaDanhMuc = ?", nativeQuery = true)
-    List<SanPham> getallbymaDanhMuc(int maDanhMuc);
+    List<SanPham> getallbymaDanhMuc(String maDanhMuc);
 
     @Query(value = "select * from SanPham where TenSanPham like CONCAT('%', :keyword, '%') or CAST(MaSanPham AS VARCHAR(20)) LIKE CONCAT('%', :keyword, '%')",
             nativeQuery = true)
@@ -33,21 +39,45 @@ public interface SanPhamRepository extends JpaRepository<SanPham, Integer> {
 
     boolean existsByTenSanPhamIgnoreCase(String tenSanPham);
 
-    Page<SanPham> findAllByOrderByMaSanPhamDesc(Pageable pageable);
 
-    @Query("SELECT s FROM SanPham s WHERE " +
-            "(:maDanhMuc IS NULL OR s.danhMucSanPham.maDanhMuc = :maDanhMuc) AND " +
-            "(:tt IS NULL OR s.trangThai = :tt) AND " +
-            "(:maTH IS NULL OR s.thuongHieu.maThuongHieu = :maTH) AND " +
-            "(:maKG IS NULL OR s.kieuGiay.maKieuGiay = :maKG) AND " +
-            "(:t IS NULL OR s.tenSanPham LIKE %:t% OR CAST(s.maSanPham AS string) LIKE %:t%) " +
-            "ORDER BY s.maSanPham DESC")
-    Page<SanPham> searchSanPham(@Param("maDanhMuc") Integer maDanhMuc,
+    Page<SanPham> findAllByOrderByNgayTaoDesc(Pageable pageable);
+
+    @Query("SELECT DISTINCT sp FROM SanPham sp " +
+            "LEFT JOIN sp.danhMucSanPham dm " +
+            "LEFT JOIN sp.thuongHieu th " +
+            "LEFT JOIN sp.kieuGiay kg " +
+            "WHERE (:maDanhMuc IS NULL OR dm.maDanhMuc = :maDanhMuc) " +
+            "AND (:tt IS NULL OR sp.trangThai = :tt) " +
+            "AND (:maTH IS NULL OR th.maThuongHieu = :maTH) " +
+            "AND (:maKG IS NULL OR kg.maKieuGiay = :maKG) " +
+            "AND (:keyword IS NULL OR " +
+            "LOWER(sp.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "LOWER(sp.maSanPham) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+            "ORDER BY sp.ngayTao DESC")
+    Page<SanPham> searchSanPham(@Param("maDanhMuc") String maDanhMuc,
                                 @Param("tt") Boolean tt,
-                                @Param("maTH") Integer maTH,
-                                @Param("maKG") Integer maKG,
-                                @Param("t") String t,
+                                @Param("maTH") String maTH,
+                                @Param("maKG") String maKG,
+                                @Param("keyword") String keyword,
                                 Pageable pageable);
 
+    long countByTrangThai(boolean trangThai);
 
+    @Query("SELECT DISTINCT sp FROM SanPham sp " +
+            "LEFT JOIN sp.danhMucSanPham dm " +
+            "LEFT JOIN sp.thuongHieu th " +
+            "LEFT JOIN sp.kieuGiay kg " +
+            "WHERE (:maDanhMuc IS NULL OR dm.maDanhMuc = :maDanhMuc) " +
+            "AND (:tt IS NULL OR sp.trangThai = :tt) " +
+            "AND (:maTH IS NULL OR th.maThuongHieu = :maTH) " +
+            "AND (:maKG IS NULL OR kg.maKieuGiay = :maKG) " +
+            "AND (:keyword IS NULL OR " +
+            "LOWER(sp.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "LOWER(sp.maSanPham) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+            "ORDER BY sp.ngayTao DESC")
+    List<SanPham> findAllWithFilters(@Param("maDanhMuc") String maDanhMuc,
+                                     @Param("tt") Boolean tt,
+                                     @Param("maTH") String maTH,
+                                     @Param("maKG") String maKG,
+                                     @Param("keyword") String keyword);
 }

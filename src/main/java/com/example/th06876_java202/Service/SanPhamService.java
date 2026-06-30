@@ -23,14 +23,18 @@ public class SanPhamService {
     }
 
     public SanPham save(SanPham sanPham) {
-         return sanPhamRepository.save(sanPham);
+        return sanPhamRepository.save(sanPham);
     }
 
-    public void updateTrangThai(int maSanPham, boolean trangThai) {
+    public void updateTrangThai(String maSanPham, boolean trangThai) {
         sanPhamRepository.updateTrangThai(maSanPham, trangThai);
     }
 
-    public Optional<SanPham> findById(Integer id) {
+    public SanPham findByTenSanPham(String tenSanPham) {
+        return sanPhamRepository.findByTenSanPham(tenSanPham).orElse(null);
+    }
+
+    public Optional<SanPham> findById(String id) {
         return sanPhamRepository.findById(id);
     }
 
@@ -38,9 +42,8 @@ public class SanPhamService {
         return sanPhamRepository.existsByTenSanPham(TenSanPham);
     }
 
-    public Page<SanPham> searchSanPham(Integer maDanhMuc, Boolean tt, Integer maTH, Integer maKG, String t, Pageable pageable) {
+    public Page<SanPham> searchSanPham(String maDanhMuc, Boolean tt, String maTH, String maKG, String t, Pageable pageable) {
         String keyword = (t == null || t.trim().isEmpty()) ? null : t.trim();
-
         return sanPhamRepository.searchSanPham(maDanhMuc, tt, maTH, maKG, keyword, pageable);
     }
 
@@ -49,13 +52,22 @@ public class SanPhamService {
     }
 
     public Page<SanPham> getallpage(Pageable pageable) {
-        return sanPhamRepository.findAllByOrderByMaSanPhamDesc(pageable);
+        return sanPhamRepository.findAllByOrderByNgayTaoDesc(pageable);
     }
 
     public boolean isTenSanPhamDuplicate(String ten) {
         if (ten == null) return false;
         String normalizedName = ten.trim().replaceAll("\\s+", " ");
         return sanPhamRepository.existsByTenSanPhamIgnoreCase(normalizedName);
+    }
+
+    public long countByTrangThai(boolean trangThai) {
+        return sanPhamRepository.countByTrangThai(trangThai);
+    }
+
+    public List<SanPham> findAllWithFilters(String maDanhMuc, Boolean tt, String maTH, String maKG, String t) {
+        String keyword = (t == null || t.trim().isEmpty()) ? null : t.trim();
+        return sanPhamRepository.findAllWithFilters(maDanhMuc, tt, maTH, maKG, keyword);
     }
 
 }

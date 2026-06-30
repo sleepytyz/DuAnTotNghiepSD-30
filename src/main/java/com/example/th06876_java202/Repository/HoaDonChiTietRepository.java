@@ -4,19 +4,54 @@ import com.example.th06876_java202.Entity.HoaDon;
 import com.example.th06876_java202.Entity.HoaDonChiTiet;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface HoaDonChiTietRepository extends JpaRepository<HoaDonChiTiet, Integer> {
+// SỬA: String -> Long (vì ID là Integer)
+public interface HoaDonChiTietRepository extends JpaRepository<HoaDonChiTiet, Long> {
 
-    @Query(value = "select * from ChiTietHoaDon where MaHoaDon = ?1 and MaSanPhamChiTiet = ?2", nativeQuery = true)
-    HoaDonChiTiet getallsphd(Integer MaHoaDon, Integer MaSanPhamChiTiet);
+    @Query("SELECT hdct FROM HoaDonChiTiet hdct " +
+            "WHERE hdct.maHoaDon.maHoaDon = :maHoaDon " +
+            "AND hdct.sanPhamChiTiet.maSanPhamChiTiet = :maSPCT")
+    HoaDonChiTiet getallsphd(
+            @Param("maHoaDon") String maHoaDon,
+            @Param("maSPCT") String maSanPhamChiTiet
+    );
 
-    @Query( value = "select * from ChiTietHoaDon where MaHoaDon = ?", nativeQuery = true)
-    List<HoaDonChiTiet> getallsphd(Integer MaHoaDon);
+    @Query("SELECT hdct FROM HoaDonChiTiet hdct " +
+            "WHERE hdct.maHoaDon.maHoaDon = :maHoaDon")
+    List<HoaDonChiTiet> getallsphd(@Param("maHoaDon") String maHoaDon);
 
-    List<HoaDonChiTiet> findByMaHoaDon(HoaDon hoaDon);
+    @Query("SELECT hdct FROM HoaDonChiTiet hdct " +
+            "WHERE hdct.maHoaDon = :hoaDon")
+    List<HoaDonChiTiet> findByMaHoaDon(@Param("hoaDon") HoaDon hoaDon);
 
+    List<HoaDonChiTiet> findByMaHoaDon_MaHoaDon(String maHoaDon);
+
+    @Query("SELECT hdct FROM HoaDonChiTiet hdct " +
+            "WHERE hdct.maHoaDon.maHoaDon = :maHoaDon " +
+            "AND hdct.sanPhamChiTiet.maSanPhamChiTiet = :maSPCT")
+    HoaDonChiTiet findByMaHoaDonAndMaSanPhamChiTiet(
+            @Param("maHoaDon") String maHoaDon,
+            @Param("maSPCT") String maSPCT
+    );
+
+    // Lấy sản phẩm với giá mới nhất từ database
+    @Query("SELECT hdct.id, hdct.maHoaDon.maHoaDon, " +
+            "hdct.sanPhamChiTiet.maSanPhamChiTiet, " +
+            "hdct.soLuong, hdct.donGia, " +
+            "spct.giaBan, spct.soLuongTon " +
+            "FROM HoaDonChiTiet hdct " +
+            "JOIN hdct.sanPhamChiTiet spct " +
+            "WHERE hdct.maHoaDon.maHoaDon = :maHoaDon")
+    List<Object[]> findCartItemsWithLatestPrice(@Param("maHoaDon") String maHoaDon);
+
+    // Method này đã có thể dùng
+    HoaDonChiTiet findByMaHoaDon_MaHoaDonAndSanPhamChiTiet_MaSanPhamChiTiet(
+            String maHoaDon,
+            String maSanPhamChiTiet
+    );
 }

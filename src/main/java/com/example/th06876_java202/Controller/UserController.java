@@ -53,7 +53,7 @@ public class UserController {
                 model.addAttribute("tongSanPham", sanPhams != null ? sanPhams.size() : 0);
 
                 // Số sản phẩm sắp hết (tồn kho <= 10)
-                List<SanPhamChiTiet> spct = sanPhamChiTietService.getall();
+                List<SanPhamChiTiet> spct = sanPhamChiTietService.getalll();
                 long sapHet = spct.stream()
                         .filter(s -> s.getSoLuongTon() != null && s.getSoLuongTon() <= 10 && s.getSoLuongTon() > 0)
                         .count();

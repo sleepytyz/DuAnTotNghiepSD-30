@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;  // ⭐ Đổi từ LocalDate sang LocalDateTime
 
 @Getter
 @Setter
@@ -16,9 +16,9 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "HoaDon")
 public class HoaDon {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer maHoaDon;
+    private String maHoaDon;
 
     @ManyToOne
     @JoinColumn(name = "MaKhachHang")
@@ -53,9 +53,12 @@ public class HoaDon {
     @Column(name = "GhiChu")
     private String ghiChu;
 
-    @Column( name = "NgayTao")
-    private LocalDate ngayTao;
+    @Column(name = "NgayTao")
+    private LocalDateTime ngayTao;
 
-    @Column( name = "LoaiBan")
+    @Column(name = "NgayThanhToan")
+    private LocalDateTime ngayThanhToan;
+
+    @Column(name = "LoaiBan")
     private String loaiBan;
 }

@@ -13,6 +13,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Controller
@@ -37,10 +38,10 @@ public class DonHangController {
     @GetMapping("/index")
     public String index(
             @PageableDefault(size = 5, sort = "maHoaDon", direction = Sort.Direction.DESC) Pageable pageable,
-            @RequestParam(required = false) Integer mahd,
+            @RequestParam(required = false) String mahd,
             @RequestParam(required = false) String tt,
-            @RequestParam(required = false) LocalDate ngay,
-            @RequestParam(required = false) LocalDate ngay2,
+            @RequestParam(required = false) LocalDateTime ngay,
+            @RequestParam(required = false) LocalDateTime ngay2,
             Model model) {
 
         model.addAttribute("activeMenu", "donhang");
@@ -66,7 +67,7 @@ public class DonHangController {
         // 👉 CHỈ dùng mahd để lấy chi tiết
         HoaDon hd = null;
         if (mahd != null) {
-            hd = service.findById(mahd).orElse(null);
+            hd = service.findById(mahd);
             model.addAttribute("listsp", hoaDonChiTietService.findById(mahd));
         } else {
             model.addAttribute("listsp", List.of());
@@ -81,11 +82,11 @@ public class DonHangController {
     }
 
     @GetMapping("/edit/{id}")
-    public String edit(@PathVariable Integer id,
+    public String edit(@PathVariable String id,
                        @PageableDefault(size = 5, sort = "maHoaDon", direction = Sort.Direction.DESC) Pageable pageable,
                        Model model) {
 
-        HoaDon hd = service.findById(id).orElse(null);
+        HoaDon hd = service.findById(id);
 
         model.addAttribute("hoaDon", hd);
         model.addAttribute("hd", hd);
@@ -110,19 +111,19 @@ public class DonHangController {
     }
 
     @GetMapping("/suatt")
-    public String suatt(@RequestParam(required = false) Integer mahd, Model model) {
+    public String suatt(@RequestParam(required = false) String mahd, Model model) {
         service.suatt(mahd);
         return "redirect:/donhang/index";
     }
 
     @GetMapping("/suattdg")
-    public String suattdg(@RequestParam(required = false) Integer mahd, Model model) {
+    public String suattdg(@RequestParam(required = false) String mahd, Model model) {
         service.suattdg(mahd);
         return "redirect:/donhang/index";
     }
 
     @GetMapping("/suattdgg")
-    public String suattdgg(@RequestParam(required = false) Integer mahd, Model model) {
+    public String suattdgg(@RequestParam(required = false) String mahd, Model model) {
         service.suattdgg(mahd);
         return "redirect:/donhang/index";
     }

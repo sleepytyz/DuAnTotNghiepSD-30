@@ -14,20 +14,22 @@ import java.util.List;
 public interface GiamGiaChiTietRepo extends JpaRepository<GiamGiaChiTiet, GiamGiaChiTietId> {
 
     @Query("SELECT ct.id.maKhachHang FROM GiamGiaChiTiet ct WHERE ct.id.maGiamGia = :maGiamGia")
-    List<Integer> findMaKhachHangByMaGiamGia(@Param("maGiamGia") Integer maGiamGia);
+    List<String> findMaKhachHangByMaGiamGia(@Param("maGiamGia") String maGiamGia);
 
     @Modifying
     @Query("DELETE FROM GiamGiaChiTiet ct WHERE ct.id.maGiamGia = :maGiamGia")
-    void deleteByMaGiamGia(@Param("maGiamGia") Integer maGiamGia);
+    void deleteByMaGiamGia(@Param("maGiamGia") String maGiamGia);
 
     @Modifying
     @Query("UPDATE GiamGiaChiTiet ct SET ct.trangThaiSuDung = :trangThai WHERE ct.id.maGiamGia = :maGiamGia")
-    void updateTrangThaiSuDungByMaGiamGia(@Param("maGiamGia") Integer maGiamGia, @Param("trangThai") int trangThai);
+    void updateTrangThaiSuDungByMaGiamGia(@Param("maGiamGia") String maGiamGia, @Param("trangThai") int trangThai);
 
     @Modifying
     @Query("UPDATE GiamGiaChiTiet ct SET ct.trangThaiSuDung = :trangThai WHERE ct.id.maGiamGia = :maGiamGia")
-    void updateTrangThaiByMaGiamGia(@Param("maGiamGia") Integer maGiamGia, @Param("trangThai") int trangThai);
+    void updateTrangThaiByMaGiamGia(@Param("maGiamGia") String maGiamGia, @Param("trangThai") int trangThai);
 
-    long countByGiamGia_MaGiamGia(Integer maGiamGia);
+    long countByGiamGia_MaGiamGia(String maGiamGia);
+
+    boolean existsById(GiamGiaChiTietId id);
 
 }

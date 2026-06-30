@@ -7,8 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ChatLieuRepository extends JpaRepository<ChatLieu, Integer> {
+public interface ChatLieuRepository extends JpaRepository<ChatLieu, String> {
     boolean existsByTenChatLieu(String tenChatLieu);
 
-    Page<ChatLieu> findAllByOrderByMaChatLieuDesc(Pageable pageable);
+    Page<ChatLieu> findAllByOrderByNgayTaoDesc(Pageable pageable);
 }

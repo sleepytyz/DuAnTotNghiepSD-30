@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Data
 @NoArgsConstructor
@@ -15,9 +17,8 @@ import lombok.NoArgsConstructor;
 public class MauSac {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MaMauSac")
-    private Integer maMauSac;
+    private String maMauSac;
 
     @NotBlank(message = "Không bỏ trống màu sắc")
     @Pattern(
@@ -29,4 +30,14 @@ public class MauSac {
 
     @Column(name = "TrangThai")
     private boolean trangThai;
+
+    @Column(name = "NgayTao", updatable = false)
+    private LocalDateTime ngayTao;
+
+    @PrePersist
+    protected void onCreate() {
+        if (ngayTao == null) {
+            ngayTao = LocalDateTime.now();
+        }
+    }
 }

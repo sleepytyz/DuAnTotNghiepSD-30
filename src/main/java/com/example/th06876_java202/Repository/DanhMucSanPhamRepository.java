@@ -13,17 +13,18 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Repository
-public interface DanhMucSanPhamRepository extends JpaRepository<DanhMucSanPham, Integer> {
+public interface DanhMucSanPhamRepository extends JpaRepository<DanhMucSanPham, String> {
 
     @Modifying
     @Transactional
     @Query(value = "update DanhMucSanPham set TrangThai = 0 where MaDanhMuc = ?", nativeQuery = true)
-    int updateTrangThai(int maDanhMuc);
+    int updateTrangThai(String maDanhMuc);
 
-    List<DanhMucSanPham> findByMaDanhMuc (int idd );
+    List<DanhMucSanPham> findByMaDanhMuc(String idd);
 
     boolean existsByTenDanhMuc(@NotBlank(message = "Tên danh mục không để trống") String tenDanhMuc);
 
-    Page<DanhMucSanPham> findAllByOrderByMaDanhMucDesc(Pageable pageable);
+    Page<DanhMucSanPham> findAllByOrderByNgayTaoDesc(Pageable pageable);
 
+    boolean existsByTenDanhMucIgnoreCase(String tenDanhMuc);
 }

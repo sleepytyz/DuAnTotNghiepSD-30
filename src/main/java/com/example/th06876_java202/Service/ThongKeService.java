@@ -17,7 +17,7 @@ import java.util.List;
 public class ThongKeService {
     private final HoaDonRepo hoaDonRepository;
 
-    // Thống kê doanh thu theo ngày
+
     public List<ThongKeDoanhThuDTO> thongKeDoanhThuTheoNgay(
             LocalDate startDate, LocalDate endDate) {
 

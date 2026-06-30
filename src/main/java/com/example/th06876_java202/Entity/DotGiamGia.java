@@ -18,6 +18,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -28,9 +30,8 @@ import java.time.LocalDate;
 public class DotGiamGia {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MaGiamGia")
-    private Integer maGiamGia;
+    private String maGiamGia;
 
     @NotBlank(message = "Tên đợt giảm giá không được để trống!")
     @Column(name = "TenGiamGia")
@@ -58,8 +59,11 @@ public class DotGiamGia {
     @Column(name = "TrangThai")
     private String trangThai;
 
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     @Column(name = "NgayTao")
-    private LocalDate ngayTao;
+    private LocalDateTime ngayTao;
+
+    @OneToMany(mappedBy = "dotGiamGia", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ChiTietDotGiamGia> chiTietDotGiamGia;
 
 }

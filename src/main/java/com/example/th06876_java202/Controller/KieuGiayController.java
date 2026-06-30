@@ -1,6 +1,5 @@
 package com.example.th06876_java202.Controller;
 
-import com.example.th06876_java202.Entity.DanhMucSanPham;
 import com.example.th06876_java202.Entity.KieuGiay;
 import com.example.th06876_java202.Service.KieuGiayService;
 import jakarta.validation.Valid;
@@ -31,11 +30,21 @@ public class KieuGiayController {
         model.addAttribute("listkg", pageData.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", pageData.getTotalPages());
-        model.addAttribute("totalItems", pageData.getTotalElements()); // Tổng số bản ghi kiểu giày
+        model.addAttribute("totalItems", pageData.getTotalElements());
+
+        String generatedCode = kieuGiayService.generateMaKieuGiay();
 
         if (!model.containsAttribute("kieugiay")) {
-            model.addAttribute("kieugiay", new KieuGiay());
+            KieuGiay newKieuGiay = new KieuGiay();
+            newKieuGiay.setMaKieuGiay(generatedCode);
+            model.addAttribute("kieugiay", newKieuGiay);
+        } else {
+            KieuGiay existing = (KieuGiay) model.getAttribute("kieugiay");
+            if (existing != null && (existing.getMaKieuGiay() == null || existing.getMaKieuGiay().isEmpty())) {
+                existing.setMaKieuGiay(generatedCode);
+            }
         }
+
         return "kieugiay/index";
     }
 
@@ -45,39 +54,62 @@ public class KieuGiayController {
                       RedirectAttributes redirectAttributes,
                       Model model) {
 
-        if (kieuGiay.getTenKieuGiay() != null) {
-            kieuGiay.setTenKieuGiay(kieuGiay.getTenKieuGiay().trim());
-        }
+        String normalizedTen = kieuGiayService.normalizeTenKieuGiay(kieuGiay.getTenKieuGiay());
+        kieuGiay.setTenKieuGiay(normalizedTen);
+
+        System.out.println("=== ADD KIEU GIAY ===");
+        System.out.println("Ten nhap: " + kieuGiay.getTenKieuGiay());
+        System.out.println("Errors: " + errors.hasErrors());
 
         if (errors.hasErrors()) {
+            String newCode = kieuGiayService.generateMaKieuGiay();
+            kieuGiay.setMaKieuGiay(newCode);
+
             Page<KieuGiay> pageData = kieuGiayService.getallpage(PageRequest.of(0, 5));
             model.addAttribute("listkg", pageData.getContent());
             model.addAttribute("currentPage", 0);
             model.addAttribute("totalPages", pageData.getTotalPages());
             model.addAttribute("totalItems", pageData.getTotalElements());
+            model.addAttribute("kieugiay", kieuGiay);
             return "kieugiay/index";
+        }
+
+        if (kieuGiayService.existsByTenKieuGiay(kieuGiay.getTenKieuGiay())) {
+            String newCode = kieuGiayService.generateMaKieuGiay();
+            kieuGiay.setMaKieuGiay(newCode);
+
+            System.out.println("Tên đã tồn tại: " + kieuGiay.getTenKieuGiay());
+            redirectAttributes.addFlashAttribute("mess", "Kiểu giày '" + kieuGiay.getTenKieuGiay() + "' đã tồn tại!");
+            redirectAttributes.addFlashAttribute("kieugiay", kieuGiay);
+            return "redirect:/kieugiay/index";
+        }
+        if (kieuGiay.getMaKieuGiay() == null || kieuGiay.getMaKieuGiay().isEmpty()) {
+            String newCode = kieuGiayService.generateMaKieuGiay();
+            kieuGiay.setMaKieuGiay(newCode);
         }
 
         kieuGiay.setTrangThai(true);
 
         kieuGiayService.them(kieuGiay);
-        redirectAttributes.addFlashAttribute("successMess", "Thêm kiểu giày thành công!");
+        System.out.println("Thêm thành công: " + kieuGiay.getTenKieuGiay() + " - " + kieuGiay.getMaKieuGiay());
+        redirectAttributes.addFlashAttribute("successMess",
+                "Thêm kiểu giày '" + kieuGiay.getTenKieuGiay() + "' (mã: " + kieuGiay.getMaKieuGiay() + ") thành công!");
         return "redirect:/kieugiay/index";
     }
 
     @GetMapping("/capnhatt/{id}")
-    public String capnhatt(@PathVariable("id") Integer id, RedirectAttributes redirectAttributes) {
+    public String capnhatt(@PathVariable("id") String id, RedirectAttributes redirectAttributes) {
         try {
             KieuGiay dmsp = kieuGiayService.doiTrangThai(id);
 
             if (dmsp != null) {
                 if (dmsp.isTrangThai()) {
-                    redirectAttributes.addFlashAttribute("successMess", "Mở hoạt động thành công");
+                    redirectAttributes.addFlashAttribute("successMess", "Mở hoạt động thành công cho '" + dmsp.getTenKieuGiay() + "'");
                 } else {
-                    redirectAttributes.addFlashAttribute("successMess", "Ngừng hoạt động thành công");
+                    redirectAttributes.addFlashAttribute("successMess", "Ngừng hoạt động thành công cho '" + dmsp.getTenKieuGiay() + "'");
                 }
             } else {
-                redirectAttributes.addFlashAttribute("mess", "Không tìm thấy danh mục sản phẩm!");
+                redirectAttributes.addFlashAttribute("mess", "Không tìm thấy kiểu giày!");
             }
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("mess", "Cập nhật trạng thái thất bại: " + e.getMessage());

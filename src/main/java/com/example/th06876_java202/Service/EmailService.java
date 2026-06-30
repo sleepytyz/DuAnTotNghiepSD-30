@@ -74,4 +74,66 @@ public class EmailService {
         }
     }
 
+    @Async
+    public void sendVoucherStopEmail(String toEmail, VoucherEmailDTO dto) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            Context context = new Context();
+            context.setVariable("voucher", dto);
+
+            String html = templateEngine.process("email/email-voucher-stop", context);
+
+            helper.setTo(toEmail);
+            helper.setSubject("❌ Thông báo ngừng chương trình giảm giá");
+            helper.setText(html, true);
+
+            mailSender.send(message);
+            System.out.println("Stop voucher email sent to: " + toEmail);
+
+        } catch (Exception e) {
+            System.err.println("Email stop voucher lỗi: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+
+    public void sendSimpleEmail(String to, String subject, String content) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(to);
+            message.setSubject(subject);
+            message.setText(content);
+            mailSender.send(message);
+            System.out.println("Simple email sent to: " + to);
+        } catch (Exception e) {
+            System.err.println("Failed to send simple email to: " + to);
+            e.printStackTrace();
+        }
+    }
+
+    @Async
+    public void sendVoucherActivationEmail(String toEmail, VoucherEmailDTO dto) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            Context context = new Context();
+            context.setVariable("voucher", dto);
+
+            String html = templateEngine.process("email/email-voucher-activated", context);
+
+            helper.setTo(toEmail);
+            helper.setSubject("🎉 Voucher giảm giá đã được kích hoạt!");
+            helper.setText(html, true);
+
+            mailSender.send(message);
+            System.out.println("Activation email sent to: " + toEmail);
+
+        } catch (Exception e) {
+            System.err.println("Email activation lỗi: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }

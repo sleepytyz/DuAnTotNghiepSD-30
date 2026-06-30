@@ -11,11 +11,29 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-public interface HoaDonRepo extends JpaRepository<HoaDon, Integer> {
+public interface HoaDonRepo extends JpaRepository<HoaDon, String> {
 
+    Page<HoaDon> findByNgayTaoBetween(LocalDateTime tuNgay, LocalDateTime denNgay, Pageable pageable);
+
+    List<HoaDon> findByNgayTaoBetween(LocalDateTime tuNgay, LocalDateTime denNgay);
+
+    Page<HoaDon> findByNgayTaoAfter(LocalDateTime ngay, Pageable pageable);
+
+    List<HoaDon> findByNgayTaoAfter(LocalDateTime ngay);
+
+    Page<HoaDon> findByNgayTaoBefore(LocalDateTime ngay, Pageable pageable);
+
+    List<HoaDon> findByNgayTaoBefore(LocalDateTime ngay);
+
+    Page<HoaDon> findByTrangThai(String trangThai, Pageable pageable);
+
+    List<HoaDon> findByTrangThai(String trangThai);
+
+    long countByTrangThai(String trangThai);
 
     // Hoá đơn
 
@@ -29,13 +47,13 @@ public interface HoaDonRepo extends JpaRepository<HoaDon, Integer> {
             nativeQuery = true)
     Page<HoaDon> searchByMa(Integer maHoaDon, Pageable pageable);
 
-    @Query( value = "select * from HoaDon where TrangThai in (N'Đã thanh toán', N'Đã giao', N'Đã huỷ', N'Đã trả hàng') order by MaHoaDon desc", nativeQuery = true)
+    @Query(value = "select * from HoaDon where TrangThai in (N'Đã thanh toán', N'Đã giao', N'Đã huỷ', N'Đã trả hàng') order by MaHoaDon desc", nativeQuery = true)
     List<HoaDon> getallHD();
 
     @Query(value = "select * from HoaDon where TrangThai = ?1",
             countQuery = "select count(*) from HoaDon where TrangThai = ?1",
             nativeQuery = true)
-    Page<HoaDon> findByTrangThai(String trangThai, Pageable pageable);
+    Page<HoaDon> findByTrangThaii(String trangThai, Pageable pageable);
 
     @Query(
             value = "SELECT * FROM HoaDon WHERE NgayTao >= ?1 AND NgayTao <= ?2 " +
@@ -72,22 +90,72 @@ public interface HoaDonRepo extends JpaRepository<HoaDon, Integer> {
     @Modifying
     @Transactional
     @Query(value = "update HoaDon set TrangThai = N'Đã xác nhận' where MaHoaDon = ?", nativeQuery = true)
-    int suatt(Integer mahd);
+    int suatt(String mahd);
 
     @Modifying
     @Transactional
     @Query(value = "update HoaDon set TrangThai = N'Đang giao' where MaHoaDon = ?", nativeQuery = true)
-    int suattdg(Integer mahd);
+    int suattdg(String mahd);
 
     @Modifying
     @Transactional
     @Query(value = "update HoaDon set TrangThai = N'Đã giao' where MaHoaDon = ?", nativeQuery = true)
-    int suattdgg(Integer mahd);
+    int suattdgg(String mahd);
 
     @Modifying
     @Transactional
     @Query(value = "update HoaDon set TrangThai = N'Đã huỷ' where MaHoaDon = ?", nativeQuery = true)
-    int huy(Integer mahd);
+    int huy(String mahd);
 
+    @Query(value = """
+    SELECT 
+        CAST(h.NgayTao AS DATE) as ngay,
+        COUNT(h.MaHoaDon) as soDonHang,
+        ISNULL(SUM(h.TongTien), 0) as doanhThu,
+        ISNULL(AVG(h.TongTien), 0) as trungBinhDon
+    FROM HoaDon h
+    WHERE h.TrangThai = N'Đã thanh toán'
+        AND h.NgayTao BETWEEN :startDate AND :endDate
+    GROUP BY CAST(h.NgayTao AS DATE)
+    ORDER BY CAST(h.NgayTao AS DATE) DESC
+""", nativeQuery = true)
+    List<Object[]> thongKeDoanhThuTheoNgay(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
+    @Query(value = """
+        SELECT 
+            YEAR(h.NgayTao) as nam,
+            MONTH(h.NgayTao) as thang,
+            COUNT(h.MaHoaDon) as soDonHang,
+            ISNULL(SUM(h.TongTien), 0) as doanhThu
+        FROM HoaDon h
+        WHERE h.TrangThai = N'Đã thanh toán'
+            AND h.NgayTao BETWEEN :startDate AND :endDate
+        GROUP BY YEAR(h.NgayTao), MONTH(h.NgayTao)
+        ORDER BY YEAR(h.NgayTao) DESC, MONTH(h.NgayTao) DESC
+    """, nativeQuery = true)
+    List<Object[]> thongKeDoanhThuTheoThang(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
+    @Query(value = """
+    SELECT 
+        ISNULL(COUNT(h.MaHoaDon), 0) as tongDonHang,
+        ISNULL(SUM(h.TongTien), 0) as tongDoanhThu,
+        ISNULL(AVG(h.TongTien), 0) as trungBinhDon,
+        MIN(h.NgayTao) as ngayDau,
+        MAX(h.NgayTao) as ngayCuoi
+    FROM HoaDon h
+    WHERE h.TrangThai = N'Đã thanh toán'
+""", nativeQuery = true)
+    List<Object[]> thongKeTongQuan();
+
+
+
+    // Thêm method mới
+    List<HoaDon> findByTrangThaiAndLoaiBan(String trangThai, String loaiBan);
 
 }
