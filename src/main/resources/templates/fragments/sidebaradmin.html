@@ -179,6 +179,12 @@
     </div>
 
     <div class="sidebar-footer">
+        <a href="/nv-ca-nhan"
+           th:classappend="${activeMenu == 'nvcanhan'} ? ' active'"
+           class="d-flex align-items-center gap-2 text-secondary text-decoration-none fw-semibold"
+           style="font-size: 14px; margin-bottom: 10px;">
+            <i class="bi bi-person-circle"></i> Thông tin cá nhân
+        </a>
         <a href="javascript:void(0);"
            onclick="document.getElementById('logout-form-admin').submit();"
            class="d-flex align-items-center gap-2 text-secondary text-decoration-none fw-semibold"

@@ -113,7 +113,7 @@ public class KhachHangController {
             redirectAttributes.addFlashAttribute("errorMess", "Không tìm thấy khách hàng!");
             return "redirect:/khach-hang/hien-thi";
         }
-        List<DiaChi> dsDiaChi = diaChiService.findByKhachHang(maKH);
+        List<DiaChi> dsDiaChi = diaChiService.findByKhachHang_MaKH(maKH);
         khachHang.setDanhSachDiaChi(dsDiaChi);
 
         model.addAttribute("kh", khachHang);
@@ -142,9 +142,6 @@ public class KhachHangController {
                       Model model,
                       RedirectAttributes redirectAttributes) {
 
-        // ===== QUAN TRỌNG: GIỮ NGUYÊN MÃ ĐÃ CÓ =====
-        // Nếu form có mã (từ lần submit trước) thì giữ nguyên
-        // Nếu chưa có mã thì tạo mới
         if (form.getMaKH() == null || form.getMaKH().isEmpty()) {
             form.setMaKH(khachHangService.generateMaKH());
         }
@@ -217,7 +214,7 @@ public class KhachHangController {
     public ResponseEntity<Map<String, Object>> xoaDiaChi(@PathVariable Integer id) {
         Map<String, Object> response = new HashMap<>();
         try {
-            diaChiService.delete(id);
+            diaChiService.deleteById(id);
             response.put("success", true);
             response.put("message", "Xóa địa chỉ thành công!");
             return ResponseEntity.ok(response);
@@ -284,17 +281,17 @@ public class KhachHangController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/check-sdt-dia-chi")
-    @ResponseBody
-    public ResponseEntity<Map<String, Boolean>> checkSdtDiaChi(
-            @RequestParam("sdt") String sdt,
-            @RequestParam("maKH") String maKH) {
-
-        boolean exists = khachHangService.existsBySdtInDiaChi(sdt, maKH);
-        Map<String, Boolean> response = new HashMap<>();
-        response.put("exists", exists);
-        return ResponseEntity.ok(response);
-    }
+//    @GetMapping("/check-sdt-dia-chi")
+//    @ResponseBody
+//    public ResponseEntity<Map<String, Boolean>> checkSdtDiaChi(
+//            @RequestParam("sdt") String sdt,
+//            @RequestParam("maKH") String maKH) {
+//
+//        boolean exists = khachHangService.existsBySdtInDiaChi(sdt, maKH);
+//        Map<String, Boolean> response = new HashMap<>();
+//        response.put("exists", exists);
+//        return ResponseEntity.ok(response);
+//    }
 
     @GetMapping("/export-excel")
     public ResponseEntity<byte[]> exportExcel() {

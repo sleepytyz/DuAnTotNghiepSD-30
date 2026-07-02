@@ -384,10 +384,7 @@
 <body>
 <div class="wrapper">
 
-    <div sec:authorize="hasRole('ADMIN')"
-         th:replace="~{fragments/sidebaradmin :: sidebar-admin}"></div>
-    <div sec:authorize="hasRole('STAFF')"
-         th:replace="~{fragments/sidebarstaff :: sidebar-staff}"></div>
+    <div th:replace="~{fragments/sidebaradmin :: sidebar-admin}"></div>
 
     <div class="content-wrapper">
 
@@ -594,7 +591,7 @@
                                 <option value="">-- Chọn nhân viên --</option>
                                 <option th:each="nv : ${listNhanVien}"
                                         th:value="${nv.maNhanVien}"
-                                        th:text="${nv.hoTen + ' (NV' + nv.maNhanVien + ')'}">
+                                th:text="${nv.hoTen + ' - ' + nv.maNhanVien }">
                                 </option>
                             </select>
                         </div>
@@ -821,12 +818,15 @@
         return `${d}/${m}/${y}`;
     }
 
-    // ── TẠO LỊCH TỪ MODAL ──
     function taoLichModal() {
         const selectEl = document.getElementById('modalSelectNhanVien');
-        const maNV = selectEl ? parseInt(selectEl.value) : null;
+        const maNV = selectEl ? selectEl.value : null; // Lấy thẳng value, KHÔNG parse
         const caIds = getModalSelectedCaIds();
         const ngays = getModalSelectedNgays();
+
+        console.log('maNV (String):', maNV);
+        console.log('caIds:', caIds);
+        console.log('ngays:', ngays);
 
         if (!maNV) return showModalAlert('error', 'Vui lòng chọn nhân viên!');
         if (caIds.length === 0) return showModalAlert('error', 'Vui lòng chọn ít nhất 1 ca làm việc!');
@@ -835,16 +835,19 @@
         const danhSach = [];
         ngays.forEach(ngay => {
             caIds.forEach(maCa => {
-                danhSach.push({ maNhanVien: maNV, maCa: maCa, ngay: ngay });
+                danhSach.push({
+                    maNhanVien: maNV,  // String, không parseInt
+                    maCa: maCa,        // Integer
+                    ngay: ngay         // String
+                });
             });
         });
 
-        const sortedNgays = [...ngays].sort();
         const payload = {
-            tuNgay: sortedNgays[0],
-            denNgay: sortedNgays[sortedNgays.length - 1],
             danhSachNhanVien: danhSach
         };
+
+        console.log('Payload gửi đi:', JSON.stringify(payload));
 
         const btn = document.getElementById('modalBtnSave');
         if (btn) {
@@ -863,12 +866,12 @@
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    showModalAlert('success', data.message);
+                    showModalAlert('success', data.message || 'Tạo lịch thành công!');
                     setTimeout(() => {
                         location.reload();
                     }, 1500);
                 } else {
-                    showModalAlert('error', data.message);
+                    showModalAlert('error', data.message || 'Có lỗi xảy ra');
                 }
             })
             .catch(err => {

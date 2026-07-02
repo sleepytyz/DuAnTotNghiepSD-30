@@ -512,13 +512,8 @@
 
 <div class="wrapper">
 
-    <div sec:authorize="hasRole('ADMIN')">
-        <div th:replace="fragments/sidebaradmin :: sidebar-admin"></div>
-    </div>
-
-    <div sec:authorize="hasRole('STAFF')">
-        <div th:replace="fragments/sidebarstaff :: sidebar-staff"></div>
-    </div>
+    <div sec:authorize="hasRole('STAFF')" th:replace="~{fragments/sidebarstaff :: sidebar-staff}"></div>
+    <div sec:authorize="hasRole('ADMIN')" th:replace="~{fragments/sidebaradmin :: sidebar-admin}"></div>
 
     <div class="content-wrapper">
 
@@ -624,7 +619,6 @@
                                     <i class="bi bi-hash text-danger me-1"></i>Mã hóa đơn
                                 </label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-light text-secondary">HD</span>
                                     <input type="number" class="form-control" name="mahd" th:value="${param.mahd}" placeholder="Nhập mã số...">
                                 </div>
                             </div>
@@ -649,10 +643,10 @@
                                 </label>
                                 <select name="tt" class="form-select" onchange="this.form.submit()">
                                     <option value="">-- Tất cả --</option>
-                                    <option value="Đã thanh toán" th:selected="${param.tt == 'Đã thanh toán'}">🟢 Đã thanh toán</option>
-                                    <option value="Đã giao" th:selected="${param.tt == 'Đã giao'}">🔵 Đã giao</option>
-                                    <option value="Đã trả hàng" th:selected="${param.tt == 'Đã trả hàng'}">🟡 Đã trả hàng</option>
-                                    <option value="Đã huỷ" th:selected="${param.tt == 'Đã huỷ'}">🔴 Đã huỷ</option>
+                                    <option value="Đã thanh toán" th:selected="${param.tt == 'Đã thanh toán'}">Đã thanh toán</option>
+                                    <option value="Đã giao" th:selected="${param.tt == 'Đã giao'}">Đã giao</option>
+                                    <option value="Đã trả hàng" th:selected="${param.tt == 'Đã trả hàng'}">Đã trả hàng</option>
+                                    <option value="Đã huỷ" th:selected="${param.tt == 'Đã huỷ'}">Đã huỷ</option>
                                 </select>
                             </div>
 
@@ -669,7 +663,6 @@
                 </div>
             </div>
 
-            <!-- ===== TOOLBAR ===== -->
             <div class="toolbar">
                 <div class="toolbar-left">
                     <div class="status-tabs">
@@ -726,7 +719,7 @@
                         <tr th:each="hd, stt : ${list}">
                             <td class="col-stt text-center fw-semibold" th:text="${stt.index + 1 + (currentPage * 5)}"></td>
                             <td class="col-mahd">
-                                <span class="fw-bold text-danger" th:text="${'HD' + hd.maHoaDon}"></span>
+                                <span class="fw-bold text-danger" th:text="${hd.maHoaDon}"></span>
                             </td>
                             <td class="col-nhanvien text-left" th:text="${hd.maNhanVien != null ? hd.maNhanVien.hoTen : ''}"></td>
                             <td class="col-khachhang text-left" th:text="${hd.maKhachHang != null ? hd.maKhachHang.hoTen + ' - ' + hd.maKhachHang.sdt : 'Khách lẻ'}"></td>

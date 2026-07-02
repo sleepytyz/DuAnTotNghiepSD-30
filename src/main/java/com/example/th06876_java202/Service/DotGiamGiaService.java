@@ -71,12 +71,17 @@ public class DotGiamGiaService {
         dotGiamGiaRepo.updateTrangThai(id);
     }
 
+    // Trong DotGiamGiaService.java
     public Page<DotGiamGia> filterPaging(String keyword,
                                          String trangThai,
                                          LocalDateTime tuNgay,
                                          LocalDateTime denNgay,
                                          Pageable pageable) {
-        return dotGiamGiaRepo.filterPaging(keyword, trangThai, tuNgay, denNgay, pageable);
+        // Xử lý keyword null -> empty
+        String searchKeyword = (keyword == null || keyword.trim().isEmpty()) ? "" : keyword.trim();
+        String searchTrangThai = (trangThai == null || trangThai.trim().isEmpty()) ? "" : trangThai.trim();
+
+        return dotGiamGiaRepo.filterPaging(searchKeyword, searchTrangThai, tuNgay, denNgay, pageable);
     }
 
     public Optional<DotGiamGia> findById(String id) {

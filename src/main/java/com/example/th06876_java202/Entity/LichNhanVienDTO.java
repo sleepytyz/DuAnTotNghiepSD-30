@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 public class LichNhanVienDTO {
     private String maNhanVien;
     private Integer maCa;
-    private String ngay; // Ngày cụ thể (format: yyyy-MM-dd)
+    private String ngay;
 }

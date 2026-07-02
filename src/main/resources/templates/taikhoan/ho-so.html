@@ -18,12 +18,12 @@
                 <form th:action="@{/ca-nhan/cap-nhat}" th:object="${khachHang}" method="post">
                     <div class="fs-row-2">
                         <div class="fs-field">
-                            <label>Họ và tên <span class="req">*</span></label>
+                            <label>Họ và tên</label>
                             <input type="text" th:field="*{hoTen}" class="fs-input" th:classappend="${#fields.hasErrors('hoTen')} ? 'is-invalid'">
                             <div class="fs-field-error" th:if="${#fields.hasErrors('hoTen')}" th:errors="*{hoTen}"></div>
                         </div>
                         <div class="fs-field">
-                            <label>Số điện thoại <span class="req">*</span></label>
+                            <label>Số điện thoại</label>
                             <input type="text" th:field="*{sdt}" class="fs-input" th:classappend="${#fields.hasErrors('sdt')} ? 'is-invalid'">
                             <div class="fs-field-error" th:if="${#fields.hasErrors('sdt')}" th:errors="*{sdt}"></div>
                         </div>

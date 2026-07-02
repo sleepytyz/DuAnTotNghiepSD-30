@@ -2,9 +2,12 @@ package com.example.th06876_java202.Controller;
 
 import com.example.th06876_java202.Entity.HoaDonChiTiet;
 import com.example.th06876_java202.Entity.SanPhamChiTiet;
+import com.example.th06876_java202.Repository.GiamGiaChiTietRepo;
 import com.example.th06876_java202.Service.HoaDonChiTietService;
 import com.example.th06876_java202.Repository.HoaDonChiTietRepository;
 import com.example.th06876_java202.Repository.SanPhamChiTietRepository;
+import com.example.th06876_java202.Service.DotGiamGiaService;
+import com.example.th06876_java202.Service.HoaDonService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +26,9 @@ import java.util.stream.Collectors;
 public class BanHangApiController {
 
     @Autowired
+    private GiamGiaChiTietRepo giamGiaChiTietRepository;
+
+    @Autowired
     private HoaDonChiTietService hoaDonChiTietService;
 
     @Autowired
@@ -30,9 +37,13 @@ public class BanHangApiController {
     @Autowired
     private SanPhamChiTietRepository sanPhamChiTietRepository;
 
-    /**
-     * API cập nhật giá cho 1 sản phẩm
-     */
+    @Autowired
+    private DotGiamGiaService dotGiamGiaService;
+
+    @Autowired
+    private HoaDonService hoaDonService;
+
+    // ===== CÁC METHOD KHÁC GIỮ NGUYÊN =====
     @PostMapping("/capnhatgia")
     @ResponseBody
     public ResponseEntity<?> capNhatGiaSanPham(
@@ -55,9 +66,6 @@ public class BanHangApiController {
         }
     }
 
-    /**
-     * API cập nhật giá cho nhiều sản phẩm
-     */
     @PostMapping("/capnhatgiatatca")
     @ResponseBody
     public ResponseEntity<?> capNhatGiaTatCa(
@@ -99,11 +107,13 @@ public class BanHangApiController {
 
                 item.put("maSPCT", sp.getMaSanPhamChiTiet());
                 item.put("soLuong", hdct.getSoLuong());
-                item.put("giaCu", hdct.getDonGia());
-                item.put("giaMoi", sp.getGiaBan());
-                item.put("tonKho", sp.getSoLuongTon()); // Tồn kho hiện tại
 
-                // Lấy thông tin tên sản phẩm, màu sắc, kích thước
+                // ===== GIÁ CŨ (GIÁ LÚC THÊM VÀO HÓA ĐƠN) =====
+                BigDecimal giaCu = hdct.getDonGia();
+                item.put("giaCu", giaCu);
+
+                item.put("tonKho", sp.getSoLuongTon());
+
                 String tenSanPham = sp.getSanPham() != null ? sp.getSanPham().getTenSanPham() : "Sản phẩm";
                 String mauSac = sp.getMauSac() != null ? sp.getMauSac().getTenMauSac() : "";
                 String kichThuoc = sp.getKichThuoc() != null ? sp.getKichThuoc().getTenKichThuoc() : "";
@@ -112,13 +122,37 @@ public class BanHangApiController {
                 item.put("mauSac", mauSac);
                 item.put("kichThuoc", kichThuoc);
 
-                // Kiểm tra nếu giá thay đổi
-                BigDecimal giaCu = hdct.getDonGia();
-                BigDecimal giaMoi = sp.getGiaBan();
-                boolean daThayDoiGia = giaCu != null && giaMoi != null && giaCu.compareTo(giaMoi) != 0;
+                // ===== GIÁ GỐC HIỆN TẠI =====
+                BigDecimal giaGoc = sp.getGiaBan();
+                item.put("giaGoc", giaGoc);
+
+                // ===== KIỂM TRA CÓ ĐANG GIẢM GIÁ =====
+                boolean coGiamGia = kiemTraCoGiamGia(sp);
+                item.put("coGiamGia", coGiamGia);
+
+                // ===== TÍNH GIÁ HIỆN TẠI =====
+                BigDecimal giaHienTai = giaGoc;
+                if (coGiamGia) {
+                    BigDecimal tienGiam = tinhTienGiam(sp);
+                    if (tienGiam != null && tienGiam.compareTo(BigDecimal.ZERO) > 0) {
+                        giaHienTai = giaGoc.subtract(tienGiam);
+                    }
+                }
+                item.put("giaMoi", giaHienTai);
+
+                // ===== KIỂM TRA THAY ĐỔI GIÁ =====
+                boolean daThayDoiGia = false;
+
+                // Nếu CÓ giảm giá -> không báo thay đổi giá
+                if (!coGiamGia) {
+                    // So sánh giá cũ (trong hóa đơn) với giá hiện tại
+                    daThayDoiGia = giaCu != null && giaHienTai != null && giaCu.compareTo(giaHienTai) != 0;
+                }
+                // Nếu có giảm giá, daThayDoiGia vẫn là false
+
                 item.put("daThayDoiGia", daThayDoiGia);
 
-                // Kiểm tra nếu tồn kho không đủ so với số lượng trong hóa đơn
+                // Kiểm tra tồn kho
                 int soLuongTrongHoaDon = hdct.getSoLuong();
                 int tonKhoHienTai = sp.getSoLuongTon();
                 boolean khongDuTonKho = tonKhoHienTai < soLuongTrongHoaDon;
@@ -126,8 +160,11 @@ public class BanHangApiController {
                 item.put("soLuongTrongHoaDon", soLuongTrongHoaDon);
 
                 System.out.println("  - SP: " + tenSanPham + " [" + mauSac + " - " + kichThuoc + "]");
-                System.out.println("    Số lượng trong hóa đơn: " + soLuongTrongHoaDon + ", Tồn kho: " + tonKhoHienTai);
-                System.out.println("    Không đủ tồn kho: " + khongDuTonKho);
+                System.out.println("    Giá gốc: " + giaGoc);
+                System.out.println("    Giá cũ (trong HD): " + giaCu);
+                System.out.println("    Giá hiện tại: " + giaHienTai);
+                System.out.println("    Có giảm giá: " + coGiamGia);
+                System.out.println("    Đã thay đổi giá: " + daThayDoiGia);
 
                 return item;
             }).collect(Collectors.toList());
@@ -140,6 +177,65 @@ public class BanHangApiController {
         }
     }
 
+    private boolean kiemTraCoGiamGia(SanPhamChiTiet spct) {
+        if (spct == null || spct.getSanPham() == null) {
+            return false;
+        }
+
+        try {
+            String maSanPham = spct.getSanPham().getMaSanPham();
+            List<com.example.th06876_java202.Entity.DotGiamGia> dggList =
+                    dotGiamGiaService.getBymasp(maSanPham);
+
+            if (dggList != null && !dggList.isEmpty()) {
+                System.out.println("    ✅ Sản phẩm đang trong đợt giảm giá: " + maSanPham);
+                return true;
+            }
+
+            return false;
+        } catch (Exception e) {
+            System.err.println("Lỗi kiểm tra giảm giá: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Tính tiền giảm giá của sản phẩm
+     */
+    private BigDecimal tinhTienGiam(SanPhamChiTiet spct) {
+        if (spct == null || spct.getSanPham() == null) {
+            return BigDecimal.ZERO;
+        }
+
+        try {
+            String maSanPham = spct.getSanPham().getMaSanPham();
+            List<com.example.th06876_java202.Entity.DotGiamGia> dggList =
+                    dotGiamGiaService.getBymasp(maSanPham);
+
+            if (dggList == null || dggList.isEmpty()) {
+                return BigDecimal.ZERO;
+            }
+
+            BigDecimal maxGiam = BigDecimal.ZERO;
+            BigDecimal giaGoc = spct.getGiaBan();
+
+            for (com.example.th06876_java202.Entity.DotGiamGia dgg : dggList) {
+                if ("Hoạt động".equals(dgg.getTrangThai())) {
+                    BigDecimal giam = giaGoc.multiply(dgg.getGiaTriGiam()).divide(BigDecimal.valueOf(100));
+                    if (giam.compareTo(maxGiam) > 0) {
+                        maxGiam = giam;
+                    }
+                }
+            }
+
+            return maxGiam;
+        } catch (Exception e) {
+            System.err.println("Lỗi tính tiền giảm: " + e.getMessage());
+            return BigDecimal.ZERO;
+        }
+    }
+
+    // ===== CÁC METHOD KHÁC GIỮ NGUYÊN =====
     @PostMapping("/xoatatca")
     @ResponseBody
     public ResponseEntity<?> xoaNhieuSanPham(
@@ -211,14 +307,10 @@ public class BanHangApiController {
                     );
 
                     if (hdct != null) {
-                        // Cập nhật số lượng
                         hdct.setSoLuong(soLuongMoi);
-
-                        // Cập nhật thành tiền
                         BigDecimal donGia = hdct.getDonGia();
                         BigDecimal thanhTienMoi = donGia.multiply(BigDecimal.valueOf(soLuongMoi));
                         hdct.setThanhTien(thanhTienMoi);
-
                         hoaDonChiTietRepository.save(hdct);
                         count++;
                     }
@@ -252,7 +344,6 @@ public class BanHangApiController {
             System.out.println("Ma SPCT: " + maSPCT);
             System.out.println("So luong moi: " + soLuongMoi);
 
-            // Tìm chi tiết hóa đơn
             HoaDonChiTiet hdct = hoaDonChiTietRepository.findByMaHoaDon_MaHoaDonAndSanPhamChiTiet_MaSanPhamChiTiet(
                     maHoaDon, maSPCT
             );
@@ -261,7 +352,6 @@ public class BanHangApiController {
                 throw new RuntimeException("Không tìm thấy sản phẩm trong hóa đơn!");
             }
 
-            // Lấy sản phẩm chi tiết
             SanPhamChiTiet spct = hdct.getSanPhamChiTiet();
             if (spct == null) {
                 throw new RuntimeException("Không tìm thấy sản phẩm!");
@@ -269,34 +359,23 @@ public class BanHangApiController {
 
             int soLuongCu = hdct.getSoLuong();
             int soLuongMoiFinal = soLuongMoi > 0 ? soLuongMoi : 1;
-
-            // Tính chênh lệch
             int chenhLech = soLuongMoiFinal - soLuongCu;
 
             System.out.println("So luong cu: " + soLuongCu);
             System.out.println("Chenh lech: " + chenhLech);
             System.out.println("Ton kho hien tai: " + spct.getSoLuongTon());
 
-            // Cập nhật tồn kho
             if (chenhLech > 0) {
-                // Tăng số lượng -> Giảm tồn kho
                 if (spct.getSoLuongTon() < chenhLech) {
                     throw new RuntimeException("Không đủ tồn kho! Còn " + spct.getSoLuongTon());
                 }
                 spct.setSoLuongTon(spct.getSoLuongTon() - chenhLech);
-                System.out.println("-> Giam ton kho: " + chenhLech);
             } else if (chenhLech < 0) {
-                // Giảm số lượng -> Tăng tồn kho
                 spct.setSoLuongTon(spct.getSoLuongTon() + Math.abs(chenhLech));
-                System.out.println("-> Tang ton kho: " + Math.abs(chenhLech));
-            } else {
-                System.out.println("-> Khong thay doi ton kho");
             }
 
-            // Lưu cập nhật tồn kho
             sanPhamChiTietRepository.save(spct);
 
-            // Cập nhật số lượng và thành tiền
             hdct.setSoLuong(soLuongMoiFinal);
             BigDecimal donGia = hdct.getDonGia();
             BigDecimal thanhTienMoi = donGia.multiply(BigDecimal.valueOf(soLuongMoiFinal));
@@ -306,7 +385,6 @@ public class BanHangApiController {
 
             System.out.println("✅ Cap nhat so luong thanh cong!");
             System.out.println("Ton kho moi: " + spct.getSoLuongTon());
-            System.out.println("=== END CAP NHAT SO LUONG ===");
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -334,39 +412,24 @@ public class BanHangApiController {
             System.out.println("Ma HD: " + maHoaDon);
             System.out.println("Ma SPCT: " + maSPCT);
 
-            // Dùng method tìm kiếm trực tiếp từ Repository
-            HoaDonChiTiet hdct = hoaDonChiTietRepository.findByMaHoaDon_MaHoaDonAndSanPhamChiTiet_MaSanPhamChiTiet(
-                    maHoaDon, maSPCT
-            );
+            HoaDonChiTiet hdct = hoaDonChiTietRepository
+                    .findByMaHoaDon_MaHoaDonAndSanPhamChiTiet_MaSanPhamChiTiet(maHoaDon, maSPCT);
 
             if (hdct == null) {
-                System.out.println("❌ Khong tim thay san pham!");
-
-                // Log thêm để debug
-                List<HoaDonChiTiet> allItems = hoaDonChiTietRepository.findByMaHoaDon_MaHoaDon(maHoaDon);
-                System.out.println("Tong so san pham trong hoa don: " + allItems.size());
-                for (HoaDonChiTiet item : allItems) {
-                    System.out.println("  - Ma SPCT: " + item.getSanPhamChiTiet().getMaSanPhamChiTiet());
-                }
-
                 Map<String, Object> response = new HashMap<>();
                 response.put("success", false);
                 response.put("message", "Không tìm thấy sản phẩm trong hóa đơn!");
                 return ResponseEntity.badRequest().body(response);
             }
 
-            SanPhamChiTiet spct = hdct.getSanPhamChiTiet();
+            // Lấy số lượng để hoàn lại tồn kho
             int soLuongHoan = hdct.getSoLuong();
-            System.out.println("So luong hoan: " + soLuongHoan);
-
-            // Hoàn lại tồn kho
+            SanPhamChiTiet spct = hdct.getSanPhamChiTiet();
             spct.setSoLuongTon(spct.getSoLuongTon() + soLuongHoan);
             sanPhamChiTietRepository.save(spct);
 
             // Xóa chi tiết hóa đơn
             hoaDonChiTietRepository.delete(hdct);
-
-            System.out.println("✅ Xoa thanh cong!");
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -381,4 +444,7 @@ public class BanHangApiController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+
+
 }
+

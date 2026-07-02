@@ -283,10 +283,8 @@
 </head>
 <body>
 <div class="wrapper">
-
-    <div sec:authorize="hasRole('STAFF')"
-         th:replace="~{fragments/sidebarstaff :: sidebar-staff}"></div>
-
+    <div sec:authorize="hasRole('STAFF')" th:replace="~{fragments/sidebarstaff :: sidebar-staff}"></div>
+    <div sec:authorize="hasRole('ADMIN')" th:replace="~{fragments/sidebaradmin :: sidebar-admin}"></div>
     <div class="content-wrapper">
 
         <div th:replace="~{fragments/header :: header('Chấm công', 'Giao ca & chấm công')}"></div>
@@ -294,6 +292,12 @@
         <div class="content-body">
 
             <div class="page-title">Chấm công</div>
+
+            <div class="alert alert-danger" th:if="${nhanVien == null}">
+                Tài khoản của bạn chưa được liên kết với hồ sơ nhân viên nào. Vui lòng liên hệ quản trị viên để được gán hồ sơ nhân viên cho tài khoản này.
+            </div>
+
+            <th:block th:if="${nhanVien != null}">
             <div class="page-sub" th:text="'Xin chào, ' + ${nhanVien.hoTen} + '!'"></div>
 
             <!-- Stats -->
@@ -457,6 +461,7 @@
                 </div>
 
             </div>
+            </th:block>
 
         </div>
     </div>

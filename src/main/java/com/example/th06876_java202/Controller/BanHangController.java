@@ -1,6 +1,7 @@
 package com.example.th06876_java202.Controller;
 
 import com.example.th06876_java202.Entity.*;
+import com.example.th06876_java202.Repository.GiamGiaChiTietRepo;
 import com.example.th06876_java202.Repository.HoaDonChiTietRepository;
 import com.example.th06876_java202.Repository.SanPhamChiTietRepository;
 import com.example.th06876_java202.Service.*;
@@ -9,8 +10,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.zxing.EncodeHintType;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -30,6 +33,7 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import java.math.BigDecimal;
+import org.slf4j.Logger;
 import java.math.RoundingMode;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -45,6 +49,9 @@ import java.util.stream.Collectors;
 public class BanHangController {
 
     @Autowired
+     GiamGiaChiTietRepo giamGiaChiTietRepository;
+
+    @Autowired
     SanPhamChiTietRepository sanPhamChiTietRepository;
 
     @Autowired
@@ -56,6 +63,8 @@ public class BanHangController {
 
     @Autowired
     private DiaChiService diaChiService;
+
+    private static final Logger logger = LoggerFactory.getLogger(BanHangController.class);
 
     @Autowired
     private RestTemplate restTemplate;
@@ -211,8 +220,6 @@ public class BanHangController {
                 // ⭐ TÍNH TIỀN GIẢM VOUCHER
                 tienGiamVoucher = tinhTienGiamVoucher(hoadonHienTai, tongTienGioHang);
 
-
-
                 // ⭐ LẤY ĐỊA CHỈ
                 if (hoadonHienTai.getMaKhachHang() != null) {
                     diaChiMacDinh = diaChiService.findByKhachHangAndDiaChiMacDinh(
@@ -277,7 +284,7 @@ public class BanHangController {
             qrCodeBase64 = generateQRCodeBase64(qrData);
         }
 
-        List<SanPhamChiTiet> sanPhamList = sanPhamChiTietService.getalll();
+        List<SanPhamChiTiet> sanPhamList = sanPhamChiTietService.getallll();
         if (sanPhamList == null) sanPhamList = new ArrayList<>();
 
         Map<String, BigDecimal> mapGiamGia = new HashMap<>();
@@ -292,14 +299,42 @@ public class BanHangController {
             mapGiaSauGiam.put(spct.getMaSanPhamChiTiet(), giaSauGiam);
         }
 
-        // ⭐ CHỈ LẤY VOUCHER ĐANG HOẠT ĐỘNG
-        List<GiamGia> listVoucherHoatDong = getVoucherDangHoatDong();
-
-        // ⭐ TÌM VOUCHER TỐT NHẤT CHO HÓA ĐƠN HIỆN TẠI (nếu có)
+        // ================================================================
+        // ⭐⭐ SỬA PHẦN LẤY VOUCHER THEO KHÁCH HÀNG ⭐⭐
+        // ================================================================
+        List<GiamGia> listVoucherHoatDong = new ArrayList<>();
         GiamGia voucherTotNhat = null;
-        if (hoadonHienTai != null && !hdct.isEmpty()) {
-            voucherTotNhat = timVoucherTotNhatChoHoaDon(hoadonHienTai, tongTienGioHang);
+
+        if (hoadonHienTai != null) {
+            KhachHang khachHang = hoadonHienTai.getMaKhachHang();
+
+            // Nếu có khách hàng và không phải khách lẻ
+            if (khachHang != null && !"0000000000".equals(khachHang.getSdt())) {
+                // Lấy voucher cho khách hàng (công khai + cá nhân được áp dụng)
+                listVoucherHoatDong = getVoucherChoKhachHang(khachHang);
+                System.out.println("👤 Khách hàng: " + khachHang.getHoTen() +
+                        " (" + khachHang.getMaKH() + ") - Số voucher: " + listVoucherHoatDong.size());
+            } else {
+                // Khách lẻ hoặc chưa có khách hàng -> chỉ lấy voucher công khai
+                listVoucherHoatDong = getVoucherCongKhai();
+                System.out.println("👤 Khách lẻ - Số voucher: " + listVoucherHoatDong.size());
+            }
+
+            // ⭐ TÌM VOUCHER TỐT NHẤT CHO HÓA ĐƠN HIỆN TẠI
+            if (!listVoucherHoatDong.isEmpty() && !hdct.isEmpty()) {
+                voucherTotNhat = timVoucherTotNhatChoHoaDon(hoadonHienTai, tongTienGioHang);
+                if (voucherTotNhat != null) {
+                    System.out.println("⭐ Voucher tốt nhất: " + voucherTotNhat.getMaGiamGia() +
+                            " - " + voucherTotNhat.getTenGiamGia());
+                }
+            }
+        } else {
+            // Chưa có hóa đơn -> chỉ hiển thị voucher công khai
+            listVoucherHoatDong = getVoucherCongKhai();
+            System.out.println("👤 Chưa có hóa đơn - Số voucher: " + listVoucherHoatDong.size());
         }
+
+        // ================================================================
 
         model.addAttribute("diaChi", new DiaChi());
         model.addAttribute("diaChiMacDinh", diaChiMacDinh);
@@ -315,17 +350,21 @@ public class BanHangController {
         model.addAttribute("kh", new KhachHang());
         model.addAttribute("hoadon", new HoaDon());
 
-        // ⭐ THAY ĐỔI: Chỉ truyền danh sách voucher đang hoạt động
+        // ⭐ TRUYỀN DANH SÁCH VOUCHER ĐÃ LỌC THEO KHÁCH HÀNG
         model.addAttribute("listgg", listVoucherHoatDong);
         model.addAttribute("voucherTotNhat", voucherTotNhat);
 
-        model.addAttribute("listkh", khachHangService.getAllKhachHang());
+        // ⭐ THÊM THÔNG TIN KHÁCH HÀNG HIỆN TẠI ĐỂ HIỂN THỊ
+        model.addAttribute("khachHangHienTai", hoadonHienTai != null ? hoadonHienTai.getMaKhachHang() : null);
+
+        model.addAttribute("listkh", khachHangService.getkh());
         model.addAttribute("listsanpham", sanPhamList);
         model.addAttribute("listsanphamms", sanPhamChiTietService.getMsac());
         model.addAttribute("listsanphams", sanPhamChiTietService.getSize());
         model.addAttribute("mapGiamGia", mapGiamGia);
         model.addAttribute("mapGiaSauGiam", mapGiaSauGiam);
 
+        System.out.println("📋 Tổng số voucher hiển thị: " + listVoucherHoatDong.size());
         System.out.println("========== END INDEX ==========");
         return "banhang/index";
     }
@@ -466,7 +505,7 @@ public class BanHangController {
 
     private String taoMaHoaDon() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-        return LocalDateTime.now().format(formatter);
+        return "HD" + LocalDateTime.now().format(formatter);
     }
 
     @PostMapping("/themsphd")
@@ -947,16 +986,15 @@ public class BanHangController {
             hd.setPhuongThucThanhToan(getPhuongThucText(method));
             hd.setNgayThanhToan(LocalDateTime.now());
 
-            // Cập nhật trạng thái theo loại bán
+            // ⭐ SỬA: Cập nhật trạng thái theo loại bán
             if ("Online".equalsIgnoreCase(hd.getLoaiBan())) {
-                if ("cod".equalsIgnoreCase(method) || "COD".equalsIgnoreCase(method)) {
-                    hd.setTrangThai("Đang giao (COD)");
-                } else {
-                    hd.setTrangThai("Đang giao");
-                }
+                // Đơn hàng online -> Đã xác nhận
+                hd.setTrangThai("Đã xác nhận");
+                System.out.println("✅ Đơn hàng Online đã xác nhận!");
             } else {
-                // Tại quầy
+                // Đơn hàng tại quầy -> Đã thanh toán
                 hd.setTrangThai("Đã thanh toán");
+                System.out.println("✅ Đơn hàng tại quầy đã thanh toán!");
             }
 
             hoaDonService.save(hd);
@@ -1083,17 +1121,14 @@ public class BanHangController {
             hd.setPhuongThucThanhToan(phuongthuc);
             hd.setNgayThanhToan(LocalDateTime.now());
 
+            // ⭐ SỬA: Cập nhật trạng thái theo loại bán
             if ("Online".equalsIgnoreCase(hd.getLoaiBan())) {
-                if ("COD".equalsIgnoreCase(phuongthuc)) {
-                    hd.setTrangThai("Đang giao (COD)");
-                    redirectAttributes.addFlashAttribute("mess",
-                            "Đơn hàng HD" + mahd + " đang chờ giao (COD)! Khách hàng sẽ thanh toán khi nhận hàng.");
-                } else {
-                    hd.setTrangThai("Đang giao");
-                    redirectAttributes.addFlashAttribute("mess",
-                            "Đơn hàng HD" + mahd + " chuyển sang Đang giao!");
-                }
+                // Đơn hàng online -> Đã xác nhận
+                hd.setTrangThai("Đã xác nhận");
+                redirectAttributes.addFlashAttribute("mess",
+                        "Đơn hàng HD" + mahd + " đã xác nhận thành công!");
             } else {
+                // Đơn hàng tại quầy -> Đã thanh toán
                 hd.setTrangThai("Đã thanh toán");
                 redirectAttributes.addFlashAttribute("mess",
                         "Thanh toán thành công! Tiền thừa: " + formatCurrency(hd.getTienThua()));
@@ -1250,8 +1285,13 @@ public class BanHangController {
 
         hd.setMaKhachHang(kh);
         hoaDonService.save(hd);
+
+        // ⭐ THÊM: Lưu thông tin khách hàng vào session để JS lấy
+        redirectAttributes.addFlashAttribute("khachHangSelected", kh.getMaKH());
+        redirectAttributes.addFlashAttribute("khachHangTen", kh.getHoTen());
         redirectAttributes.addFlashAttribute("mess", "Đã chọn khách hàng: " + kh.getHoTen());
         redirectAttributes.addFlashAttribute("messageType", "success");
+
         return "redirect:/banhang/index?mahd=" + mahd;
     }
 
@@ -1299,17 +1339,6 @@ public class BanHangController {
         model.addAttribute("kh", new KhachHang());
         return "banhang/index";
     }
-
-    @GetMapping("/diachi/{maKH}")
-    @ResponseBody
-    public List<DiaChi> getDiaChiByKhachHang(@PathVariable("maKH") String maKH) {
-        KhachHang khachHang = khachHangService.getKhachHangById(maKH);
-        if (khachHang == null) {
-            return new ArrayList<>();
-        }
-        return diaChiService.findByKhachHang(khachHang);
-    }
-
 
     @GetMapping("/test-ghn-token")
     @ResponseBody
@@ -1526,7 +1555,7 @@ public class BanHangController {
                 return PHI_SHIP_MAC_DINH;
             }
 
-            DiaChi diaChiMacDinh = diaChiService.findByKhachHangAndDiaChiMacDinh(khachHang, true);
+                DiaChi diaChiMacDinh = diaChiService.findByKhachHangAndDiaChiMacDinh(khachHang, true);
 
             if (diaChiMacDinh == null) {
                 List<DiaChi> danhSachDiaChi = diaChiService.findByKhachHang(khachHang);
@@ -1785,295 +1814,16 @@ public class BanHangController {
 
         return map;
     }
-    @GetMapping("/diachi/get/{maDiaChi}")
-    @ResponseBody
-    public Map<String, Object> getDiaChiDetail(@PathVariable("maDiaChi") Integer maDiaChi) {
-        Map<String, Object> response = new HashMap<>();
-        try {
-            Optional<DiaChi> diaChiOpt = diaChiService.findById(maDiaChi);
-            if (diaChiOpt.isPresent()) {
-                DiaChi diaChi = diaChiOpt.get();
-                response.put("success", true);
-                response.put("maDiaChi", diaChi.getMaDiaChi());
-                response.put("tenNguoiNhan", diaChi.getTenNguoiNhan());
-                response.put("soDienThoaiNguoiNhan", diaChi.getSoDienThoaiNguoiNhan());
-                response.put("tinhThanh", diaChi.getTinhThanh());
-                response.put("quanHuyen", diaChi.getQuanHuyen());
-                response.put("phuongXa", diaChi.getPhuongXa());
-                response.put("diaChiCuThe", diaChi.getDiaChiCuThe());
-                response.put("diaChiMacDinh", diaChi.getDiaChiMacDinh() != null && diaChi.getDiaChiMacDinh());
-                response.put("maKH", diaChi.getKhachHang() != null ? diaChi.getKhachHang().getMaKH() : null);
-            } else {
-                response.put("success", false);
-                response.put("message", "Không tìm thấy địa chỉ!");
-            }
-        } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", "Lỗi: " + e.getMessage());
-        }
-        return response;
-    }
 
-    @PostMapping("/diachi/them")
-    public String themDiaChi(@Valid @ModelAttribute("diaChi") DiaChi diaChi,
-                             BindingResult bindingResult,
-                             @RequestParam(value = "mahd", required = false) String mahd,
-                             RedirectAttributes redirectAttributes) {
-
-        String redirectUrl = (mahd != null && !mahd.trim().isEmpty())
-                ? "redirect:/banhang/index?mahd=" + mahd
-                : "redirect:/banhang/index";
-
-        if (bindingResult.hasErrors()) {
-            String loiDauTien = bindingResult.getFieldErrors().stream()
-                    .map(fe -> fe.getDefaultMessage())
-                    .findFirst().orElse("Dữ liệu không hợp lệ");
-            redirectAttributes.addFlashAttribute("mess", "Lỗi: " + loiDauTien);
-            redirectAttributes.addFlashAttribute("messageType", "error");
-            return redirectUrl;
-        }
-
-        if (diaChi.getKhachHang() == null || diaChi.getKhachHang().getMaKH() == null) {
-            redirectAttributes.addFlashAttribute("mess", "Vui lòng chọn khách hàng trước!");
-            redirectAttributes.addFlashAttribute("messageType", "warning");
-            return redirectUrl;
-        }
-
-        KhachHang khachHang = khachHangService.getKhachHangById(diaChi.getKhachHang().getMaKH());
-        if (khachHang == null) {
-            redirectAttributes.addFlashAttribute("mess", "Khách hàng không tồn tại!");
-            redirectAttributes.addFlashAttribute("messageType", "error");
-            return redirectUrl;
-        }
-
-        try {
-            if (diaChi.getDiaChiMacDinh() == null) {
-                diaChi.setDiaChiMacDinh(false);
-            }
-
-            if (diaChi.getDiaChiMacDinh()) {
-                List<DiaChi> listDiaChi = diaChiService.findByKhachHang(khachHang);
-                for (DiaChi dc : listDiaChi) {
-                    dc.setDiaChiMacDinh(false);
-                    diaChiService.save(dc);
-                }
-            }
-
-            diaChi.setKhachHang(khachHang);
-            diaChiService.save(diaChi);
-
-            if (mahd != null && !mahd.trim().isEmpty()) {
-                HoaDon hoaDon = hoaDonService.findById(mahd);
-                if (hoaDon != null && "Online".equalsIgnoreCase(hoaDon.getLoaiBan())) {
-                    String diaChiDayDu = diaChi.getDiaChiCuThe() + ", " +
-                            diaChi.getPhuongXa() + ", " +
-                            diaChi.getQuanHuyen() + ", " +
-                            diaChi.getTinhThanh();
-
-                    hoaDon.setGhiChu("Địa chỉ giao hàng: " + diaChiDayDu +
-                            " | Người nhận: " + diaChi.getTenNguoiNhan() +
-                            " | SĐT: " + diaChi.getSoDienThoaiNguoiNhan());
-                    hoaDonService.save(hoaDon);
-                }
-            }
-
-            redirectAttributes.addFlashAttribute("mess", "Thêm địa chỉ thành công!");
-            redirectAttributes.addFlashAttribute("messageType", "success");
-
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("mess", "Lỗi thêm địa chỉ: " + e.getMessage());
-            redirectAttributes.addFlashAttribute("messageType", "error");
-        }
-
-        return redirectUrl;
-    }
-
-    @PostMapping("/diachi/sua")
-    public String suaDiaChi(@RequestParam("maDiaChi") Integer maDiaChi,
-                            @RequestParam("tenNguoiNhan") String tenNguoiNhan,
-                            @RequestParam("soDienThoaiNguoiNhan") String soDienThoaiNguoiNhan,
-                            @RequestParam("tinhThanh") String tinhThanh,
-                            @RequestParam("quanHuyen") String quanHuyen,
-                            @RequestParam("phuongXa") String phuongXa,
-                            @RequestParam("diaChiCuThe") String diaChiCuThe,
-                            @RequestParam(value = "diaChiMacDinh", defaultValue = "false") Boolean diaChiMacDinh,
-                            @RequestParam(value = "mahd", required = false) String mahd,
-                            RedirectAttributes redirectAttributes) {
-
-        String redirectUrl = (mahd != null && !mahd.trim().isEmpty())
-                ? "redirect:/banhang/index?mahd=" + mahd
-                : "redirect:/banhang/index";
-
-        // Kiểm tra địa chỉ tồn tại
-        Optional<DiaChi> diaChiOpt = diaChiService.findById(maDiaChi);
-        if (!diaChiOpt.isPresent()) {
-            redirectAttributes.addFlashAttribute("mess", "Địa chỉ không tồn tại!");
-            redirectAttributes.addFlashAttribute("messageType", "error");
-            return redirectUrl;
-        }
-
-        DiaChi diaChi = diaChiOpt.get();
-
-        try {
-            // Cập nhật thông tin
-            diaChi.setTenNguoiNhan(tenNguoiNhan);
-            diaChi.setSoDienThoaiNguoiNhan(soDienThoaiNguoiNhan);
-            diaChi.setTinhThanh(tinhThanh);
-            diaChi.setQuanHuyen(quanHuyen);
-            diaChi.setPhuongXa(phuongXa);
-            diaChi.setDiaChiCuThe(diaChiCuThe);
-
-            // Xử lý địa chỉ mặc định
-            Boolean isMacDinh = diaChiMacDinh != null && diaChiMacDinh;
-            diaChi.setDiaChiMacDinh(isMacDinh);
-
-            if (isMacDinh) {
-                // Bỏ mặc định của các địa chỉ khác
-                KhachHang khachHang = diaChi.getKhachHang();
-                if (khachHang != null) {
-                    List<DiaChi> listDiaChi = diaChiService.findByKhachHang(khachHang);
-                    for (DiaChi dc : listDiaChi) {
-                        if (!dc.getMaDiaChi().equals(maDiaChi)) {
-                            dc.setDiaChiMacDinh(false);
-                            diaChiService.save(dc);
-                        }
-                    }
-                }
-            }
-
-            diaChiService.save(diaChi);
-
-            // Nếu có hóa đơn đang mở và là đơn Online, cập nhật địa chỉ
-            if (mahd != null && !mahd.trim().isEmpty()) {
-                HoaDon hoaDon = hoaDonService.findById(mahd);
-                if (hoaDon != null && "Online".equalsIgnoreCase(hoaDon.getLoaiBan())) {
-                    String diaChiDayDu = diaChi.getDiaChiCuThe() + ", " +
-                            diaChi.getPhuongXa() + ", " +
-                            diaChi.getQuanHuyen() + ", " +
-                            diaChi.getTinhThanh();
-
-                    hoaDon.setGhiChu("Địa chỉ giao hàng: " + diaChiDayDu +
-                            " | Người nhận: " + diaChi.getTenNguoiNhan() +
-                            " | SĐT: " + diaChi.getSoDienThoaiNguoiNhan());
-                    hoaDonService.save(hoaDon);
-                }
-            }
-
-            redirectAttributes.addFlashAttribute("mess", "Cập nhật địa chỉ thành công!");
-            redirectAttributes.addFlashAttribute("messageType", "success");
-
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("mess", "Lỗi cập nhật địa chỉ: " + e.getMessage());
-            redirectAttributes.addFlashAttribute("messageType", "error");
-        }
-
-        return redirectUrl;
-    }
-
-    @PostMapping("/diachi/xoa")
-    public String xoaDiaChi(@RequestParam("maDiaChi") Integer maDiaChi,
-                            @RequestParam(value = "mahd", required = false) String mahd,
-                            RedirectAttributes redirectAttributes) {
-
-        String redirectUrl = (mahd != null && !mahd.trim().isEmpty())
-                ? "redirect:/banhang/index?mahd=" + mahd
-                : "redirect:/banhang/index";
-
-        Optional<DiaChi> diaChiOpt = diaChiService.findById(maDiaChi);
-        if (!diaChiOpt.isPresent()) {
-            redirectAttributes.addFlashAttribute("mess", "Địa chỉ không tồn tại!");
-            redirectAttributes.addFlashAttribute("messageType", "error");
-            return redirectUrl;
-        }
-
-        try {
-            DiaChi diaChi = diaChiOpt.get();
-
-            // Nếu địa chỉ này đang là mặc định, cần chọn địa chỉ khác làm mặc định
-            if (diaChi.getDiaChiMacDinh() != null && diaChi.getDiaChiMacDinh()) {
-                KhachHang khachHang = diaChi.getKhachHang();
-                if (khachHang != null) {
-                    List<DiaChi> listDiaChi = diaChiService.findByKhachHang(khachHang);
-                    for (DiaChi dc : listDiaChi) {
-                        if (!dc.getMaDiaChi().equals(maDiaChi)) {
-                            dc.setDiaChiMacDinh(true);
-                            diaChiService.save(dc);
-                            break;
-                        }
-                    }
-                }
-            }
-
-            diaChiService.delete(maDiaChi);
-            redirectAttributes.addFlashAttribute("mess", "Xóa địa chỉ thành công!");
-            redirectAttributes.addFlashAttribute("messageType", "success");
-
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("mess", "Lỗi xóa địa chỉ: " + e.getMessage());
-            redirectAttributes.addFlashAttribute("messageType", "error");
-        }
-
-        return redirectUrl;
-    }
-
-    @PostMapping("/chondiachi")
-    public String chonDiaChi(@RequestParam("mahd") String mahd,
-                             @RequestParam("maDiaChi") Integer maDiaChi,
-                             RedirectAttributes redirectAttributes) {
-        HoaDon hd = hoaDonService.findById(mahd);
-        if (hd == null) {
-            redirectAttributes.addFlashAttribute("mess", "Hóa đơn không tồn tại!");
-            redirectAttributes.addFlashAttribute("messageType", "error");
-            return "redirect:/banhang/index";
-        }
-
-        Optional<DiaChi> diaChiOpt = diaChiService.findById(maDiaChi);
-        if (!diaChiOpt.isPresent()) {
-            redirectAttributes.addFlashAttribute("mess", "Địa chỉ không tồn tại!");
-            redirectAttributes.addFlashAttribute("messageType", "error");
-            return "redirect:/banhang/index?mahd=" + mahd;
-        }
-
-        DiaChi diaChi = diaChiOpt.get();
-
-        try {
-            String diaChiDayDu = diaChi.getDiaChiCuThe() + ", " +
-                    diaChi.getPhuongXa() + ", " +
-                    diaChi.getQuanHuyen() + ", " +
-                    diaChi.getTinhThanh();
-
-            hd.setGhiChu("Địa chỉ giao hàng: " + diaChiDayDu +
-                    " | Người nhận: " + diaChi.getTenNguoiNhan() +
-                    " | SĐT: " + diaChi.getSoDienThoaiNguoiNhan());
-            hoaDonService.save(hd);
-
-            // Tính lại phí ship
-            BigDecimal phiShip = tinhPhiShipGHN(hd);
-            hd.setTienShip(phiShip);
-            hoaDonService.save(hd);
-
-            redirectAttributes.addFlashAttribute("mess", "Đã chọn địa chỉ giao hàng!");
-            redirectAttributes.addFlashAttribute("messageType", "success");
-
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("mess", "Lỗi chọn địa chỉ: " + e.getMessage());
-            redirectAttributes.addFlashAttribute("messageType", "error");
-        }
-
-        return "redirect:/banhang/index?mahd=" + mahd;
-    }
 
     private List<GiamGia> getVoucherDangHoatDong() {
-        // ⭐ Lấy tất cả voucher từ repository (không filter)
         List<GiamGia> allVouchers = giamGiaService.getGiamGia1();
         if (allVouchers == null || allVouchers.isEmpty()) {
             return new ArrayList<>();
         }
 
-        // ⭐ Lọc thủ công
         return allVouchers.stream()
                 .filter(gg -> {
-                    // Kiểm tra số lượng: vô hạn thì bỏ qua
                     if (gg.getIsVoHan() != null && gg.getIsVoHan()) {
                         return true;
                     }
@@ -2087,14 +1837,12 @@ public class BanHangController {
                     if (a.getLoaiGiamGia().equals(b.getLoaiGiamGia())) {
                         return giamB.compareTo(giamA);
                     }
-
                     if ("Tien".equalsIgnoreCase(a.getLoaiGiamGia())) {
                         return -1;
                     }
                     if ("Tien".equalsIgnoreCase(b.getLoaiGiamGia())) {
                         return 1;
                     }
-
                     return giamB.compareTo(giamA);
                 })
                 .collect(Collectors.toList());
@@ -2102,19 +1850,34 @@ public class BanHangController {
 
 
     private GiamGia timVoucherTotNhatChoHoaDon(HoaDon hoaDon, BigDecimal tongTien) {
-        List<GiamGia> vouchers = getVoucherDangHoatDong();
+        // Lấy voucher theo khách hàng
+        List<GiamGia> vouchers;
+        KhachHang khachHang = hoaDon != null ? hoaDon.getMaKhachHang() : null;
+
+        if (khachHang != null && !"0000000000".equals(khachHang.getSdt())) {
+            vouchers = getVoucherChoKhachHang(khachHang);
+        } else {
+            vouchers = getVoucherCongKhai();
+        }
+
         if (vouchers.isEmpty() || tongTien == null || tongTien.compareTo(BigDecimal.ZERO) <= 0) {
             return null;
         }
 
         GiamGia bestVoucher = null;
         BigDecimal maxGiam = BigDecimal.ZERO;
+        GiamGia currentVoucher = hoaDon != null ? hoaDon.getMaGiamGia() : null;
 
         for (GiamGia gg : vouchers) {
+            // Bỏ qua voucher hiện tại
+            if (currentVoucher != null && currentVoucher.getMaGiamGia().equals(gg.getMaGiamGia())) {
+                continue;
+            }
+
             // Kiểm tra đơn tối thiểu
             if (gg.getDonToiThieu() != null && gg.getDonToiThieu().compareTo(BigDecimal.ZERO) > 0
                     && tongTien.compareTo(gg.getDonToiThieu()) < 0) {
-                continue; // Không đủ điều kiện
+                continue;
             }
 
             BigDecimal giam = tinhMucGiamVoucher(gg, tongTien);
@@ -2125,6 +1888,131 @@ public class BanHangController {
         }
 
         return bestVoucher;
+    }
+
+    // ===== LẤY DANH SÁCH VOUCHER THEO KHÁCH HÀNG (CÔNG KHAI + CÁ NHÂN) =====
+    private List<GiamGia> getVoucherChoKhachHang(KhachHang khachHang) {
+        List<GiamGia> allVouchers = giamGiaService.getGiamGia1();
+        if (allVouchers == null || allVouchers.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<GiamGia> result = new ArrayList<>();
+
+        for (GiamGia gg : allVouchers) {
+            // 1. Kiểm tra số lượng
+            if (gg.getIsVoHan() == null || !gg.getIsVoHan()) {
+                if (gg.getSoLuong() == null || gg.getSoLuong() <= 0) {
+                    continue;
+                }
+            }
+
+            // 2. Kiểm tra trạng thái
+            String trangThai = giamGiaService.tinhToanTrangThai(gg);
+            if (!"Hoạt động".equals(trangThai)) {
+                continue;
+            }
+
+            // 3. Kiểm tra loại áp dụng
+            if (gg.getLoaiApDung() != null && gg.getLoaiApDung() == 1) {
+                // Loại công khai - Luôn hiển thị
+                result.add(gg);
+            } else if (gg.getLoaiApDung() != null && gg.getLoaiApDung() == 2) {
+                // Loại cá nhân - Chỉ hiển thị nếu khách hàng được áp dụng
+                if (khachHang != null && !"0000000000".equals(khachHang.getSdt())) {
+                    boolean isEligible = kiemTraVoucherChoKhachHang(gg, khachHang);
+                    if (isEligible) {
+                        result.add(gg);
+                    }
+                }
+            } else {
+                // Không xác định loại áp dụng -> mặc định là công khai
+                result.add(gg);
+            }
+        }
+
+        // Sắp xếp: ưu tiên giảm nhiều hơn
+        result.sort((a, b) -> {
+            BigDecimal giamA = a.getGiaTriGiam() != null ? a.getGiaTriGiam() : BigDecimal.ZERO;
+            BigDecimal giamB = b.getGiaTriGiam() != null ? b.getGiaTriGiam() : BigDecimal.ZERO;
+
+            if ("Tien".equalsIgnoreCase(a.getLoaiGiamGia()) && !"Tien".equalsIgnoreCase(b.getLoaiGiamGia())) {
+                return -1;
+            }
+            if (!"Tien".equalsIgnoreCase(a.getLoaiGiamGia()) && "Tien".equalsIgnoreCase(b.getLoaiGiamGia())) {
+                return 1;
+            }
+            return giamB.compareTo(giamA);
+        });
+
+        return result;
+    }
+
+    // ===== LẤY VOUCHER CÔNG KHAI (CHỈ LOẠI 1 HOẶC NULL) =====
+    private List<GiamGia> getVoucherCongKhai() {
+        List<GiamGia> allVouchers = giamGiaService.getGiamGia1();
+        if (allVouchers == null || allVouchers.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        return allVouchers.stream()
+                .filter(gg -> {
+                    // Kiểm tra số lượng
+                    if (gg.getIsVoHan() == null || !gg.getIsVoHan()) {
+                        if (gg.getSoLuong() == null || gg.getSoLuong() <= 0) {
+                            return false;
+                        }
+                    }
+                    // Kiểm tra trạng thái
+                    String trangThai = giamGiaService.tinhToanTrangThai(gg);
+                    if (!"Hoạt động".equals(trangThai)) {
+                        return false;
+                    }
+                    // Chỉ lấy voucher công khai (loại 1) hoặc không xác định
+                    return gg.getLoaiApDung() == null || gg.getLoaiApDung() == 1;
+                })
+                .sorted((a, b) -> {
+                    BigDecimal giamA = a.getGiaTriGiam() != null ? a.getGiaTriGiam() : BigDecimal.ZERO;
+                    BigDecimal giamB = b.getGiaTriGiam() != null ? b.getGiaTriGiam() : BigDecimal.ZERO;
+
+                    if ("Tien".equalsIgnoreCase(a.getLoaiGiamGia()) && !"Tien".equalsIgnoreCase(b.getLoaiGiamGia())) {
+                        return -1;
+                    }
+                    if (!"Tien".equalsIgnoreCase(a.getLoaiGiamGia()) && "Tien".equalsIgnoreCase(b.getLoaiGiamGia())) {
+                        return 1;
+                    }
+                    return giamB.compareTo(giamA);
+                })
+                .collect(Collectors.toList());
+    }
+
+    // ===== KIỂM TRA VOUCHER CÓ ÁP DỤNG CHO KHÁCH HÀNG KHÔNG =====
+    private boolean kiemTraVoucherChoKhachHang(GiamGia voucher, KhachHang khachHang) {
+        if (voucher == null || khachHang == null) {
+            return false;
+        }
+
+        try {
+            // Loại 1 = Công khai: ai cũng được áp dụng
+            if (voucher.getLoaiApDung() != null && voucher.getLoaiApDung() == 1) {
+                return true;
+            }
+
+            // Loại 2 = Cá nhân: kiểm tra trong bảng KHACHHANG_VOUCHER
+            if (voucher.getLoaiApDung() != null && voucher.getLoaiApDung() == 2) {
+                boolean exists = giamGiaChiTietRepository.existsById_MaGiamGiaAndId_MaKhachHang(
+                        voucher.getMaGiamGia(),
+                        khachHang.getMaKH()
+                );
+                return exists;
+            }
+
+            // Nếu không xác định loại, mặc định là công khai
+            return true;
+        } catch (Exception e) {
+            System.err.println("❌ Lỗi kiểm tra voucher: " + e.getMessage());
+            return false;
+        }
     }
 
     @GetMapping("/voucher-goi-y")
@@ -2423,4 +2311,1178 @@ public class BanHangController {
         return response;
     }
 
+
+
+
+    // ===== KIỂM TRA VOUCHER TRƯỚC KHI THANH TOÁN =====
+    @GetMapping("/kiemtravoucher/{maHoaDon}")
+    @ResponseBody
+    public Map<String, Object> kiemTraVoucher(@PathVariable("maHoaDon") String maHoaDon) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            HoaDon hoaDon = hoaDonService.findById(maHoaDon);
+            if (hoaDon == null) {
+                response.put("success", false);
+                response.put("message", "Không tìm thấy hóa đơn!");
+                return response;
+            }
+
+            // Lấy danh sách sản phẩm
+            List<HoaDonChiTiet> listhdct = hoaDonChiTietService.findById(maHoaDon);
+            if (listhdct == null || listhdct.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "Hóa đơn chưa có sản phẩm!");
+                return response;
+            }
+
+            BigDecimal tongTien = listhdct.stream()
+                    .map(HoaDonChiTiet::getThanhTien)
+                    .filter(Objects::nonNull)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            List<Map<String, Object>> warnings = new ArrayList<>();
+            boolean hasWarning = false;
+            GiamGia currentVoucher = hoaDon.getMaGiamGia();
+
+            // ===== 1. Nếu CÓ voucher đang áp dụng =====
+            if (currentVoucher != null) {
+                Map<String, Object> checkResult = kiemTraVoucherHienTai(currentVoucher, tongTien, hoaDon);
+                if (checkResult != null) {
+                    hasWarning = true;
+                    warnings.add(checkResult);
+                }
+
+                // ===== 2. Kiểm tra voucher TỐT HƠN =====
+                if (!hasWarning) {
+                    GiamGia betterVoucher = timVoucherTotNhatChoHoaDon(hoaDon, tongTien);
+                    if (betterVoucher != null && !betterVoucher.getMaGiamGia().equals(currentVoucher.getMaGiamGia())) {
+                        BigDecimal currentDiscount = tinhMucGiamVoucher(currentVoucher, tongTien);
+                        BigDecimal betterDiscount = tinhMucGiamVoucher(betterVoucher, tongTien);
+
+                        if (betterDiscount.compareTo(currentDiscount) > 0) {
+                            hasWarning = true;
+                            Map<String, Object> warning = new HashMap<>();
+                            warning.put("type", "BETTER_VOUCHER");
+                            warning.put("maVoucher", betterVoucher.getMaGiamGia());
+                            warning.put("tenVoucher", betterVoucher.getTenGiamGia());
+                            warning.put("message", "Có voucher tốt hơn: " + betterVoucher.getTenGiamGia());
+                            warning.put("currentDiscount", currentDiscount);
+                            warning.put("betterDiscount", betterDiscount);
+                            warnings.add(warning);
+                        }
+                    }
+                }
+            } else {
+                // ===== 3. Nếu KHÔNG có voucher, kiểm tra có voucher nào khả dụng không =====
+                GiamGia bestVoucher = timVoucherTotNhatChoHoaDon(hoaDon, tongTien);
+                if (bestVoucher != null) {
+                    hasWarning = true;
+                    Map<String, Object> warning = new HashMap<>();
+                    warning.put("type", "VOUCHER_AVAILABLE");
+                    warning.put("maVoucher", bestVoucher.getMaGiamGia());
+                    warning.put("tenVoucher", bestVoucher.getTenGiamGia());
+                    warning.put("message", "Có voucher khả dụng: " + bestVoucher.getTenGiamGia());
+                    warning.put("tienGiam", tinhMucGiamVoucher(bestVoucher, tongTien));
+                    warnings.add(warning);
+                }
+            }
+
+            response.put("success", true);
+            response.put("hasWarning", hasWarning);
+            response.put("warnings", warnings);
+            response.put("voucherHienTai", currentVoucher != null ?
+                    currentVoucher.getMaGiamGia() + " - " + currentVoucher.getTenGiamGia() :
+                    "Chưa có voucher");
+            response.put("tongTien", tongTien);
+            response.put("message", hasWarning ? "Có " + warnings.size() + " cảnh báo voucher" : "Voucher hợp lệ");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "Lỗi: " + e.getMessage());
+        }
+        return response;
+    }
+
+    // ===== KIỂM TRA VOUCHER HIỆN TẠI =====
+    private Map<String, Object> kiemTraVoucherHienTai(GiamGia voucher, BigDecimal tongTien, HoaDon hoaDon) {
+        Map<String, Object> warning = new HashMap<>();
+        Date now = new Date();
+
+        // 1. Kiểm tra trạng thái
+        String trangThai = giamGiaService.tinhToanTrangThai(voucher);
+        if (!"Hoạt động".equals(trangThai)) {
+            warning.put("type", "VOUCHER_STOPPED");
+            warning.put("message", "Voucher đã bị ngừng hoạt động!");
+            warning.put("status", trangThai);
+            return warning;
+        }
+
+        // 2. Kiểm tra số lượng
+        if (voucher.getIsVoHan() == null || !voucher.getIsVoHan()) {
+            if (voucher.getSoLuong() == null || voucher.getSoLuong() <= 0) {
+                warning.put("type", "VOUCHER_OUT_OF_STOCK");
+                warning.put("message", "Voucher đã hết số lượng!");
+                warning.put("quantity", voucher.getSoLuong());
+                return warning;
+            }
+        }
+
+        // 3. Kiểm tra đơn tối thiểu
+        if (voucher.getDonToiThieu() != null &&
+                voucher.getDonToiThieu().compareTo(BigDecimal.ZERO) > 0 &&
+                tongTien.compareTo(voucher.getDonToiThieu()) < 0) {
+            warning.put("type", "VOUCHER_MIN_ORDER");
+            warning.put("message", "Đơn hàng chưa đạt giá trị tối thiểu!");
+            warning.put("minOrder", voucher.getDonToiThieu());
+            warning.put("currentTotal", tongTien);
+            warning.put("needMore", voucher.getDonToiThieu().subtract(tongTien));
+            return warning;
+        }
+
+        // 4. Kiểm tra ngày hết hạn
+        if (voucher.getNgayKetThuc() != null && voucher.getNgayKetThuc().isBefore(LocalDateTime.now())) {
+            warning.put("type", "VOUCHER_EXPIRED");
+            warning.put("message", "Voucher đã hết hạn!");
+            warning.put("expiredDate", voucher.getNgayKetThuc());
+            return warning;
+        }
+
+        // 5. Kiểm tra ngày bắt đầu
+        if (voucher.getNgayBatDau() != null && voucher.getNgayBatDau().isAfter(LocalDateTime.now())) {
+            warning.put("type", "VOUCHER_NOT_STARTED");
+            warning.put("message", "Voucher chưa đến ngày áp dụng!");
+            warning.put("startDate", voucher.getNgayBatDau());
+            return warning;
+        }
+
+        // 6. Kiểm tra loại áp dụng (1 = Công khai, 2 = Cá nhân)
+        if (voucher.getLoaiApDung() != null) {
+            Integer loaiApDung = voucher.getLoaiApDung();
+
+            // Loại 2 = Cá nhân - Kiểm tra khách hàng
+            if (loaiApDung == 2) {
+                KhachHang khachHang = hoaDon.getMaKhachHang();
+
+                if (khachHang == null) {
+                    warning.put("type", "VOUCHER_CUSTOMER_ONLY");
+                    warning.put("message", "Voucher này chỉ dành cho khách hàng cụ thể! Vui lòng chọn khách hàng trước.");
+                    warning.put("loaiApDung", "Cá nhân");
+                    return warning;
+                }
+
+                // Kiểm tra xem voucher có áp dụng cho khách hàng này không
+                boolean isCustomerEligible = kiemTraVoucherChoKhachHang(voucher, khachHang);
+                if (!isCustomerEligible) {
+                    warning.put("type", "VOUCHER_NOT_FOR_CUSTOMER");
+                    warning.put("message", "Voucher này không áp dụng cho khách hàng " + khachHang.getHoTen() + "!");
+                    warning.put("loaiApDung", "Cá nhân");
+                    warning.put("customerName", khachHang.getHoTen());
+                    warning.put("customerId", khachHang.getMaKH());
+                    return warning;
+                }
+
+                System.out.println("✅ Voucher " + voucher.getMaGiamGia() +
+                        " áp dụng được cho khách hàng " + khachHang.getMaKH());
+            }
+            // Loại 1 = Công khai - Không cần kiểm tra
+        }
+
+        return null; // Không có lỗi
+    }
+
+    // ===== API CẬP NHẬT VOUCHER KHI CHỌN KHÁCH HÀNG =====
+    @PostMapping("/update-vouchers")
+    @ResponseBody
+    public Map<String, Object> updateVouchers(
+            @RequestParam("mahd") String mahd,
+            @RequestParam(value = "maKH", required = false) String maKH) {
+
+        Map<String, Object> response = new HashMap<>();
+        try {
+            HoaDon hoaDon = hoaDonService.findById(mahd);
+            if (hoaDon == null) {
+                response.put("success", false);
+                response.put("message", "Không tìm thấy hóa đơn!");
+                return response;
+            }
+
+            // Cập nhật khách hàng nếu có maKH
+            if (maKH != null && !maKH.isEmpty()) {
+                KhachHang khachHang = khachHangService.getKhachHangById(maKH);
+                if (khachHang != null) {
+                    hoaDon.setMaKhachHang(khachHang);
+                    hoaDonService.save(hoaDon);
+                }
+            }
+
+            // Lấy danh sách voucher theo khách hàng
+            List<GiamGia> vouchers = getVoucherChoHoaDon(hoaDon);
+
+            // Lấy tổng tiền hiện tại
+            List<HoaDonChiTiet> listhdct = hoaDonChiTietService.findById(mahd);
+            BigDecimal tongTien = listhdct.stream()
+                    .map(HoaDonChiTiet::getThanhTien)
+                    .filter(Objects::nonNull)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            // Chuyển đổi sang DTO
+            List<Map<String, Object>> voucherList = new ArrayList<>();
+            GiamGia currentVoucher = hoaDon.getMaGiamGia();
+
+            for (GiamGia gg : vouchers) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("maGiamGia", gg.getMaGiamGia());
+                item.put("tenGiamGia", gg.getTenGiamGia());
+                item.put("loaiGiamGia", gg.getLoaiGiamGia());
+                item.put("giaTriGiam", gg.getGiaTriGiam());
+                item.put("giamToiDa", gg.getGiamToiDa());
+                item.put("soLuong", gg.getSoLuong());
+                item.put("isVoHan", gg.getIsVoHan());
+                item.put("donToiThieu", gg.getDonToiThieu());
+                item.put("loaiApDung", gg.getLoaiApDung());
+                item.put("loaiApDungText", gg.getLoaiApDung() == 1 ? "Công khai" : "Cá nhân");
+                item.put("isApplied", currentVoucher != null && currentVoucher.getMaGiamGia().equals(gg.getMaGiamGia()));
+
+                // Tính tiền giảm
+                BigDecimal tienGiam = tinhMucGiamVoucher(gg, tongTien);
+                item.put("tienGiam", tienGiam);
+
+                // Kiểm tra điều kiện áp dụng
+                boolean isEligible = true;
+                String status = "Sẵn sàng áp dụng";
+                String statusClass = "success";
+                BigDecimal canThem = BigDecimal.ZERO;
+
+                if (gg.getDonToiThieu() != null && gg.getDonToiThieu().compareTo(BigDecimal.ZERO) > 0
+                        && tongTien.compareTo(gg.getDonToiThieu()) < 0) {
+                    isEligible = false;
+                    canThem = gg.getDonToiThieu().subtract(tongTien);
+                    status = "Cần thêm " + formatCurrency(canThem);
+                    statusClass = "warning";
+                    item.put("canThem", canThem);
+                }
+
+                // Kiểm tra nếu đang áp dụng voucher này
+                if (item.get("isApplied") == Boolean.TRUE) {
+                    status = "✅ Đang áp dụng";
+                    statusClass = "info";
+                    isEligible = true;
+                }
+
+                item.put("isEligible", isEligible);
+                item.put("status", status);
+                item.put("statusClass", statusClass);
+
+                voucherList.add(item);
+            }
+
+            // Tìm voucher tốt nhất
+            GiamGia bestVoucher = timVoucherTotNhatChoHoaDon(hoaDon, tongTien);
+
+            response.put("success", true);
+            response.put("vouchers", voucherList);
+            response.put("count", voucherList.size());
+            response.put("khachHang", hoaDon.getMaKhachHang() != null ?
+                    hoaDon.getMaKhachHang().getHoTen() : "Khách lẻ");
+            response.put("maKH", hoaDon.getMaKhachHang() != null ?
+                    hoaDon.getMaKhachHang().getMaKH() : null);
+            response.put("currentVoucher", currentVoucher != null ? currentVoucher.getMaGiamGia() : null);
+
+            if (bestVoucher != null) {
+                response.put("bestVoucher", Map.of(
+                        "maGiamGia", bestVoucher.getMaGiamGia(),
+                        "tenGiamGia", bestVoucher.getTenGiamGia(),
+                        "tienGiam", tinhMucGiamVoucher(bestVoucher, tongTien),
+                        "isCurrent", currentVoucher != null && currentVoucher.getMaGiamGia().equals(bestVoucher.getMaGiamGia())
+                ));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+        }
+        return response;
+    }
+
+    // ===== LẤY VOUCHER CHO HÓA ĐƠN =====
+    private List<GiamGia> getVoucherChoHoaDon(HoaDon hoaDon) {
+        if (hoaDon == null) {
+            return getVoucherCongKhai();
+        }
+
+        KhachHang khachHang = hoaDon.getMaKhachHang();
+        if (khachHang != null && !"0000000000".equals(khachHang.getSdt())) {
+            return getVoucherChoKhachHang(khachHang);
+        }
+        return getVoucherCongKhai();
+    }
+
+
+    @PostMapping("/chonkh-ajax")
+    @ResponseBody
+    public Map<String, Object> chonKhachHangAjax(@RequestParam("mahd") String mahd,
+                                                 @RequestParam("makh") String makh) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            HoaDon hd = hoaDonService.findById(mahd);
+            if (hd == null) {
+                response.put("success", false);
+                response.put("message", "Không tìm thấy hóa đơn!");
+                return response;
+            }
+
+            KhachHang kh = khachHangService.getKhachHangById(makh);
+            if (kh == null) {
+                response.put("success", false);
+                response.put("message", "Khách hàng không tồn tại!");
+                return response;
+            }
+
+            if ("0000000000".equals(kh.getSdt())) {
+                response.put("success", false);
+                response.put("message", "Không thể chọn khách hàng mặc định!");
+                return response;
+            }
+
+            // Cập nhật khách hàng cho hóa đơn
+            hd.setMaKhachHang(kh);
+            hoaDonService.save(hd);
+
+            // Lấy danh sách voucher cho khách hàng
+            List<HoaDonChiTiet> listhdct = hoaDonChiTietService.findById(mahd);
+            BigDecimal tongTien = listhdct.stream()
+                    .map(HoaDonChiTiet::getThanhTien)
+                    .filter(Objects::nonNull)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            // Lấy voucher theo khách hàng (công khai + cá nhân)
+            List<GiamGia> vouchers = getVoucherChoKhachHang(kh);
+
+            // Chuyển đổi sang DTO
+            List<Map<String, Object>> voucherList = new ArrayList<>();
+            GiamGia currentVoucher = hd.getMaGiamGia();
+
+            for (GiamGia gg : vouchers) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("maGiamGia", gg.getMaGiamGia());
+                item.put("tenGiamGia", gg.getTenGiamGia());
+                item.put("loaiGiamGia", gg.getLoaiGiamGia());
+                item.put("giaTriGiam", gg.getGiaTriGiam());
+                item.put("giamToiDa", gg.getGiamToiDa());
+                item.put("soLuong", gg.getSoLuong());
+                item.put("isVoHan", gg.getIsVoHan());
+                item.put("donToiThieu", gg.getDonToiThieu());
+                item.put("loaiApDung", gg.getLoaiApDung());
+                item.put("loaiApDungText", gg.getLoaiApDung() != null && gg.getLoaiApDung() == 1 ? "Công khai" : "Cá nhân");
+                item.put("isApplied", currentVoucher != null && currentVoucher.getMaGiamGia().equals(gg.getMaGiamGia()));
+
+                // Tính tiền giảm
+                BigDecimal tienGiam = tinhMucGiamVoucher(gg, tongTien);
+                item.put("tienGiam", tienGiam);
+
+                // Kiểm tra điều kiện áp dụng
+                boolean isEligible = true;
+                String status = "Sẵn sàng áp dụng";
+                String statusClass = "success";
+                BigDecimal canThem = BigDecimal.ZERO;
+
+                if (gg.getDonToiThieu() != null && gg.getDonToiThieu().compareTo(BigDecimal.ZERO) > 0
+                        && tongTien.compareTo(gg.getDonToiThieu()) < 0) {
+                    isEligible = false;
+                    canThem = gg.getDonToiThieu().subtract(tongTien);
+                    status = "Cần thêm " + formatCurrency(canThem);
+                    statusClass = "warning";
+                    item.put("canThem", canThem);
+                }
+
+                if (item.get("isApplied") == Boolean.TRUE) {
+                    status = "✅ Đang áp dụng";
+                    statusClass = "info";
+                    isEligible = true;
+                }
+
+                item.put("isEligible", isEligible);
+                item.put("status", status);
+                item.put("statusClass", statusClass);
+
+                voucherList.add(item);
+            }
+
+            // Tìm voucher tốt nhất
+            GiamGia bestVoucher = timVoucherTotNhatChoHoaDon(hd, tongTien);
+
+            response.put("success", true);
+            response.put("message", "Đã chọn khách hàng: " + kh.getHoTen());
+            response.put("vouchers", voucherList);
+            response.put("count", voucherList.size());
+            response.put("khachHang", Map.of(
+                    "maKH", kh.getMaKH(),
+                    "hoTen", kh.getHoTen(),
+                    "sdt", kh.getSdt()
+            ));
+            response.put("loaiKhachHang", "khachhang");
+            response.put("currentVoucher", currentVoucher != null ? currentVoucher.getMaGiamGia() : null);
+
+            if (bestVoucher != null) {
+                response.put("bestVoucher", Map.of(
+                        "maGiamGia", bestVoucher.getMaGiamGia(),
+                        "tenGiamGia", bestVoucher.getTenGiamGia(),
+                        "tienGiam", tinhMucGiamVoucher(bestVoucher, tongTien),
+                        "isCurrent", currentVoucher != null && currentVoucher.getMaGiamGia().equals(bestVoucher.getMaGiamGia())
+                ));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "Lỗi: " + e.getMessage());
+        }
+        return response;
+    }
+    // Trong BanHangController.java
+
+    @GetMapping("/get-vouchers")
+    @ResponseBody
+    public Map<String, Object> getVouchers(@RequestParam("mahd") String mahd,
+                                           @RequestParam(value = "maKH", required = false) String maKH) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            HoaDon hoaDon = hoaDonService.findById(mahd);
+            if (hoaDon == null) {
+                response.put("success", false);
+                response.put("message", "Không tìm thấy hóa đơn!");
+                return response;
+            }
+
+            List<HoaDonChiTiet> listhdct = hoaDonChiTietService.findById(mahd);
+            BigDecimal tongTien = listhdct.stream()
+                    .map(HoaDonChiTiet::getThanhTien)
+                    .filter(Objects::nonNull)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            // Lấy danh sách voucher
+            List<GiamGia> vouchers;
+            KhachHang khachHang = null;
+            String tenKhachHang = "Khách lẻ";
+            String loaiKhachHang = "vanglai";
+
+            if (maKH != null && !maKH.isEmpty()) {
+                khachHang = khachHangService.getKhachHangById(maKH);
+                if (khachHang != null && !"0000000000".equals(khachHang.getSdt())) {
+                    vouchers = getVoucherChoKhachHang(khachHang);
+                    tenKhachHang = khachHang.getHoTen();
+                    loaiKhachHang = "khachhang";
+                } else {
+                    vouchers = getVoucherCongKhai();
+                    loaiKhachHang = "vanglai";
+                }
+            } else {
+                // Kiểm tra xem hóa đơn đã có khách hàng chưa
+                if (hoaDon.getMaKhachHang() != null && !"0000000000".equals(hoaDon.getMaKhachHang().getSdt())) {
+                    khachHang = hoaDon.getMaKhachHang();
+                    vouchers = getVoucherChoKhachHang(khachHang);
+                    tenKhachHang = khachHang.getHoTen();
+                    loaiKhachHang = "khachhang";
+                } else {
+                    vouchers = getVoucherCongKhai();
+                    loaiKhachHang = "vanglai";
+                }
+            }
+
+            // Chuyển đổi sang DTO
+            List<Map<String, Object>> voucherList = new ArrayList<>();
+            GiamGia currentVoucher = hoaDon.getMaGiamGia();
+
+            for (GiamGia gg : vouchers) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("maGiamGia", gg.getMaGiamGia());
+                item.put("tenGiamGia", gg.getTenGiamGia());
+                item.put("loaiGiamGia", gg.getLoaiGiamGia());
+                item.put("giaTriGiam", gg.getGiaTriGiam());
+                item.put("giamToiDa", gg.getGiamToiDa());
+                item.put("soLuong", gg.getSoLuong());
+                item.put("isVoHan", gg.getIsVoHan());
+                item.put("donToiThieu", gg.getDonToiThieu());
+                item.put("loaiApDung", gg.getLoaiApDung());
+                item.put("loaiApDungText", gg.getLoaiApDung() != null && gg.getLoaiApDung() == 1 ? "Công khai" : "Cá nhân");
+                item.put("isApplied", currentVoucher != null && currentVoucher.getMaGiamGia().equals(gg.getMaGiamGia()));
+
+                BigDecimal tienGiam = tinhMucGiamVoucher(gg, tongTien);
+                item.put("tienGiam", tienGiam);
+
+                boolean isEligible = true;
+                String status = "Sẵn sàng áp dụng";
+                String statusClass = "success";
+                BigDecimal canThem = BigDecimal.ZERO;
+
+                if (gg.getDonToiThieu() != null && gg.getDonToiThieu().compareTo(BigDecimal.ZERO) > 0
+                        && tongTien.compareTo(gg.getDonToiThieu()) < 0) {
+                    isEligible = false;
+                    canThem = gg.getDonToiThieu().subtract(tongTien);
+                    status = "Cần thêm " + formatCurrency(canThem);
+                    statusClass = "warning";
+                    item.put("canThem", canThem);
+                }
+
+                if (item.get("isApplied") == Boolean.TRUE) {
+                    status = "✅ Đang áp dụng";
+                    statusClass = "info";
+                    isEligible = true;
+                }
+
+                item.put("isEligible", isEligible);
+                item.put("status", status);
+                item.put("statusClass", statusClass);
+
+                voucherList.add(item);
+            }
+
+            GiamGia bestVoucher = timVoucherTotNhatChoHoaDon(hoaDon, tongTien);
+
+            response.put("success", true);
+            response.put("vouchers", voucherList);
+            response.put("count", voucherList.size());
+            response.put("tenKhachHang", tenKhachHang);
+            response.put("loaiKhachHang", loaiKhachHang);
+            response.put("currentVoucher", currentVoucher != null ? currentVoucher.getMaGiamGia() : null);
+
+            if (bestVoucher != null) {
+                response.put("bestVoucher", Map.of(
+                        "maGiamGia", bestVoucher.getMaGiamGia(),
+                        "tenGiamGia", bestVoucher.getTenGiamGia(),
+                        "tienGiam", tinhMucGiamVoucher(bestVoucher, tongTien),
+                        "isCurrent", currentVoucher != null && currentVoucher.getMaGiamGia().equals(bestVoucher.getMaGiamGia())
+                ));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+        }
+        return response;
+    }
+
+
+    // Trong BanHangController.java
+    @GetMapping("/diachi/{maKH}")
+    @ResponseBody
+    public ResponseEntity<?> getDiaChiByKhachHang(@PathVariable("maKH") String maKH) {
+        try {
+            logger.info("📝 API getDiaChiByKhachHang - maKH: {}", maKH);
+
+            if (maKH == null || maKH.trim().isEmpty()) {
+                logger.warn("⚠️ maKH rỗng");
+                return ResponseEntity.badRequest()
+                        .body(Collections.singletonMap("error", "Mã khách hàng không hợp lệ!"));
+            }
+
+            List<DiaChi> diaChiList = diaChiService.findByKhachHang_MaKH(maKH);
+            logger.info("📊 Tìm thấy {} địa chỉ cho khách hàng {}",
+                    diaChiList != null ? diaChiList.size() : 0, maKH);
+
+            if (diaChiList == null || diaChiList.isEmpty()) {
+                logger.info("📭 Khách hàng {} chưa có địa chỉ", maKH);
+                return ResponseEntity.ok(Collections.emptyList());
+            }
+
+            List<Map<String, Object>> result = diaChiList.stream()
+                    .map(dc -> {
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("maDiaChi", dc.getMaDiaChi());
+                        map.put("diaChiCuThe", dc.getDiaChiCuThe() != null ? dc.getDiaChiCuThe() : "");
+                        map.put("phuongXa", dc.getPhuongXa() != null ? dc.getPhuongXa() : "");
+                        map.put("quanHuyen", dc.getQuanHuyen() != null ? dc.getQuanHuyen() : "");
+                        map.put("tinhThanh", dc.getTinhThanh() != null ? dc.getTinhThanh() : "");
+                        map.put("tenNguoiNhan", dc.getTenNguoiNhan() != null ? dc.getTenNguoiNhan() : "");
+                        map.put("soDienThoaiNguoiNhan", dc.getSoDienThoaiNguoiNhan() != null ? dc.getSoDienThoaiNguoiNhan() : "");
+                        map.put("diaChiMacDinh", dc.getDiaChiMacDinh() != null && dc.getDiaChiMacDinh());
+                        return map;
+                    })
+                    .collect(Collectors.toList());
+
+            logger.info("✅ Trả về {} địa chỉ", result.size());
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            logger.error("❌ Lỗi getDiaChiByKhachHang: ", e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    // ============================================================
+    // API LẤY CHI TIẾT ĐỊA CHỈ
+    // ============================================================
+    @GetMapping("/diachi/detail/{maDiaChi}")
+    @ResponseBody
+    public ResponseEntity<?> getDiaChiDetail(@PathVariable("maDiaChi") Integer maDiaChi) {
+        try {
+            Optional<DiaChi> diaChiOpt = diaChiService.findById(maDiaChi);
+            if (!diaChiOpt.isPresent()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "Địa chỉ không tồn tại!"));
+            }
+
+            DiaChi dc = diaChiOpt.get();
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", true);
+            result.put("maDiaChi", dc.getMaDiaChi());
+            result.put("diaChiCuThe", dc.getDiaChiCuThe() != null ? dc.getDiaChiCuThe() : "");
+            result.put("phuongXa", dc.getPhuongXa() != null ? dc.getPhuongXa() : "");
+            result.put("quanHuyen", dc.getQuanHuyen() != null ? dc.getQuanHuyen() : "");
+            result.put("tinhThanh", dc.getTinhThanh() != null ? dc.getTinhThanh() : "");
+            result.put("tenNguoiNhan", dc.getTenNguoiNhan() != null ? dc.getTenNguoiNhan() : "");
+            result.put("soDienThoaiNguoiNhan", dc.getSoDienThoaiNguoiNhan() != null ? dc.getSoDienThoaiNguoiNhan() : "");
+            result.put("diaChiMacDinh", dc.getDiaChiMacDinh() != null && dc.getDiaChiMacDinh());
+
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "Lỗi: " + e.getMessage()));
+        }
+    }
+
+
+    @PostMapping("/themdiachi")
+    @ResponseBody
+    public ResponseEntity<?> themDiaChi(@RequestBody Map<String, Object> payload) {
+        try {
+            logger.info("📝 Nhận request thêm địa chỉ: {}", payload);
+
+            String maKH = (String) payload.get("maKH");
+            String tenNguoiNhan = (String) payload.get("tenNguoiNhan");
+            String soDienThoai = (String) payload.get("soDienThoaiNguoiNhan");
+            String diaChiCuThe = (String) payload.get("diaChiCuThe");
+            String phuongXa = (String) payload.get("phuongXa");
+            String quanHuyen = (String) payload.get("quanHuyen");
+            String tinhThanh = (String) payload.get("tinhThanh");
+            Boolean diaChiMacDinh = (Boolean) payload.get("diaChiMacDinh");
+
+            // Validate
+            if (maKH == null || maKH.trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "Mã khách hàng không hợp lệ!"));
+            }
+
+            if (tenNguoiNhan == null || tenNguoiNhan.trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "Vui lòng nhập tên người nhận!"));
+            }
+
+            if (diaChiCuThe == null || diaChiCuThe.trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "Vui lòng nhập địa chỉ cụ thể!"));
+            }
+
+            // Lấy khách hàng
+            KhachHang khachHang = khachHangService.findByMaKH(maKH);
+            if (khachHang == null) {
+                logger.warn("⚠️ Không tìm thấy khách hàng với mã: {}", maKH);
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "Khách hàng không tồn tại!"));
+            }
+
+            // Tạo địa chỉ mới
+            DiaChi diaChi = new DiaChi();
+            diaChi.setKhachHang(khachHang);
+            diaChi.setTenNguoiNhan(tenNguoiNhan);
+            diaChi.setSoDienThoaiNguoiNhan(soDienThoai != null ? soDienThoai : "");
+            diaChi.setDiaChiCuThe(diaChiCuThe);
+            diaChi.setPhuongXa(phuongXa != null ? phuongXa : "");
+            diaChi.setQuanHuyen(quanHuyen != null ? quanHuyen : "");
+            diaChi.setTinhThanh(tinhThanh != null ? tinhThanh : "");
+            diaChi.setDiaChiMacDinh(diaChiMacDinh != null && diaChiMacDinh);
+
+            logger.info("💾 Lưu địa chỉ: {}", diaChi);
+            diaChiService.save(diaChi);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Thêm địa chỉ thành công!",
+                    "maDiaChi", diaChi.getMaDiaChi()
+            ));
+
+        } catch (Exception e) {
+            logger.error("❌ Lỗi thêm địa chỉ: ", e);
+            return ResponseEntity.badRequest()
+                    .body(Map.of(
+                            "success", false,
+                            "message", "Lỗi: " + e.getMessage()
+                    ));
+        }
+    }
+
+    // ============ API SỬA ĐỊA CHỈ ============
+    @PutMapping("/suadiachi/{maDiaChi}")
+    @ResponseBody
+    public ResponseEntity<?> suaDiaChi(@PathVariable("maDiaChi") Integer maDiaChi,
+                                       @RequestBody Map<String, Object> payload) {
+        try {
+            logger.info("📝 Nhận request sửa địa chỉ ID: {}, data: {}", maDiaChi, payload);
+
+            Optional<DiaChi> diaChiOpt = diaChiService.findById(maDiaChi);
+            if (!diaChiOpt.isPresent()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "Địa chỉ không tồn tại!"));
+            }
+
+            DiaChi existing = diaChiOpt.get();
+
+            // Cập nhật thông tin
+            String tenNguoiNhan = (String) payload.get("tenNguoiNhan");
+            String soDienThoai = (String) payload.get("soDienThoaiNguoiNhan");
+            String diaChiCuThe = (String) payload.get("diaChiCuThe");
+            String phuongXa = (String) payload.get("phuongXa");
+            String quanHuyen = (String) payload.get("quanHuyen");
+            String tinhThanh = (String) payload.get("tinhThanh");
+            Boolean diaChiMacDinh = (Boolean) payload.get("diaChiMacDinh");
+
+            if (tenNguoiNhan != null && !tenNguoiNhan.trim().isEmpty()) {
+                existing.setTenNguoiNhan(tenNguoiNhan);
+            }
+            if (soDienThoai != null) {
+                existing.setSoDienThoaiNguoiNhan(soDienThoai);
+            }
+            if (diaChiCuThe != null && !diaChiCuThe.trim().isEmpty()) {
+                existing.setDiaChiCuThe(diaChiCuThe);
+            }
+            if (phuongXa != null) {
+                existing.setPhuongXa(phuongXa);
+            }
+            if (quanHuyen != null) {
+                existing.setQuanHuyen(quanHuyen);
+            }
+            if (tinhThanh != null) {
+                existing.setTinhThanh(tinhThanh);
+            }
+
+            // Xử lý địa chỉ mặc định
+            if (diaChiMacDinh != null && diaChiMacDinh) {
+                diaChiService.resetDiaChiMacDinh(existing.getKhachHang().getMaKH());
+                existing.setDiaChiMacDinh(true);
+            } else if (diaChiMacDinh != null) {
+                existing.setDiaChiMacDinh(false);
+            }
+
+            logger.info("💾 Cập nhật địa chỉ: {}", existing);
+            diaChiService.save(existing);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Cập nhật địa chỉ thành công!"
+            ));
+
+        } catch (Exception e) {
+            logger.error("❌ Lỗi sửa địa chỉ: ", e);
+            return ResponseEntity.badRequest()
+                    .body(Map.of(
+                            "success", false,
+                            "message", "Lỗi: " + e.getMessage()
+                    ));
+        }
+    }
+
+    // ============ API XÓA ĐỊA CHỈ ============
+    @DeleteMapping("/xoadiachi/{maDiaChi}")
+    @ResponseBody
+    public ResponseEntity<?> xoaDiaChi(@PathVariable("maDiaChi") Integer maDiaChi) {
+        try {
+            logger.info("📝 Nhận request xóa địa chỉ ID: {}", maDiaChi);
+
+            Optional<DiaChi> diaChiOpt = diaChiService.findById(maDiaChi);
+            if (!diaChiOpt.isPresent()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "Địa chỉ không tồn tại!"));
+            }
+
+            diaChiService.deleteById(maDiaChi);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Xóa địa chỉ thành công!"
+            ));
+
+        } catch (Exception e) {
+            logger.error("❌ Lỗi xóa địa chỉ: ", e);
+            return ResponseEntity.badRequest()
+                    .body(Map.of(
+                            "success", false,
+                            "message", "Lỗi: " + e.getMessage()
+                    ));
+        }
+    }
+
+    // Trong BanHangController.java
+// ============ API ĐẶT MẶC ĐỊNH ============
+    @PostMapping("/setdefault/{maDiaChi}")  // Hoặc @PutMapping tùy bạn
+    @ResponseBody
+    public ResponseEntity<?> setDefaultDiaChi(
+            @PathVariable("maDiaChi") Integer maDiaChi,
+            HttpServletRequest request) {  // ✅ Thêm HttpServletRequest vào đây
+
+        try {
+            logger.info("📝 Nhận request đặt mặc định địa chỉ ID: {}", maDiaChi);
+
+            if (maDiaChi == null || maDiaChi <= 0) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "Mã địa chỉ không hợp lệ!"));
+            }
+
+            Optional<DiaChi> diaChiOpt = diaChiService.findById(maDiaChi);
+            if (!diaChiOpt.isPresent()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "Địa chỉ không tồn tại!"));
+            }
+
+            DiaChi diaChi = diaChiOpt.get();
+            KhachHang khachHang = diaChi.getKhachHang();
+            if (khachHang == null) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "Không tìm thấy khách hàng!"));
+            }
+
+            String maKH = khachHang.getMaKH();
+            logger.info("👤 Đặt mặc định cho khách hàng: {}", maKH);
+
+            // Reset tất cả địa chỉ của khách hàng này
+            diaChiService.resetDiaChiMacDinh(maKH);
+
+            // Đặt địa chỉ này làm mặc định
+            diaChi.setDiaChiMacDinh(true);
+            diaChiService.save(diaChi);
+
+            logger.info("✅ Đã đặt địa chỉ {} làm mặc định cho khách hàng {}", maDiaChi, maKH);
+
+            // ✅ Nếu có hóa đơn đang mở, cập nhật địa chỉ giao hàng
+            String mahd = request.getParameter("mahd");  // ✅ Lấy từ request
+            if (mahd != null && !mahd.isEmpty()) {
+                HoaDon hd = hoaDonService.findById(mahd);
+                if (hd != null) {
+                    // Cập nhật địa chỉ giao hàng
+                    String diaChiDayDu = diaChi.getDiaChiCuThe();
+                    if (diaChi.getPhuongXa() != null && !diaChi.getPhuongXa().isEmpty()) {
+                        diaChiDayDu += ", " + diaChi.getPhuongXa();
+                    }
+                    if (diaChi.getQuanHuyen() != null && !diaChi.getQuanHuyen().isEmpty()) {
+                        diaChiDayDu += ", " + diaChi.getQuanHuyen();
+                    }
+                    if (diaChi.getTinhThanh() != null && !diaChi.getTinhThanh().isEmpty()) {
+                        diaChiDayDu += ", " + diaChi.getTinhThanh();
+                    }
+
+                    hd.setDiaChiGiaoHang(diaChiDayDu);
+                    hd.setGhiChu("Địa chỉ giao hàng: " + diaChiDayDu +
+                            " | Người nhận: " + diaChi.getTenNguoiNhan() +
+                            " | SĐT: " + diaChi.getSoDienThoaiNguoiNhan());
+                    hoaDonService.save(hd);
+
+                    logger.info("✅ Đã cập nhật địa chỉ cho hóa đơn: {}", mahd);
+                }
+            }
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Đã đặt địa chỉ làm mặc định!",
+                    "maDiaChi", maDiaChi,
+                    "maKH", maKH
+            ));
+
+        } catch (Exception e) {
+            logger.error("❌ Lỗi đặt mặc định: ", e);
+            return ResponseEntity.badRequest()
+                    .body(Map.of(
+                            "success", false,
+                            "message", "Lỗi: " + e.getMessage()
+                    ));
+        }
+    }
+
+    // Trong BanHangController.java
+    @PostMapping("/chondiachi")
+    @ResponseBody
+    public ResponseEntity<?> chonDiaChi(@RequestBody Map<String, Object> payload) {
+        try {
+            logger.info("📝 Nhận request chọn địa chỉ: {}", payload);
+
+            String mahd = (String) payload.get("mahd");
+            Integer maDiaChi = (Integer) payload.get("maDiaChi");
+
+            // Log chi tiết
+            logger.info("📄 Mã hóa đơn: {}", mahd);
+            logger.info("📍 Mã địa chỉ: {}", maDiaChi);
+
+            if (mahd == null || mahd.trim().isEmpty()) {
+                logger.warn("⚠️ Mã hóa đơn null hoặc rỗng");
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "Mã hóa đơn không hợp lệ!"));
+            }
+
+            if (maDiaChi == null || maDiaChi <= 0) {
+                logger.warn("⚠️ Mã địa chỉ null hoặc <= 0");
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "Mã địa chỉ không hợp lệ!"));
+            }
+
+            // Lấy hóa đơn
+            HoaDon hd = hoaDonService.findById(mahd);
+            if (hd == null) {
+                logger.warn("⚠️ Không tìm thấy hóa đơn: {}", mahd);
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "Hóa đơn không tồn tại!"));
+            }
+
+            // Lấy địa chỉ
+            Optional<DiaChi> diaChiOpt = diaChiService.findById(maDiaChi);
+            if (!diaChiOpt.isPresent()) {
+                logger.warn("⚠️ Không tìm thấy địa chỉ: {}", maDiaChi);
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "Địa chỉ không tồn tại!"));
+            }
+
+            DiaChi diaChi = diaChiOpt.get();
+            logger.info("📍 Địa chỉ tìm thấy: {}", diaChi.getDiaChiCuThe());
+
+            // Tạo địa chỉ đầy đủ
+            String diaChiDayDu = diaChi.getDiaChiCuThe();
+            if (diaChi.getPhuongXa() != null && !diaChi.getPhuongXa().isEmpty()) {
+                diaChiDayDu += ", " + diaChi.getPhuongXa();
+            }
+            if (diaChi.getQuanHuyen() != null && !diaChi.getQuanHuyen().isEmpty()) {
+                diaChiDayDu += ", " + diaChi.getQuanHuyen();
+            }
+            if (diaChi.getTinhThanh() != null && !diaChi.getTinhThanh().isEmpty()) {
+                diaChiDayDu += ", " + diaChi.getTinhThanh();
+            }
+
+            // Cập nhật hóa đơn
+            hd.setDiaChiGiaoHang(diaChiDayDu);
+            hd.setGhiChu("Địa chỉ giao hàng: " + diaChiDayDu +
+                    " | Người nhận: " + diaChi.getTenNguoiNhan() +
+                    " | SĐT: " + diaChi.getSoDienThoaiNguoiNhan());
+
+            // Lưu hóa đơn
+            hoaDonService.save(hd);
+            logger.info("✅ Đã cập nhật hóa đơn: {}", mahd);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Đã chọn địa chỉ giao hàng thành công!",
+                    "diaChi", diaChiDayDu,
+                    "tenNguoiNhan", diaChi.getTenNguoiNhan(),
+                    "soDienThoai", diaChi.getSoDienThoaiNguoiNhan(),
+                    "maDiaChi", diaChi.getMaDiaChi()
+            ));
+
+        } catch (Exception e) {
+            logger.error("❌ Lỗi chọn địa chỉ: ", e);
+            return ResponseEntity.badRequest()
+                    .body(Map.of(
+                            "success", false,
+                            "message", "Lỗi: " + e.getMessage()
+                    ));
+        }
+    }
+
+    // ============ API CẬP NHẬT HÓA ĐƠN ============
+    @PostMapping("/update/{mahd}")
+    @ResponseBody
+    public ResponseEntity<?> updateHoaDon(@PathVariable("mahd") String mahd) {
+        try {
+            HoaDon hd = hoaDonService.findById(mahd);
+            if (hd == null) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "Hóa đơn không tồn tại!"));
+            }
+
+            if (hd.getMaKhachHang() != null) {
+                String maKH = hd.getMaKhachHang().getMaKH();
+                DiaChi diaChiMacDinh = diaChiService.findDefaultByMaKH(maKH);
+
+                if (diaChiMacDinh != null) {
+                    String diaChiDayDu = diaChiMacDinh.getDiaChiCuThe();
+                    if (diaChiMacDinh.getPhuongXa() != null && !diaChiMacDinh.getPhuongXa().isEmpty()) {
+                        diaChiDayDu += ", " + diaChiMacDinh.getPhuongXa();
+                    }
+                    if (diaChiMacDinh.getQuanHuyen() != null && !diaChiMacDinh.getQuanHuyen().isEmpty()) {
+                        diaChiDayDu += ", " + diaChiMacDinh.getQuanHuyen();
+                    }
+                    if (diaChiMacDinh.getTinhThanh() != null && !diaChiMacDinh.getTinhThanh().isEmpty()) {
+                        diaChiDayDu += ", " + diaChiMacDinh.getTinhThanh();
+                    }
+
+                    hd.setDiaChiGiaoHang(diaChiDayDu);
+                    hd.setGhiChu("Địa chỉ giao hàng: " + diaChiDayDu +
+                            " | Người nhận: " + diaChiMacDinh.getTenNguoiNhan() +
+                            " | SĐT: " + diaChiMacDinh.getSoDienThoaiNguoiNhan());
+
+                    hoaDonService.save(hd);
+                }
+            }
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Cập nhật hóa đơn thành công!"
+            ));
+
+        } catch (Exception e) {
+            logger.error("❌ Lỗi cập nhật hóa đơn: ", e);
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "Lỗi: " + e.getMessage()));
+        }
+    }
+
+    // Trong GiamGiaController.java
+
+    @GetMapping("/api/voucher-ca-nhan")
+    @ResponseBody
+    public ResponseEntity<List<VoucherDTO>> getVoucherCaNhan(@RequestParam String maKhachHang) {
+        try {
+            // Lấy danh sách voucher cá nhân của khách hàng
+            List<GiamGiaChiTiet> chiTietList = giamGiaChiTietRepository.findByKhachHang_MaKH(maKhachHang);
+
+            List<VoucherDTO> result = new ArrayList<>();
+            LocalDate today = LocalDate.now();
+
+            for (GiamGiaChiTiet ct : chiTietList) {
+                GiamGia giamGia = ct.getGiamGia();
+                if (giamGia == null) continue;
+
+                // Chỉ lấy voucher đang hoạt động và còn hạn
+                if (!"Hoạt động".equals(giamGia.getTrangThai())) continue;
+                if (giamGia.getNgayKetThuc() != null && giamGia.getNgayKetThuc().toLocalDate().isBefore(today)) continue;
+
+                VoucherDTO dto = new VoucherDTO();
+                dto.setMaGiamGia(giamGia.getMaGiamGia());
+                dto.setTenGiamGia(giamGia.getTenGiamGia());
+                dto.setLoaiGiamGia(giamGia.getLoaiGiamGia());
+                dto.setGiaTriGiam(giamGia.getGiaTriGiam());
+                dto.setDonToiThieu(giamGia.getDonToiThieu());
+                dto.setGiamToiDa(giamGia.getGiamToiDa());
+                dto.setNgayBatDau(giamGia.getNgayBatDau());
+                dto.setNgayKetThuc(giamGia.getNgayKetThuc());
+                dto.setLoaiApDung(giamGia.getLoaiApDung());
+
+                // ===== LẤY TRẠNG THÁI SỬ DỤNG =====
+                Integer trangThaiSuDung = ct.getTrangThaiSuDung() != null ? ct.getTrangThaiSuDung() : 0;
+                dto.setTrangThaiSuDung(trangThaiSuDung);
+                dto.setDaSuDung(trangThaiSuDung == 1);
+
+                result.add(dto);
+            }
+
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    // ===== KIỂM TRA KHÁCH HÀNG ĐÃ DÙNG VOUCHER CHƯA =====
+    @GetMapping("/api/check-voucher-used")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> checkVoucherUsed(
+            @RequestParam String maKhachHang,
+            @RequestParam String maGiamGia) {
+
+        Map<String, Object> response = new HashMap<>();
+        try {
+            GiamGiaChiTietId id = new GiamGiaChiTietId(maKhachHang, maGiamGia);
+            GiamGiaChiTiet ct = giamGiaChiTietRepository.findById(id).orElse(null);
+
+            boolean used = false;
+            if (ct != null && ct.getTrangThaiSuDung() != null && ct.getTrangThaiSuDung() == 1) {
+                used = true;
+            }
+
+            response.put("success", true);
+            response.put("used", used);
+            response.put("message", used ? "Bạn đã sử dụng voucher này rồi!" : "Voucher còn hiệu lực");
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "Lỗi kiểm tra: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    // Trong GiamGiaController.java
+
+    @PostMapping("/api/mark-voucher-used")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> markVoucherUsed(
+            @RequestParam String maKhachHang,
+            @RequestParam String maGiamGia) {
+
+        Map<String, Object> response = new HashMap<>();
+        try {
+            giamGiaService.markVoucherAsUsed(maKhachHang, maGiamGia);
+
+            response.put("success", true);
+            response.put("message", "Đã đánh dấu voucher đã sử dụng");
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "Lỗi: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    // Trong BanHangController.java
+    @GetMapping("/get-voucher-info")
+    @ResponseBody
+    public Map<String, Object> getVoucherInfo(@RequestParam("mahd") String mahd) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            HoaDon hoaDon = hoaDonService.findById(mahd);
+            if (hoaDon == null) {
+                response.put("success", false);
+                response.put("message", "Không tìm thấy hóa đơn!");
+                return response;
+            }
+
+            GiamGia voucher = hoaDon.getMaGiamGia();
+            if (voucher == null) {
+                response.put("success", true);
+                response.put("voucher", null);
+                return response;
+            }
+
+            // Tính tổng tiền
+            List<HoaDonChiTiet> listhdct = hoaDonChiTietService.findById(mahd);
+            BigDecimal tongTien = listhdct.stream()
+                    .map(HoaDonChiTiet::getThanhTien)
+                    .filter(Objects::nonNull)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            BigDecimal tienGiam = tinhMucGiamVoucher(voucher, tongTien);
+
+            Map<String, Object> voucherInfo = new HashMap<>();
+            voucherInfo.put("maGiamGia", voucher.getMaGiamGia());
+            voucherInfo.put("tenGiamGia", voucher.getTenGiamGia());
+            voucherInfo.put("tienGiam", tienGiam);
+            voucherInfo.put("loaiGiamGia", voucher.getLoaiGiamGia());
+            voucherInfo.put("giaTriGiam", voucher.getGiaTriGiam());
+
+            response.put("success", true);
+            response.put("voucher", voucherInfo);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+        }
+        return response;
+    }
 }

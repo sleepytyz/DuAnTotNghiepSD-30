@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Controller
@@ -25,38 +26,35 @@ public class ThongKeController {
     @GetMapping("/doanh-thu")
     public String viewThongKeDoanhThu(
             @RequestParam(required = false)
-            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDateTime startDate,
             @RequestParam(required = false)
-            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
+            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDateTime endDate,
             Model model) {
 
         if (startDate == null) {
-            endDate = LocalDate.now();
+            endDate = LocalDateTime.now();
             startDate = endDate.minusDays(30);
         }
         if (endDate == null) {
-            endDate = LocalDate.now();
+            endDate = LocalDateTime.now();
         }
 
+        // Thống kê theo ngày
         List<ThongKeDoanhThuDTO> thongKeNgay =
                 thongKeService.thongKeDoanhThuTheoNgay(startDate, endDate);
 
+        // Thống kê theo tháng
         List<ThongKeTheoThangDTO> thongKeThang =
                 thongKeService.thongKeDoanhThuTheoThang(startDate, endDate);
 
+        // Tổng quan
         ThongKeTongQuanDTO tongQuan = thongKeService.thongKeTongQuan();
 
         // Debug
         System.out.println("=== Controller Debug ===");
         System.out.println("thongKeNgay size: " + thongKeNgay.size());
-        for (int i = 0; i < thongKeNgay.size(); i++) {
-            System.out.println("thongKeNgay[" + i + "] = " + thongKeNgay.get(i));
-            if (thongKeNgay.get(i) != null) {
-                System.out.println("  ngay: " + thongKeNgay.get(i).getNgay());
-            } else {
-                System.out.println("  -> NULL! FIX THIS!");
-            }
-        }
+        System.out.println("thongKeThang size: " + thongKeThang.size());
+        System.out.println("tongQuan: " + tongQuan);
 
         model.addAttribute("thongKeNgay", thongKeNgay);
         model.addAttribute("thongKeThang", thongKeThang);

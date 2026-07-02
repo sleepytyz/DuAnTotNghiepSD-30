@@ -12,6 +12,7 @@ import org.springframework.validation.BindingResult;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 @Service
@@ -63,8 +64,16 @@ public class KhachHangService {
         return khachHangRepo.existsByEmailAndMaKHNot(email, maKH);
     }
 
+    public List<KhachHang> getkh(){
+      return   khachHangRepo.findban();
+    }
+
     public boolean existsBySdtInDiaChi(String sdt, String maKH) {
         return khachHangRepo.existsBySdtInDiaChi(sdt, maKH);
+    }
+
+    public KhachHang findByMaKH(String maKH) {
+        return   khachHangRepo.findByMaKH(maKH);
     }
 
     // ===== LẤY DANH SÁCH =====
@@ -137,7 +146,7 @@ public class KhachHangService {
 
     // ===== VALIDATE =====
     public void validateKhachHang(KhachHang kh, BindingResult result) {
-        if (kh.getSdt() != null) {
+        if (kh.getSdt() != null && !kh.getSdt().trim().isEmpty()) {
             String sdtClean = kh.getSdt().trim();
             boolean sdtExists = (kh.getMaKH() == null || kh.getMaKH().isEmpty())
                     ? khachHangRepo.existsBySdt(sdtClean)

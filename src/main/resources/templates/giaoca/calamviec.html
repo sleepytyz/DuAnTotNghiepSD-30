@@ -274,10 +274,7 @@
 <body>
 <div class="wrapper">
 
-    <div sec:authorize="hasRole('ADMIN')"
-         th:replace="~{fragments/sidebaradmin :: sidebar-admin}"></div>
-    <div sec:authorize="hasRole('STAFF')"
-         th:replace="~{fragments/sidebarstaff :: sidebar-staff}"></div>
+    <div th:replace="~{fragments/sidebaradmin :: sidebar-admin}"></div>
 
     <div class="content-wrapper">
 
@@ -334,9 +331,17 @@
                         <i class="bi bi-calendar3 me-2" style="color:#E53935"></i>
                         Danh sách ca làm việc
                     </span>
-                    <span style="font-size:12.5px; color:#6B7280; font-weight:400"
-                          th:text="${'Tổng: ' + (listCaLamViec != null ? listCaLamViec.size() : 0) + ' ca'}">
-                    </span>
+                    <div class="d-flex align-items-center gap-3">
+                        <span style="font-size:12.5px; color:#6B7280; font-weight:400"
+                              th:text="${'Tổng: ' + (listCaLamViec != null ? listCaLamViec.size() : 0) + ' ca'}">
+                        </span>
+                        <button sec:authorize="hasRole('ADMIN')"
+                                class="btn btn-sm btn-danger"
+                                onclick="openAddModal()"
+                                style="font-size:12.5px;font-weight:600;padding:5px 14px;border-radius:6px;">
+                            <i class="bi bi-plus-lg me-1"></i> Thêm ca
+                        </button>
+                    </div>
                 </div>
 
                 <div class="table-responsive">
@@ -405,6 +410,55 @@
 <!-- ── TOAST CONTAINER ── -->
 <div class="toast-container-custom" id="toastContainer"></div>
 
+<!-- ── MODAL THÊM CA ── -->
+<div class="modal fade modal-edit-ca" id="modalAddCa" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-plus-circle me-2" style="color:#E53935"></i>
+                    Thêm ca làm việc mới
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="addAlert" class="modal-edit-alert" style="display:none"></div>
+                <div id="addForm" novalidate>
+                    <div class="mb-3">
+                        <label class="form-label">Tên ca <span style="color:#E53935">*</span></label>
+                        <input type="text" class="form-control" id="addTenCa" placeholder="VD: Ca sáng, Ca chiều..." maxlength="100">
+                        <div class="invalid-feedback">Vui lòng nhập tên ca</div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label">Giờ bắt đầu <span style="color:#E53935">*</span></label>
+                            <input type="time" class="form-control" id="addGioBatDau">
+                            <div class="invalid-feedback">Vui lòng chọn giờ bắt đầu</div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Giờ kết thúc <span style="color:#E53935">*</span></label>
+                            <input type="time" class="form-control" id="addGioKetThuc">
+                            <div class="invalid-feedback">Vui lòng chọn giờ kết thúc</div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mô tả</label>
+                        <textarea class="form-control" id="addMoTa" rows="2" placeholder="Mô tả ngắn về ca làm việc..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="modal-edit-ca .btn-cancel-edit btn btn-light" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i> Hủy
+                </button>
+                <button type="button" class="btn-save-edit" id="btnSaveAdd" onclick="saveAdd()">
+                    <i class="bi bi-plus-lg"></i> Thêm ca
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- ── MODAL EDIT ── -->
 <div class="modal fade modal-edit-ca" id="modalEditCa" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-md">
@@ -470,6 +524,100 @@
     const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
 
     let editModal = null;
+    let addModal = null;
+
+    // ── ADD CA ──
+    function openAddModal() {
+        document.getElementById('addTenCa').value = '';
+        document.getElementById('addGioBatDau').value = '';
+        document.getElementById('addGioKetThuc').value = '';
+        document.getElementById('addMoTa').value = '';
+        document.getElementById('addForm').classList.remove('was-validated');
+        document.querySelectorAll('#addForm .form-control').forEach(el => {
+            el.classList.remove('is-invalid', 'is-valid');
+        });
+        const alert = document.getElementById('addAlert');
+        alert.style.display = 'none';
+        if (!addModal) {
+            addModal = new bootstrap.Modal(document.getElementById('modalAddCa'));
+        }
+        addModal.show();
+    }
+
+    function validateAddForm() {
+        const tenCa = document.getElementById('addTenCa');
+        const gioBatDau = document.getElementById('addGioBatDau');
+        const gioKetThuc = document.getElementById('addGioKetThuc');
+        let isValid = true;
+
+        if (!tenCa.value.trim()) {
+            tenCa.classList.add('is-invalid'); isValid = false;
+        } else {
+            tenCa.classList.remove('is-invalid');
+        }
+        if (!gioBatDau.value) {
+            gioBatDau.classList.add('is-invalid'); isValid = false;
+        } else {
+            gioBatDau.classList.remove('is-invalid');
+        }
+        if (!gioKetThuc.value) {
+            gioKetThuc.classList.add('is-invalid'); isValid = false;
+        } else {
+            gioKetThuc.classList.remove('is-invalid');
+        }
+        if (gioBatDau.value && gioKetThuc.value && gioBatDau.value >= gioKetThuc.value) {
+            gioKetThuc.classList.add('is-invalid');
+            const fb = gioKetThuc.nextElementSibling;
+            if (fb && fb.classList.contains('invalid-feedback')) fb.textContent = 'Giờ kết thúc phải sau giờ bắt đầu';
+            isValid = false;
+        }
+        document.getElementById('addForm').classList.add('was-validated');
+        return isValid;
+    }
+
+    function saveAdd() {
+        if (!validateAddForm()) {
+            showToast('Vui lòng kiểm tra lại thông tin', 'error');
+            return;
+        }
+        const btn = document.getElementById('btnSaveAdd');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang lưu...';
+
+        const data = {
+            tenCa: document.getElementById('addTenCa').value.trim(),
+            gioBatDau: document.getElementById('addGioBatDau').value,
+            gioKetThuc: document.getElementById('addGioKetThuc').value,
+            moTa: document.getElementById('addMoTa').value.trim()
+        };
+
+        fetch('/giao-ca/add-ca', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
+            body: JSON.stringify(data)
+        })
+            .then(r => r.json())
+            .then(result => {
+                if (result.success) {
+                    showToast('Thêm ca làm việc thành công!', 'success');
+                    if (addModal) addModal.hide();
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    const alert = document.getElementById('addAlert');
+                    alert.textContent = result.message || 'Có lỗi xảy ra';
+                    alert.className = 'modal-edit-alert modal-edit-alert-error';
+                    alert.style.display = 'block';
+                    showToast(result.message || 'Có lỗi xảy ra', 'error');
+                }
+            })
+            .catch(err => {
+                showToast('Lỗi kết nối: ' + err.message, 'error');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-plus-lg"></i> Thêm ca';
+            });
+    }
 
     // ── TOAST ──
     function showToast(message, type = 'success') {

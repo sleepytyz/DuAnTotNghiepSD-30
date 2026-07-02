@@ -10,12 +10,44 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
 public interface HoaDonRepo extends JpaRepository<HoaDon, String> {
+
+    // ===== PHƯƠNG THỨC MỚI =====
+
+    // Phân trang - Tìm theo danh sách trạng thái
+    Page<HoaDon> findByTrangThaiIn(List<String> trangThaiList, Pageable pageable);
+
+    // Không phân trang - Tìm theo danh sách trạng thái
+    List<HoaDon> findByTrangThaiIn(List<String> trangThaiList);
+
+    // Phân trang - Tìm theo khoảng ngày và danh sách trạng thái
+    Page<HoaDon> findByNgayTaoBetweenAndTrangThaiIn(LocalDateTime tuNgay, LocalDateTime denNgay,
+                                                    List<String> trangThaiList, Pageable pageable);
+
+    // Không phân trang - Tìm theo khoảng ngày và danh sách trạng thái
+    List<HoaDon> findByNgayTaoBetweenAndTrangThaiIn(LocalDateTime tuNgay, LocalDateTime denNgay,
+                                                    List<String> trangThaiList);
+
+    // Phân trang - Tìm theo ngày sau và danh sách trạng thái
+    Page<HoaDon> findByNgayTaoAfterAndTrangThaiIn(LocalDateTime ngay, List<String> trangThaiList, Pageable pageable);
+
+    // Không phân trang - Tìm theo ngày sau và danh sách trạng thái
+    List<HoaDon> findByNgayTaoAfterAndTrangThaiIn(LocalDateTime ngay, List<String> trangThaiList);
+
+    // Phân trang - Tìm theo ngày trước và danh sách trạng thái
+    Page<HoaDon> findByNgayTaoBeforeAndTrangThaiIn(LocalDateTime ngay, List<String> trangThaiList, Pageable pageable);
+
+    // Không phân trang - Tìm theo ngày trước và danh sách trạng thái
+    List<HoaDon> findByNgayTaoBeforeAndTrangThaiIn(LocalDateTime ngay, List<String> trangThaiList);
+
+    // Phân trang - Tìm theo mã và danh sách trạng thái
+    Page<HoaDon> findByMaHoaDonAndTrangThaiIn(String maHoaDon, List<String> trangThaiList, Pageable pageable);
+
+    // ===== PHƯƠNG THỨC CŨ =====
 
     Page<HoaDon> findByNgayTaoBetween(LocalDateTime tuNgay, LocalDateTime denNgay, Pageable pageable);
 
@@ -45,7 +77,8 @@ public interface HoaDonRepo extends JpaRepository<HoaDon, String> {
             nativeQuery = true)
     Page<HoaDon> searchByMa(Integer maHoaDon, Pageable pageable);
 
-    @Query(value = "select * from HoaDon where TrangThai in (N'Đã thanh toán', N'Đã giao', N'Đã huỷ', N'Đã trả hàng') order by MaHoaDon desc", nativeQuery = true)
+    @Query(value = "select * from HoaDon where TrangThai in (N'Đã thanh toán', N'Đã giao', N'Đã huỷ', N'Đã trả hàng') order by MaHoaDon desc",
+            nativeQuery = true)
     List<HoaDon> getallHD();
 
     @Query(value = "select * from HoaDon where TrangThai = ?1",
@@ -59,10 +92,8 @@ public interface HoaDonRepo extends JpaRepository<HoaDon, String> {
                     "ORDER BY MaHoaDon DESC",
             countQuery = "SELECT COUNT(*) FROM HoaDon WHERE NgayTao >= ?1 AND NgayTao <= ?2 " +
                     "AND TrangThai IN (N'Đã thanh toán', N'Đã giao', N'Đã huỷ', N'Đã trả hàng')",
-            nativeQuery = true
-    )
-    Page<HoaDon> findByNgayTao(LocalDate ngayTao1, LocalDate ngayTao2, Pageable pageable);
-
+            nativeQuery = true)
+    Page<HoaDon> findByNgayTao(LocalDateTime ngayTao1, LocalDateTime ngayTao2, Pageable pageable);
 
     @Query(value = "select * from HoaDon where TrangThai = N'Yêu cầu huỷ'", nativeQuery = true)
     List<HoaDon> findByTrangThai();
@@ -70,7 +101,7 @@ public interface HoaDonRepo extends JpaRepository<HoaDon, String> {
     @Query(value = "SELECT * FROM HoaDon WHERE NgayTao >= ?1 AND NgayTao <= ?2 AND TrangThai IN (N'Chờ xác nhận', N'Đã xác nhận', N'Đang giao', N'Đang xử lý')",
             countQuery = "SELECT COUNT(*) FROM HoaDon WHERE NgayTao >= ?1 AND NgayTao <= ?2 AND TrangThai IN (N'Chờ xác nhận', N'Đã xác nhận', N'Đang giao', N'Đang xử lý')",
             nativeQuery = true)
-    Page<HoaDon> findByNgayTaodh(LocalDate ngayTao1, LocalDate ngayTao2, Pageable pageable);
+    Page<HoaDon> findByNgayTaodh(LocalDateTime ngayTao1, LocalDateTime ngayTao2, Pageable pageable);
 
     @Query(value = "SELECT * FROM HoaDon WHERE MaHoaDon = ?1 AND TrangThai IN (N'Chờ xác nhận', N'Đã xác nhận', N'Đang giao', N'Đang xử lý')",
             countQuery = "SELECT COUNT(*) FROM HoaDon WHERE MaHoaDon = ?1 AND TrangThai IN (N'Chờ xác nhận', N'Đã xác nhận', N'Đang giao', N'Đang xử lý')",
@@ -94,11 +125,8 @@ public interface HoaDonRepo extends JpaRepository<HoaDon, String> {
             GROUP BY CAST(h.NgayTao AS DATE)
             ORDER BY CAST(h.NgayTao AS DATE) DESC
             """, nativeQuery = true)
-    List<Object[]> thongKeDoanhThuTheoNgay(LocalDate startDate, LocalDate endDate);
+    List<Object[]> thongKeDoanhThuTheoNgay(LocalDateTime startDate, LocalDateTime endDate);
 
-    /**
-     * Thống kê doanh thu theo tháng
-     */
     @Query(value = """
             SELECT 
                 YEAR(h.NgayTao) as nam,
@@ -111,7 +139,7 @@ public interface HoaDonRepo extends JpaRepository<HoaDon, String> {
             GROUP BY YEAR(h.NgayTao), MONTH(h.NgayTao)
             ORDER BY YEAR(h.NgayTao) DESC, MONTH(h.NgayTao) DESC
             """, nativeQuery = true)
-    List<Object[]> thongKeDoanhThuTheoThang(LocalDate startDate, LocalDate endDate);
+    List<Object[]> thongKeDoanhThuTheoThang(LocalDateTime startDate, LocalDateTime endDate);
 
     @Query(value = """
             SELECT 
@@ -124,7 +152,6 @@ public interface HoaDonRepo extends JpaRepository<HoaDon, String> {
             WHERE h.TrangThai = N'Đã thanh toán'
             """, nativeQuery = true)
     List<Object[]> thongKeTongQuan();
-
 
     @Modifying
     @Transactional
@@ -146,10 +173,7 @@ public interface HoaDonRepo extends JpaRepository<HoaDon, String> {
     @Query(value = "update HoaDon set TrangThai = N'Đã huỷ' where MaHoaDon = ?", nativeQuery = true)
     int huy(String mahd);
 
-
     List<HoaDon> findByTrangThaiAndLoaiBan(String trangThai, String loaiBan);
-    // ==== Website bán hàng (khách hàng) ====
 
     Page<HoaDon> findByMaKhachHang_MaKHOrderByMaHoaDonDesc(String maKH, Pageable pageable);
-
 }

@@ -60,7 +60,7 @@ public class ThanhToanController {
             return "redirect:/gio-hang";
         }
 
-        List<DiaChi> diaChis = diaChiService.findByKhachHang(kh.getMaKH());
+        List<DiaChi> diaChis = diaChiService.findByKhachHang_MaKH(kh.getMaKH());
 
         model.addAttribute("gioHang", view);
         model.addAttribute("diaChis", diaChis);
@@ -111,7 +111,7 @@ public class ThanhToanController {
                 diaChiMoi.setPhuongXa(phuongXa.trim());
                 diaChiMoi.setDiaChiCuThe(diaChiCuThe.trim());
 
-                boolean chuaCoDiaChiNao = diaChiService.findByKhachHang(kh.getMaKH()).isEmpty();
+                boolean chuaCoDiaChiNao = diaChiService.findByKhachHang_MaKH(kh.getMaKH()).isEmpty();
                 diaChiMoi.setDiaChiMacDinh(datMacDinh || chuaCoDiaChiNao);
 
                 diaChiGiaoHangText = dinhDangDiaChi(diaChiMoi);

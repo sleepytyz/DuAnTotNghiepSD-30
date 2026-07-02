@@ -477,7 +477,7 @@
 <body>
 
 <div class="wrapper">
-    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <div th:replace="~{fragments/sidebaradmin :: sidebar-admin}"></div>
 
     <div class="content-wrapper">
         <div th:replace="~{fragments/header :: header('Chi tiết sản phẩm', 'Sản phẩm')}"></div>
@@ -590,7 +590,6 @@
                             </td>
                             <td>
                                 <div class="d-flex align-items-center justify-content-center gap-1">
-                                    <!-- Edit -->
                                     <button class="btn-action btn-action-edit"
                                             th:data-id="${bt.maSanPhamChiTiet}"
                                             th:data-masp="${sanpham.maSanPham}"
@@ -599,6 +598,8 @@
                                             th:data-giaban="${bt.giaBan}"
                                             th:data-soluong="${bt.soLuongTon}"
                                             th:data-anh="${bt.duongDanAnh}"
+                                            th:data-tenkichthuoc="${bt.kichThuoc.tenKichThuoc}"
+                                            th:data-tenmausac="${bt.mauSac.tenMauSac}"
                                             onclick="openEditModalFromButton(this)"
                                             title="Chỉnh sửa">
                                         <i class="bi bi-pencil-fill"></i>
@@ -673,7 +674,14 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Giá bán <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" id="giaBan" name="giaBan" placeholder="0" min="0" step="1000">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">₫</span>
+                                <input type="text" class="form-control money-input" id="giaBan" name="giaBan"
+                                       placeholder="0"
+                                       oninput="formatMoneyInput(this)"
+                                       onblur="formatMoneyBlur(this)"
+                                       onfocus="formatMoneyFocus(this)">
+                            </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Số lượng <span class="text-danger">*</span></label>
@@ -708,7 +716,9 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    // ===== SELECT2 =====
+    // =============================================
+    // SELECT2
+    // =============================================
     $(document).ready(function() {
         $('.select2-modal').select2({
             placeholder: "Chọn...",
@@ -718,7 +728,9 @@
         });
     });
 
-    // ===== SHOW MODAL =====
+    // =============================================
+    // DOM READY
+    // =============================================
     document.addEventListener("DOMContentLoaded", function() {
         var showModal = /*[[${showModal}]]*/ false;
         if (showModal) {
@@ -733,9 +745,42 @@
         if (errorMsg) {
             showToast(errorMsg, 'error');
         }
+
+        // Xử lý phím tắt: ESC để đóng modal
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                var modal = bootstrap.Modal.getInstance(document.getElementById('spctModal'));
+                if (modal) modal.hide();
+            }
+        });
+
+        // Reset modal khi đóng
+        var modalElement = document.getElementById('spctModal');
+        if (modalElement) {
+            modalElement.addEventListener('hidden.bs.modal', function() {
+                resetModalForm();
+            });
+        }
     });
 
-    // ===== SHOW TOAST =====
+    // =============================================
+    // RESET MODAL FORM
+    // =============================================
+    function resetModalForm() {
+        document.getElementById('giaBan').value = '';
+        document.getElementById('soLuongTon').value = '';
+        document.getElementById('imgPreview').src = '/images/default-product.png';
+        document.getElementById('kichThuoc').value = '';
+        document.getElementById('mauSac').value = '';
+        if (typeof $ !== 'undefined') {
+            $('#kichThuoc').trigger('change');
+            $('#mauSac').trigger('change');
+        }
+    }
+
+    // =============================================
+    // SHOW TOAST
+    // =============================================
     function showToast(message, type, title) {
         var container = document.getElementById('toastContainer');
         if (!container) return;
@@ -755,17 +800,17 @@
         var toast = document.createElement('div');
         toast.className = 'toast-custom ' + type;
         toast.innerHTML = `
-            <div class="toast-icon">
-                <i class="${icons[type] || icons.error}"></i>
-            </div>
-            <div class="toast-content">
-                <div class="toast-title">${title || titles[type] || 'Thông báo'}</div>
-                <div class="toast-message">${message}</div>
-            </div>
-            <button class="toast-close" onclick="this.closest('.toast-custom').remove()">
-                <i class="bi bi-x"></i>
-            </button>
-        `;
+        <div class="toast-icon">
+            <i class="${icons[type] || icons.error}"></i>
+        </div>
+        <div class="toast-content">
+            <div class="toast-title">${title || titles[type] || 'Thông báo'}</div>
+            <div class="toast-message">${message}</div>
+        </div>
+        <button class="toast-close" onclick="this.closest('.toast-custom').remove()">
+            <i class="bi bi-x"></i>
+        </button>
+    `;
 
         container.appendChild(toast);
 
@@ -777,11 +822,153 @@
         }, 5000);
     }
 
-    // ===== SUBMIT UPDATE FORM VIA AJAX =====
+    // =============================================
+    // FORMAT TIỀN TỆ
+    // =============================================
+
+    /**
+     * Format khi người dùng nhập - chỉ hiển thị số với dấu phân cách
+     */
+    function formatMoneyInput(input) {
+        // Lấy giá trị, loại bỏ tất cả ký tự không phải số
+        let value = input.value.replace(/[^0-9]/g, '');
+        if (value === '') {
+            input.value = '';
+            return;
+        }
+        // Format với dấu phân cách hàng nghìn
+        input.value = parseInt(value).toLocaleString('vi-VN');
+    }
+
+    /**
+     * Format khi mất focus - thêm đơn vị VNĐ
+     */
+    function formatMoneyBlur(input) {
+        let value = input.value.replace(/[^0-9]/g, '');
+        if (value === '') {
+            input.value = '';
+            return;
+        }
+        input.value = parseInt(value).toLocaleString('vi-VN') + ' VNĐ';
+    }
+
+    /**
+     * Format khi focus - bỏ đơn vị, chỉ giữ số
+     */
+    function formatMoneyFocus(input) {
+        let value = input.value.replace(/[^0-9]/g, '');
+        if (value === '') {
+            input.value = '';
+            return;
+        }
+        input.value = parseInt(value).toLocaleString('vi-VN');
+    }
+
+    /**
+     * Lấy giá trị số từ input đã format
+     */
+    function getRawMoneyValue(input) {
+        if (!input) return 0;
+        const value = input.value.replace(/[^0-9]/g, '');
+        return parseInt(value) || 0;
+    }
+
+    /**
+     * Format số thành tiền tệ (hiển thị)
+     */
+    function formatCurrency(amount) {
+        if (!amount && amount !== 0) return '0 ₫';
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(amount);
+    }
+
+    /**
+     * Format số thành tiền tệ (không có ký hiệu ₫)
+     */
+    function formatNumber(amount) {
+        if (!amount && amount !== 0) return '0';
+        return new Intl.NumberFormat('vi-VN').format(amount);
+    }
+
+    // =============================================
+    // OPEN EDIT MODAL
+    // =============================================
+
+    function openEditModal(id, kichThuoc, mauSac, giaBan, soLuong, anh) {
+        console.log('Open edit modal:', {id, kichThuoc, mauSac, giaBan, soLuong, anh});
+
+        // Set giá trị
+        document.getElementById('maSanPhamChiTiet').value = id || '';
+        document.getElementById('kichThuoc').value = kichThuoc || '';
+        document.getElementById('mauSac').value = mauSac || '';
+
+        // Format giá tiền khi hiển thị
+        var giaBanInput = document.getElementById('giaBan');
+        if (giaBanInput && giaBan) {
+            giaBanInput.value = formatNumber(giaBan) + ' VNĐ';
+        } else {
+            giaBanInput.value = '';
+        }
+
+        document.getElementById('soLuongTon').value = soLuong || 0;
+
+        // Cập nhật preview ảnh
+        var imgPreview = document.getElementById('imgPreview');
+        if (anh && anh !== '' && anh !== 'null' && anh !== 'undefined') {
+            imgPreview.src = '/images/' + anh;
+        } else {
+            imgPreview.src = '/images/default-product.png';
+        }
+
+        // Trigger change cho Select2
+        if (typeof $ !== 'undefined') {
+            $('#kichThuoc').trigger('change');
+            $('#mauSac').trigger('change');
+        }
+
+        // Hiển thị modal
+        var modal = new bootstrap.Modal(document.getElementById('spctModal'));
+        modal.show();
+    }
+
+    function openEditModalFromButton(btn) {
+        var id = btn.getAttribute('data-id');
+        var kichThuoc = btn.getAttribute('data-kichthuoc');
+        var mauSac = btn.getAttribute('data-mausac');
+        var giaBan = btn.getAttribute('data-giaban');
+        var soLuong = btn.getAttribute('data-soluong');
+        var anh = btn.getAttribute('data-anh');
+
+        console.log('Button data:', {id, kichThuoc, mauSac, giaBan, soLuong, anh});
+
+        openEditModal(id, kichThuoc, mauSac, giaBan, soLuong, anh);
+    }
+
+    // =============================================
+    // SUBMIT UPDATE FORM
+    // =============================================
+
     function submitUpdateForm() {
         var form = document.getElementById('updateForm');
         var formData = new FormData(form);
         var csrfToken = document.querySelector("input[name='_csrf']")?.value || '';
+
+        // Lấy giá trị số từ input đã format
+        var giaBanInput = document.getElementById('giaBan');
+        var giaBanValue = getRawMoneyValue(giaBanInput);
+
+        // Cập nhật lại giá trị trong FormData
+        formData.set('giaBan', giaBanValue);
+
+        console.log('=== SUBMIT UPDATE ===');
+        console.log('GiaBan raw:', giaBanValue);
+        for (var pair of formData.entries()) {
+            console.log(pair[0] + ': ' + pair[1]);
+        }
 
         showToast('Đang cập nhật biến thể...', 'warning');
 
@@ -803,13 +990,14 @@
                 }
             })
             .then(function(data) {
+                console.log('Update response:', data);
+
                 // Đóng modal
                 var modal = bootstrap.Modal.getInstance(document.getElementById('spctModal'));
                 if (modal) modal.hide();
 
                 if (data.success) {
                     showToast(data.message || 'Cập nhật biến thể thành công!', 'success');
-
                     // Cập nhật dòng dữ liệu trên bảng
                     updateRowData(data);
                 } else {
@@ -817,52 +1005,53 @@
                 }
             })
             .catch(function(error) {
+                console.error('Update error:', error);
                 showToast('Lỗi: ' + error.message, 'error');
             });
     }
 
+    // =============================================
+    // UPDATE ROW DATA
+    // =============================================
+
     function updateRowData(data) {
         var maBienThe = data.maBienThe;
+        console.log('Updating row for:', maBienThe);
+
         var row = document.getElementById('row-' + maBienThe);
         if (!row) {
+            console.warn('Row not found, reloading page');
             location.reload();
             return;
         }
 
-        // Cập nhật các cell trong dòng
         var cells = row.querySelectorAll('td');
-        if (cells.length >= 7) {
-            // Size (cột 2 - index 2)
+        if (cells.length >= 9) {
+            // Cập nhật Size (cột 2 - index 2)
             var sizeCell = cells[2];
             if (sizeCell && data.tenKichThuoc) {
                 sizeCell.innerHTML = '<span class="badge bg-light text-dark border">' + data.tenKichThuoc + '</span>';
             }
 
-            // Màu sắc (cột 3 - index 3)
+            // Cập nhật Màu sắc (cột 3 - index 3)
             var colorCell = cells[3];
             if (colorCell && data.tenMauSac) {
                 colorCell.innerHTML = '<span class="badge" style="background: #e9ecef; color: #2d3748;">' + data.tenMauSac + '</span>';
             }
 
-            // Giá nhập (cột 4 - index 4)
-            var giaNhapCell = cells[4];
-            if (giaNhapCell && data.giaNhap) {
-                giaNhapCell.textContent = new Intl.NumberFormat('vi-VN').format(data.giaNhap) + ' ₫';
-            }
-
-            // Giá bán (cột 5 - index 5)
-            var giaBanCell = cells[5];
+            // Cập nhật Giá bán (cột 4 - index 4) - FORMAT ĐẸP
+            var giaBanCell = cells[4];
             if (giaBanCell && data.giaBan) {
-                giaBanCell.textContent = new Intl.NumberFormat('vi-VN').format(data.giaBan) + ' ₫';
+                giaBanCell.innerHTML = '<span class="fw-bold text-danger">' + formatCurrency(data.giaBan) + '</span>';
             }
 
-            // Số lượng (cột 6 - index 6)
-            var soLuongCell = cells[6];
+            // Cập nhật Số lượng (cột 5 - index 5)
+            var soLuongCell = cells[5];
             if (soLuongCell && data.soLuongTon !== undefined) {
                 soLuongCell.textContent = data.soLuongTon;
             }
 
-            // Trạng thái (cột 7 - index 7)
+            // Cập nhật Trạng thái (cột 6 - index 6)
             var statusSpan = document.getElementById('status-' + maBienThe);
             if (statusSpan && data.trangThai) {
                 statusSpan.textContent = data.trangThai;
@@ -875,8 +1064,8 @@
                 }
             }
 
-            // Hình ảnh (cột 8 - index 8)
-            var imgCell = cells[8];
+            // Cập nhật Hình ảnh (cột 7 - index 7)
+            var imgCell = cells[7];
             if (imgCell) {
                 if (data.duongDanAnh && data.duongDanAnh !== '') {
                     imgCell.innerHTML = '<img src="/images/' + data.duongDanAnh + '" width="50" height="50" class="img-zoom rounded border" style="object-fit:cover;" alt="Ảnh sản phẩm" onerror="this.src=\'/images/default-product.png\'">';
@@ -885,7 +1074,7 @@
                 }
             }
 
-            // ===== CẬP NHẬT DATA ATTRIBUTE CỦA BUTTON =====
+            // Cập nhật data attribute của button
             var editButton = row.querySelector('.btn-action-edit');
             if (editButton) {
                 editButton.setAttribute('data-kichthuoc', data.maKichThuoc || '');
@@ -893,6 +1082,8 @@
                 editButton.setAttribute('data-giaban', data.giaBan || 0);
                 editButton.setAttribute('data-soluong', data.soLuongTon || 0);
                 editButton.setAttribute('data-anh', data.duongDanAnh || '');
+                editButton.setAttribute('data-tenkichthuoc', data.tenKichThuoc || '');
+                editButton.setAttribute('data-tenmausac', data.tenMauSac || '');
             }
 
             // Cập nhật switch
@@ -900,13 +1091,21 @@
             if (switchInput && data.trangThai) {
                 switchInput.checked = (data.trangThai === 'Còn hàng');
                 switchInput.setAttribute('data-id', data.maBienThe);
+                switchInput.disabled = false;
             }
         }
     }
 
-    // ===== TOGGLE STATUS =====
+    // =============================================
+    // TOGGLE STATUS - SỬA LẠI HOÀN CHỈNH
+    // =============================================
+
     function toggleStatus(el) {
         var id = el.getAttribute('data-id');
+        console.log('=== TOGGLE STATUS ===');
+        console.log('Element:', el);
+        console.log('ID:', id);
+        console.log('Checked:', el.checked);
 
         if (!id || id === '' || id === 'null' || id === 'undefined') {
             showToast('Không tìm thấy ID sản phẩm!', 'error');
@@ -917,6 +1116,10 @@
         var active = el.checked;
         var token = document.querySelector("input[name='_csrf']")?.value || '';
 
+        // Hiển thị loading
+        el.disabled = true;
+
+        // Gọi API
         fetch('/sanphamct/api/toggle-status/' + id + '?active=' + active, {
             method: "POST",
             headers: {
@@ -924,63 +1127,76 @@
                 "Content-Type": "application/json"
             }
         })
-            .then(function(res) {
-                if (!res.ok) throw new Error('Lỗi server: ' + res.status);
-                return res.text();
+            .then(function(response) {
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+
+                // Đọc response dưới dạng text trước để debug
+                return response.text().then(function(text) {
+                    console.log('Response text:', text);
+
+                    // Nếu response không ok, throw error
+                    if (!response.ok) {
+                        try {
+                            var errorData = JSON.parse(text);
+                            throw new Error(errorData.message || 'Lỗi server: ' + response.status);
+                        } catch (e) {
+                            throw new Error(text || 'Lỗi server: ' + response.status);
+                        }
+                    }
+
+                    // Parse JSON
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        throw new Error('Invalid JSON response: ' + text);
+                    }
+                });
             })
             .then(function(data) {
-                var statusSpan = document.getElementById('status-' + id);
-                if (statusSpan) {
-                    statusSpan.textContent = data;
-                    if (data === 'Còn hàng') {
-                        statusSpan.className = 'badge-active';
-                    } else if (data === 'Sắp hết') {
-                        statusSpan.className = 'badge-out-of-stock';
-                    } else {
-                        statusSpan.className = 'badge-locked';
+                console.log('Success data:', data);
+                el.disabled = false;
+
+                if (data.success) {
+                    // Cập nhật trạng thái hiển thị
+                    var statusSpan = document.getElementById('status-' + id);
+                    if (statusSpan) {
+                        statusSpan.textContent = data.trangThai;
+                        // Cập nhật class
+                        if (data.trangThai === 'Còn hàng') {
+                            statusSpan.className = 'badge-active';
+                        } else if (data.trangThai === 'Sắp hết') {
+                            statusSpan.className = 'badge-out-of-stock';
+                        } else {
+                            statusSpan.className = 'badge-locked';
+                        }
                     }
+
+                    // Cập nhật số lượng nếu có
+                    if (data.soLuongTon !== undefined) {
+                        var row = document.getElementById('row-' + id);
+                        if (row) {
+                            var cells = row.querySelectorAll('td');
+                            if (cells.length >= 6) {
+                                cells[5].textContent = data.soLuongTon;
+                            }
+                        }
+                    }
+
+                    showToast(data.message || 'Cập nhật trạng thái thành công!', 'success');
+                } else {
+                    showToast(data.message || 'Cập nhật thất bại!', 'error');
+                    el.checked = !el.checked;
                 }
-                showToast('Cập nhật trạng thái thành công!', 'success');
             })
-            .catch(function(err) {
-                showToast('Lỗi cập nhật trạng thái: ' + err.message, 'error');
+            .catch(function(error) {
+                console.error('ERROR:', error);
+                el.disabled = false;
+                showToast('Lỗi: ' + error.message, 'error');
                 el.checked = !el.checked;
             });
     }
 
-    // ===== OPEN EDIT MODAL =====
-    function openEditModal(id, kichThuoc, mauSac, giaNhap, giaBan, soLuong, anh) {
-        document.getElementById('maSanPhamChiTiet').value = id;
-        document.getElementById('kichThuoc').value = kichThuoc;
-        document.getElementById('mauSac').value = mauSac;
-        document.getElementById('giaBan').value = giaBan;
-        document.getElementById('soLuongTon').value = soLuong;
-
-        var imgPreview = document.getElementById('imgPreview');
-        if (anh && anh !== '') {
-            imgPreview.src = '/images/' + anh;
-        } else {
-            imgPreview.src = '/images/default-product.png';
-        }
-
-        $('#kichThuoc').trigger('change');
-        $('#mauSac').trigger('change');
-
-        new bootstrap.Modal(document.getElementById('spctModal')).show();
-    }
-
-    function openEditModalFromButton(btn) {
-        openEditModal(
-            btn.getAttribute('data-id'),
-            btn.getAttribute('data-kichthuoc'),
-            btn.getAttribute('data-mausac'),
-            btn.getAttribute('data-giaban'),
-            btn.getAttribute('data-soluong'),
-            btn.getAttribute('data-anh')
-        );
-    }
-
-    // ===== PREVIEW IMAGE =====
     function previewImage(input) {
         if (input.files && input.files[0]) {
             var reader = new FileReader();
@@ -990,6 +1206,42 @@
             reader.readAsDataURL(input.files[0]);
         }
     }
+
+    // =============================================
+    // XỬ LÝ PHÍM ENTER CHO INPUT GIÁ
+    // =============================================
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var giaBanInput = document.getElementById('giaBan');
+        if (giaBanInput) {
+            // Chỉ cho phép nhập số
+            giaBanInput.addEventListener('keypress', function(event) {
+                var key = event.key;
+                if (!/^[0-9]$/.test(key) && key !== 'Backspace' && key !== 'Delete' &&
+                    key !== 'ArrowLeft' && key !== 'ArrowRight' && key !== 'Tab') {
+                    event.preventDefault();
+                }
+            });
+
+            // Xử lý Enter để submit
+            giaBanInput.addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    submitUpdateForm();
+                }
+            });
+        }
+
+        var soLuongInput = document.getElementById('soLuongTon');
+        if (soLuongInput) {
+            soLuongInput.addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    submitUpdateForm();
+                }
+            });
+        }
+    });
 </script>
 
 </body>

@@ -98,7 +98,15 @@ public class SanPhamController {
         System.out.println("maKG: '" + maKG + "'");
         System.out.println("t: '" + t + "'");
 
-        Page<SanPham> pageSanPham = sanPhamService.searchSanPham(maDanhMuc, tt, maTH, maKG, t, PageRequest.of(page, 5));
+        // ===== THÊM SORT GIẢM DẦN THEO NGÀY TẠO =====
+        Page<SanPham> pageSanPham = sanPhamService.searchSanPham(
+                maDanhMuc,
+                tt,
+                maTH,
+                maKG,
+                t,
+                PageRequest.of(page, 5)
+        );
 
         System.out.println("Total elements: " + pageSanPham.getTotalElements());
         System.out.println("Content size: " + pageSanPham.getContent().size());
@@ -618,94 +626,204 @@ public class SanPhamController {
         }
     }
 
-    @PostMapping("/api/add-variants-to-existing")
+    @PostMapping("/api/toggle-status/{id}")
     @ResponseBody
-    public ResponseEntity<?> addVariantsToExisting(@RequestBody SanPhamWrapperDTO wrapperDto) {
+    public ResponseEntity<Map<String, Object>> toggleStatus(
+            @PathVariable String id,
+            @RequestParam boolean active) {
+
+        Map<String, Object> response = new HashMap<>();
         try {
-            String tenSanPham = wrapperDto.getSanPham().getTenSanPham();
+            System.out.println("=== TOGGLE STATUS ===");
+            System.out.println("ID: " + id);
+            System.out.println("Active: " + active);
 
-            // Tìm sản phẩm theo tên
-            SanPham existingProduct = sanPhamService.findByTenSanPham(tenSanPham);
-            if (existingProduct == null) {
-                return ResponseEntity.badRequest().body("Không tìm thấy sản phẩm!");
+            // Tìm biến thể
+            SanPhamChiTiet spct = sanPhamChiTietService.findbyId(id).orElse(null);
+            if (spct == null) {
+                response.put("success", false);
+                response.put("message", "Không tìm thấy biến thể!");
+                return ResponseEntity.badRequest().body(response);
             }
 
-            // Lấy danh sách biến thể hiện có
-            List<SanPhamChiTiet> existingVariants = sanPhamChiTietService.getallsp(existingProduct.getMaSanPham());
-            Set<String> existingVariantCodes = existingVariants.stream()
-                    .map(SanPhamChiTiet::getMaSanPhamChiTiet)
-                    .collect(Collectors.toSet());
-
-            int addedCount = 0;
-            int skippedCount = 0;
-
-            for (SanPhamChiTietDTO ctDto : wrapperDto.getChiTietList()) {
-                MauSac mauSac = mauSacService.findById(ctDto.getMaMauSac()).orElse(null);
-                KichThuoc kichThuoc = kichThuocService.getKichThuocById(ctDto.getMaKichThuoc()).orElse(null);
-
-                if (mauSac == null || kichThuoc == null) {
-                    continue;
-                }
-
-                String maBienThe = existingProduct.getMaSanPham() + "-" + mauSac.getMaMauSac() + "-" + kichThuoc.getTenKichThuoc();
-
-                // Kiểm tra biến thể đã tồn tại
-                if (existingVariantCodes.contains(maBienThe)) {
-                    skippedCount++;
-                    continue;
-                }
-
-                // Tạo biến thể mới
-                SanPhamChiTiet ct = new SanPhamChiTiet();
-                ct.setMaSanPhamChiTiet(maBienThe);
-                ct.setSanPham(existingProduct);
-                ct.setMauSac(mauSac);
-                ct.setKichThuoc(kichThuoc);
-                ct.setGiaBan(ctDto.getGiaBan());
-                ct.setSoLuongTon(ctDto.getSoLuongTon());
-                ct.setNgayTao(LocalDateTime.now());
-
-                // Xử lý ảnh
-                List<String> danhSachAnh = ctDto.getDanhSachAnh();
-                String anhDaiDien = ctDto.getDuongDanAnh();
-                if (anhDaiDien == null || anhDaiDien.isEmpty()) {
-                    if (danhSachAnh != null && !danhSachAnh.isEmpty()) {
-                        anhDaiDien = danhSachAnh.get(0);
-                    }
-                }
-                ct.setDuongDanAnh(anhDaiDien);
-
-                if (danhSachAnh != null && !danhSachAnh.isEmpty()) {
-                    try {
-                        ObjectMapper mapper = new ObjectMapper();
-                        String json = mapper.writeValueAsString(danhSachAnh);
-                        ct.setDanhSachAnh(json);
-                    } catch (Exception e) {
-                        ct.setDanhSachAnh(String.join(",", danhSachAnh));
-                    }
-                }
-
-                sanPhamChiTietService.capNhatTrangThaii(ct);
-                sanPhamChiTietService.them(ct);
-                addedCount++;
+            // Kiểm tra sản phẩm cha
+            if (spct.getSanPham() != null && !spct.getSanPham().getTrangThai()) {
+                response.put("success", false);
+                response.put("message", "Sản phẩm cha đang ngừng bán, không thể thay đổi!");
+                return ResponseEntity.badRequest().body(response);
             }
 
-            Map<String, Object> response = new HashMap<>();
+            // Cập nhật trạng thái
+            String newStatus = active ? "Còn hàng" : "Ngừng bán";
+            spct.setTrangThai(newStatus);
+
+            // Lưu
+            SanPhamChiTiet saved = sanPhamChiTietService.them(spct);
+
             response.put("success", true);
-            response.put("message", "Đã thêm " + addedCount + " biến thể mới vào sản phẩm " + existingProduct.getTenSanPham() +
-                    (skippedCount > 0 ? " (bỏ qua " + skippedCount + " biến thể đã tồn tại)" : ""));
-            response.put("addedCount", addedCount);
-            response.put("skippedCount", skippedCount);
-            response.put("productCode", existingProduct.getMaSanPham());
+            response.put("message", "Cập nhật trạng thái thành công!");
+            response.put("trangThai", saved.getTrangThai());
+            response.put("soLuongTon", saved.getSoLuongTon());
+            response.put("maBienThe", saved.getMaSanPhamChiTiet());
 
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
             e.printStackTrace();
-            Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", "Lỗi: " + e.getMessage());
             return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @PostMapping("/add-attribute")
+    public ResponseEntity<Map<String, Object>> addAttribute(@RequestBody Map<String, String> request) {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            String type = request.get("type");
+            String name = request.get("name");
+
+            // Validate
+            if (type == null || name == null || name.trim().isEmpty()) {
+                result.put("success", false);
+                result.put("message", "Vui lòng nhập đầy đủ thông tin!");
+                return ResponseEntity.badRequest().body(result);
+            }
+
+            String normalizedName = name.trim();
+            Object saved = null;
+            String id = "";
+            String ma = "";
+            LocalDateTime now = LocalDateTime.now();
+
+            switch (type) {
+                case "danhMuc":
+                    if (danhMucSanPhamService.existsByTenDanhMuc(normalizedName)) {
+                        result.put("success", false);
+                        result.put("message", "Tên danh mục '" + normalizedName + "' đã tồn tại!");
+                        return ResponseEntity.badRequest().body(result);
+                    }
+
+                    DanhMucSanPham dm = new DanhMucSanPham();
+                    ma = danhMucSanPhamService.generateMaDanhMuc();
+                    dm.setMaDanhMuc(ma);
+                    dm.setTenDanhMuc(danhMucSanPhamService.normalizeTenDanhMuc(normalizedName)); // Sử dụng normalize có sẵn
+                    dm.setTrangThai(true);
+                    dm.setNgayTao(now);
+                    saved = danhMucSanPhamService.them(dm);
+                    id = ((DanhMucSanPham) saved).getMaDanhMuc();
+                    break;
+
+                case "thuongHieu":
+                    // Kiểm tra tên trùng (sử dụng hàm có sẵn)
+                    if (thuongHieuService.ktraten(normalizedName)) {
+                        result.put("success", false);
+                        result.put("message", "Tên thương hiệu '" + normalizedName + "' đã tồn tại!");
+                        return ResponseEntity.badRequest().body(result);
+                    }
+
+                    ThuongHieu th = new ThuongHieu();
+                    ma = thuongHieuService.generateMaThuongHieu();
+                    th.setMaThuongHieu(ma);
+                    th.setTenThuongHieu(thuongHieuService.normalizeTenThuongHieu(normalizedName)); // Sử dụng normalize có sẵn
+                    th.setTrangThai(true);
+                    th.setNgayTao(now);
+                    saved = thuongHieuService.them(th);
+                    id = ((ThuongHieu) saved).getMaThuongHieu();
+                    break;
+
+                case "kieuGiay":
+                    // Kiểm tra tên trùng (sử dụng hàm có sẵn)
+                    if (kieuGiayService.existsByTenKieuGiay(normalizedName)) {
+                        result.put("success", false);
+                        result.put("message", "Tên kiểu giày '" + normalizedName + "' đã tồn tại!");
+                        return ResponseEntity.badRequest().body(result);
+                    }
+
+                    KieuGiay kg = new KieuGiay();
+                    ma = kieuGiayService.generateMaKieuGiay();
+                    kg.setMaKieuGiay(ma);
+                    kg.setTenKieuGiay(kieuGiayService.normalizeTenKieuGiay(normalizedName)); // Sử dụng normalize có sẵn
+                    kg.setTrangThai(true);
+                    kg.setNgayTao(now);
+                    saved = kieuGiayService.them(kg);
+                    id = ((KieuGiay) saved).getMaKieuGiay();
+                    break;
+
+                case "chatLieu":
+                    // Kiểm tra tên trùng (sử dụng hàm có sẵn)
+                    if (chatLieuService.existsByTenChatLieu(normalizedName)) {
+                        result.put("success", false);
+                        result.put("message", "Tên chất liệu '" + normalizedName + "' đã tồn tại!");
+                        return ResponseEntity.badRequest().body(result);
+                    }
+
+                    ChatLieu cl = new ChatLieu();
+                    ma = chatLieuService.generateMaChatLieu();
+                    cl.setMaChatLieu(ma);
+                    cl.setTenChatLieu(chatLieuService.normalizeTenChatLieu(normalizedName)); // Sử dụng normalize có sẵn
+                    cl.setTrangThai(true);
+                    cl.setNgayTao(now);
+                    saved = chatLieuService.add(cl);
+                    id = ((ChatLieu) saved).getMaChatLieu();
+                    break;
+
+                case "mauSac":
+                    // Kiểm tra tên trùng (sử dụng hàm có sẵn)
+                    if (mauSacService.existsByTenMauSac(normalizedName)) {
+                        result.put("success", false);
+                        result.put("message", "Tên màu sắc '" + normalizedName + "' đã tồn tại!");
+                        return ResponseEntity.badRequest().body(result);
+                    }
+
+                    MauSac ms = new MauSac();
+                    ma = mauSacService.generateMaMauSac();
+                    ms.setMaMauSac(ma);
+                    ms.setTenMauSac(mauSacService.normalizeTenMauSac(normalizedName)); // Sử dụng normalize có sẵn
+                    ms.setTrangThai(true);
+                    ms.setNgayTao(now);
+                    saved = mauSacService.add(ms);
+                    id = ((MauSac) saved).getMaMauSac();
+                    break;
+
+                case "kichThuoc":
+                    // Kiểm tra tên trùng (sử dụng hàm có sẵn)
+                    if (kichThuocService.existsByTenKichThuoc(normalizedName)) {
+                        result.put("success", false);
+                        result.put("message", "Tên kích cỡ '" + normalizedName + "' đã tồn tại!");
+                        return ResponseEntity.badRequest().body(result);
+                    }
+
+                    KichThuoc kt = new KichThuoc();
+                    ma = kichThuocService.generateMaKichThuoc();
+                    kt.setMaKichThuoc(ma);
+                    kt.setTenKichThuoc(kichThuocService.normalizeTenKichThuoc(normalizedName)); // Sử dụng normalize có sẵn
+                    kt.setTrangThai(true);
+                    kt.setNgayTao(now);
+                    saved = kichThuocService.add(kt);
+                    id = ((KichThuoc) saved).getMaKichThuoc();
+                    break;
+
+                default:
+                    result.put("success", false);
+                    result.put("message", "Loại thuộc tính không hợp lệ!");
+                    return ResponseEntity.badRequest().body(result);
+            }
+
+            result.put("success", true);
+            result.put("message", "Thêm mới thành công! Mã: " + ma);
+            result.put("id", id);
+            result.put("ma", ma);
+            result.put("name", normalizedName);
+
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("success", false);
+            result.put("message", "Lỗi: " + e.getMessage());
+            return ResponseEntity.badRequest().body(result);
         }
     }
 

@@ -36,4 +36,10 @@ public interface GiamGiaChiTietRepo extends JpaRepository<GiamGiaChiTiet, GiamGi
 
     java.util.Optional<GiamGiaChiTiet> findByKhachHang_MaKHAndGiamGia_MaGiamGia(String maKH, String maGiamGia);
 
+
+    boolean existsById_MaGiamGiaAndId_MaKhachHang(String maGiamGia, String maKhachHang);
+
+    List<GiamGiaChiTiet> findById_MaGiamGia(String maGiamGia);
+
+    long countById_MaGiamGia(String maGiamGia);
 }

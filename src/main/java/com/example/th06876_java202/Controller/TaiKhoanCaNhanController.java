@@ -112,7 +112,7 @@ public class TaiKhoanCaNhanController {
     @GetMapping("/dia-chi")
     public String soDiaChi(Model model, Authentication authentication) {
         KhachHang kh = khachHangHienTai(authentication);
-        model.addAttribute("diaChis", diaChiService.findByKhachHang(kh.getMaKH()));
+        model.addAttribute("diaChis", diaChiService.findByKhachHang_MaKH(kh.getMaKH()));
         model.addAttribute("diaChiMoi", new DiaChi());
         return "taikhoan/dia-chi";
     }
@@ -126,12 +126,12 @@ public class TaiKhoanCaNhanController {
                               RedirectAttributes redirectAttributes) {
         KhachHang kh = khachHangHienTai(authentication);
         if (result.hasErrors()) {
-            model.addAttribute("diaChis", diaChiService.findByKhachHang(kh.getMaKH()));
+            model.addAttribute("diaChis", diaChiService.findByKhachHang_MaKH(kh.getMaKH()));
             return "taikhoan/dia-chi";
         }
         diaChi.setMaDiaChi(null);
         diaChi.setKhachHang(kh);
-        boolean chuaCoDiaChiNao = diaChiService.findByKhachHang(kh.getMaKH()).isEmpty();
+        boolean chuaCoDiaChiNao = diaChiService.findByKhachHang_MaKH(kh.getMaKH()).isEmpty();
         diaChi.setDiaChiMacDinh(macDinh || chuaCoDiaChiNao);
         diaChiService.save(diaChi);
         redirectAttributes.addFlashAttribute("thongBao", "Đã thêm địa chỉ mới.");
@@ -152,7 +152,7 @@ public class TaiKhoanCaNhanController {
             return "redirect:/ca-nhan/dia-chi";
         }
         if (result.hasErrors()) {
-            model.addAttribute("diaChis", diaChiService.findByKhachHang(kh.getMaKH()));
+            model.addAttribute("diaChis", diaChiService.findByKhachHang_MaKH(kh.getMaKH()));
             return "taikhoan/dia-chi";
         }
         diaChi.setKhachHang(kh);
@@ -167,7 +167,7 @@ public class TaiKhoanCaNhanController {
         KhachHang kh = khachHangHienTai(authentication);
         DiaChi dc = diaChiService.findById(id).orElse(null);
         if (dc != null && dc.getKhachHang() != null && dc.getKhachHang().getMaKH().equals(kh.getMaKH())) {
-            diaChiService.delete(id);
+            diaChiService.deleteById(id);
             redirectAttributes.addFlashAttribute("thongBao", "Đã xoá địa chỉ.");
         }
         return "redirect:/ca-nhan/dia-chi";

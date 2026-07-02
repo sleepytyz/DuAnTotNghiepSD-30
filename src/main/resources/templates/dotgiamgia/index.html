@@ -462,7 +462,7 @@
 <body>
 
 <div class="wrapper">
-    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <div th:replace="~{fragments/sidebaradmin :: sidebar-admin}"></div>
 
     <div class="content-wrapper">
         <div th:replace="~{fragments/header :: header('Quản lý đợt giảm giá', 'Đợt giảm giá')}"></div>
@@ -519,7 +519,7 @@
                                 <label class="form-label">
                                     <i class="bi bi-calendar-event text-danger me-1"></i>Từ ngày
                                 </label>
-                                <input type="date" name="tuNgay" th:value="${tuNgay}" class="form-control" onchange="autoFilterDate()">
+                                <input type="datetime-local" name="tuNgay" th:value="${tuNgay}" class="form-control" onchange="autoFilterDate()">
                             </div>
 
                             <!-- Đến ngày -->
@@ -527,7 +527,7 @@
                                 <label class="form-label">
                                     <i class="bi bi-calendar-event text-danger me-1"></i>Đến ngày
                                 </label>
-                                <input type="date" name="denNgay" th:value="${denNgay}" class="form-control" onchange="autoFilterDate()">
+                                <input type="datetime-local" name="denNgay" th:value="${denNgay}" class="form-control" onchange="autoFilterDate()">
                             </div>
 
                             <!-- Button reset -->

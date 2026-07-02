@@ -43,6 +43,11 @@ public class GiaoCaService {
     }
 
     @Transactional
+    public CaLamViec addCaLamViec(CaLamViec caLamViec) {
+        return caLamViecRepository.save(caLamViec);
+    }
+
+    @Transactional
     public void editCaLamViec(CaLamViec caLamViec) {
         CaLamViec existing = caLamViecRepository.findById(caLamViec.getMaCa())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy ca làm việc với mã: " + caLamViec.getMaCa()));

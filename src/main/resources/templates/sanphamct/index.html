@@ -151,6 +151,19 @@
             cursor: not-allowed !important;
         }
 
+        /* ===== MONEY INPUT ===== */
+        .money-input {
+            text-align: right;
+            font-weight: 600;
+        }
+        .input-group-text {
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+        .money-input:focus {
+            text-align: right;
+        }
+
         /* ===== TABLE ===== */
         .table-card {
             background: #fff;
@@ -480,7 +493,7 @@
 
 <div class="wrapper">
 
-    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <div th:replace="~{fragments/sidebaradmin :: sidebar-admin}"></div>
 
     <div class="content-wrapper">
 
@@ -525,7 +538,7 @@
                         <!-- Kích thước -->
                         <div class="col-md-2 col-sm-6">
                             <label class="form-label fw-semibold text-dark small mb-1">Kích thước</label>
-                            <form action="/sanphamct/locsize" method="get">
+                            <form th:action="@{/sanphamct/index}" method="get">
                                 <select name="size" class="form-select select2-search" onchange="this.form.submit()" style="border-radius:10px;">
                                     <option value="">-- Tất cả --</option>
                                     <option th:each="s : ${lists}" th:value="${s.maKichThuoc}" th:text="${s.tenKichThuoc}" th:selected="${#strings.equals(s.maKichThuoc, selectedSize)}"></option>
@@ -536,7 +549,7 @@
                         <!-- Màu sắc -->
                         <div class="col-md-2 col-sm-6">
                             <label class="form-label fw-semibold text-dark small mb-1">Màu sắc</label>
-                            <form action="/sanphamct/locmsac" method="get">
+                            <form th:action="@{/sanphamct/index}" method="get">
                                 <select name="msac" class="form-select select2-search" onchange="this.form.submit()" style="border-radius:10px;">
                                     <option value="">-- Tất cả --</option>
                                     <option th:each="m : ${listms}" th:value="${m.maMauSac}" th:text="${m.tenMauSac}" th:selected="${#strings.equals(m.maMauSac, selectedMauSac)}"></option>
@@ -547,7 +560,7 @@
                         <!-- Trạng thái -->
                         <div class="col-md-2 col-sm-6">
                             <label class="form-label fw-semibold text-dark small mb-1">Trạng thái</label>
-                            <form action="/sanphamct/loctt" method="get">
+                            <form th:action="@{/sanphamct/index}" method="get">
                                 <select name="tt" class="form-select" onchange="this.form.submit()" style="border-radius:10px;">
                                     <option value="">-- Tất cả --</option>
                                     <option value="Còn hàng" th:selected="${selectedStatus == 'Còn hàng'}">Còn hàng</option>
@@ -561,7 +574,7 @@
                         <!-- Tồn kho -->
                         <div class="col-md-2 col-sm-6">
                             <label class="form-label fw-semibold text-dark small mb-1">Tồn kho</label>
-                            <form action="/sanphamct/loctonkho" method="get">
+                            <form th:action="@{/sanphamct/index}" method="get">
                                 <select name="tonKho" class="form-select select2-search-tonkho" onchange="this.form.submit()" style="border-radius:10px;">
                                     <option value="">-- Tất cả --</option>
                                     <option value="0" th:selected="${selectedTonKho == '0'}">Hết hàng (0)</option>
@@ -575,11 +588,12 @@
                             </form>
                         </div>
 
+                        <!-- Khoảng giá -->
                         <div class="col-md-3 col-sm-12">
                             <label class="form-label fw-semibold text-dark small mb-1">Khoảng giá (VNĐ)</label>
                             <div class="price-range-wrapper" style="background: #fafbfc; padding: 8px 14px; border-radius:10px; border:1px solid #e9ecef;">
                                 <div id="price-slider" class="mt-1 mb-1"></div>
-                                <form action="/sanphamct/locgia" method="get" id="priceForm">
+                                <form th:action="@{/sanphamct/index}" method="get" id="priceForm">
                                     <div class="d-flex justify-content-between small">
                                         <span id="min-val" class="fw-semibold text-danger">0 đ</span>
                                         <span id="max-val" class="fw-semibold text-danger">0 đ</span>
@@ -611,14 +625,12 @@
                         <span class="badge bg-secondary" th:text="${#lists.size(listspct)} + ' biến thể'"></span>
                     </div>
                     <div class="d-flex align-items-center gap-2 flex-wrap">
-                        <!-- Select All -->
                         <button class="btn btn-sm btn-outline-secondary" onclick="selectAllVariants()" title="Chọn tất cả">
                             <i class="bi bi-check-all me-1"></i>Chọn tất cả
                         </button>
                         <button class="btn btn-sm btn-outline-secondary" onclick="deselectAllVariants()" title="Bỏ chọn tất cả">
                             <i class="bi bi-x-lg me-1"></i>Bỏ chọn
                         </button>
-                        <!-- Xuất Excel -->
                         <a th:href="@{/sanphamct/export-excel(
                             size=${selectedSize},
                             msac=${selectedMauSac},
@@ -632,7 +644,6 @@
                            style="border-radius: 8px; padding: 6px 14px; font-weight: 600; font-size: 0.8rem;">
                             <i class="bi bi-file-earmark-excel me-1"></i>Xuất Excel
                         </a>
-                        <!-- Tải QR cho các biến thể đã chọn -->
                         <button class="btn btn-sm"
                                 title="Tải QR cho biến thể đã chọn"
                                 style="border-radius: 8px; padding: 6px 14px; font-weight: 600; font-size: 0.8rem; background-color: #6f42c1; color: white; border: none;"
@@ -645,7 +656,6 @@
                 <div class="table-wrapper p-0">
                     <div class="table-responsive">
                         <table class="table-custom">
-                            <!-- Trong phần thead, thêm cột Giảm giá -->
                             <thead>
                             <tr>
                                 <th style="width: 35px;">
@@ -680,51 +690,47 @@
                                 <td>
                                     <th:block th:with="dto=${listWithDiscount != null ? listWithDiscount[row.index] : null}">
                                         <th:block th:if="${dto != null and dto.hasDiscount}">
-                                            <!-- Giá gốc (gạch ngang) -->
                                             <span class="text-muted text-decoration-line-through"
                                                   th:text="${#numbers.formatDecimal(c.giaBan, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
-                </span>
+                                            </span>
                                             <br>
-                                            <!-- Giá sau giảm (màu đỏ đậm) -->
                                             <span class="fw-bold text-danger"
                                                   th:text="${#numbers.formatDecimal(dto.priceAfterDiscount, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
-                </span>
+                                            </span>
                                         </th:block>
                                         <th:block th:if="${dto == null or !dto.hasDiscount}">
-                <span class="fw-bold"
-                      th:text="${#numbers.formatDecimal(c.giaBan, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
-                </span>
+                                            <span class="fw-bold"
+                                                  th:text="${#numbers.formatDecimal(c.giaBan, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                                            </span>
                                         </th:block>
                                     </th:block>
                                 </td>
-
                                 <td>
                                     <th:block th:with="dto=${listWithDiscount != null ? listWithDiscount[row.index] : null}">
                                         <th:block th:if="${dto != null and dto.hasDiscount}">
-                <span class="badge bg-danger text-white px-2 py-1" style="font-size: 0.8rem;">
-                    -<span th:text="${dto.maxDiscount}"></span>%
-                </span>
+                                            <span class="badge bg-danger text-white px-2 py-1" style="font-size: 0.8rem;">
+                                                -<span th:text="${dto.maxDiscount}"></span>%
+                                            </span>
                                         </th:block>
                                         <th:block th:if="${dto == null or !dto.hasDiscount}">
                                             <span class="text-muted" style="font-size: 0.75rem;">--</span>
                                         </th:block>
                                     </th:block>
                                 </td>
-
                                 <td class="fw-bold" th:text="${c.soLuongTon}"></td>
                                 <td>
-                                        <span th:if="${c.trangThai == 'Còn hàng'}" class="badge-status badge-success">
-                                            <i class="bi bi-check-circle-fill"></i>Còn hàng
-                                        </span>
+                                    <span th:if="${c.trangThai == 'Còn hàng'}" class="badge-status badge-success">
+                                        <i class="bi bi-check-circle-fill"></i>Còn hàng
+                                    </span>
                                     <span th:if="${c.trangThai == 'Sắp hết'}" class="badge-status badge-warning">
-                                            <i class="bi bi-exclamation-triangle-fill"></i>Sắp hết
-                                        </span>
+                                        <i class="bi bi-exclamation-triangle-fill"></i>Sắp hết
+                                    </span>
                                     <span th:if="${c.trangThai == 'Hết hàng'}" class="badge-status badge-danger">
-                                            <i class="bi bi-x-circle-fill"></i>Hết hàng
-                                        </span>
+                                        <i class="bi bi-x-circle-fill"></i>Hết hàng
+                                    </span>
                                     <span th:if="${c.trangThai == 'Ngừng bán'}" class="badge-status badge-secondary">
-                                            <i class="bi bi-slash-circle-fill"></i>Ngừng bán
-                                        </span>
+                                        <i class="bi bi-slash-circle-fill"></i>Ngừng bán
+                                    </span>
                                 </td>
                                 <td>
                                     <img th:if="${c.duongDanAnh != null && !c.duongDanAnh.isEmpty()}"
@@ -734,7 +740,6 @@
                                          style="object-fit:cover; transition: transform 0.3s;"
                                          alt="Ảnh sản phẩm"
                                          onerror="this.src='/images/default-product.png'">
-
                                     <img th:if="${c.duongDanAnh == null || c.duongDanAnh.isEmpty()}"
                                          src="/images/default-product.png"
                                          width="50" height="50"
@@ -752,13 +757,22 @@
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center justify-content-center gap-1">
-                                        <a class="btn-action btn-action-edit"
-                                           th:href="@{/sanphamct/edit/{id}(id=${c.maSanPhamChiTiet}, page=${currentPage}, size=${selectedSize}, msac=${selectedMauSac}, tt=${selectedStatus})}"
-                                           title="Chỉnh sửa">
+                                        <!-- Thêm data-tenSanPham vào button -->
+                                        <button class="btn-action btn-action-edit"
+                                                type="button"
+                                                th:data-id="${c.maSanPhamChiTiet}"
+                                                th:data-kichthuoc="${c.kichThuoc.maKichThuoc}"
+                                                th:data-mausac="${c.mauSac.maMauSac}"
+                                                th:data-giaban="${c.giaBan}"
+                                                th:data-soluong="${c.soLuongTon}"
+                                                th:data-anh="${c.duongDanAnh}"
+                                                th:data-tensanpham="${c.sanPham != null ? c.sanPham.maSanPham + ' - ' + c.sanPham.tenSanPham : ''}"
+                                                onclick="openEditModalFromButton(this)"
+                                                title="Chỉnh sửa"
+                                                style="border: none; background: none;">
                                             <i class="bi bi-pencil-fill"></i>
-                                        </a>
+                                        </button>
 
-                                        <!-- Toggle Status -->
                                         <form th:action="@{/sanphamct/toggle-status/{id}(id=${c.maSanPhamChiTiet})}"
                                               method="get" class="m-0 d-flex align-items-center">
                                             <input type="hidden" name="page" th:value="${currentPage}">
@@ -767,12 +781,10 @@
                                             <input type="hidden" name="tt" th:value="${selectedStatus}">
                                             <input type="hidden" name="gia" th:value="${selectedGia}">
                                             <input type="hidden" name="gia2" th:value="${selectedGia2}">
+                                            <input type="hidden" name="tonKho" th:value="${selectedTonKho}">
                                             <input type="hidden" name="status" th:value="${c.trangThai == 'Ngừng bán' ? 'Còn hàng' : 'Ngừng bán'}">
-
                                             <div class="form-check form-switch m-0">
-                                                <input class="form-check-input custom-switch"
-                                                       type="checkbox"
-                                                       role="switch"
+                                                <input class="form-check-input custom-switch" type="checkbox" role="switch"
                                                        th:checked="${c.trangThai != 'Ngừng bán'}"
                                                        th:disabled="${!c.sanPham.trangThai}"
                                                        th:data-message="${c.trangThai == 'Ngừng bán' ? 'Đã bật sản phẩm!' : 'Đã tắt sản phẩm!'}"
@@ -784,7 +796,7 @@
                                 </td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(listspct)}">
-                                <td colspan="12" class="text-center text-muted py-4">
+                                <td colspan="13" class="text-center text-muted py-4">
                                     <i class="bi bi-boxes" style="font-size: 2.5rem; display: block; margin-bottom: 8px;"></i>
                                     Không tìm thấy sản phẩm chi tiết nào phù hợp.
                                 </td>
@@ -807,21 +819,30 @@
 
                     <nav aria-label="Page navigation">
                         <ul class="pagination-custom">
-                            <!-- First -->
                             <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                                <a class="page-link" th:href="@{/sanphamct/index(page=0, size=5, size=${selectedSize}, msac=${selectedMauSac}, tt=${selectedStatus}, gia=${selectedGia}, gia2=${selectedGia2}, tonKho=${selectedTonKho})}">
+                                <a class="page-link"
+                                   th:href="@{/sanphamct/index(page=0,
+                                       size=${selectedSize},
+                                       msac=${selectedMauSac},
+                                       tt=${selectedStatus},
+                                       gia=${selectedGia},
+                                       gia2=${selectedGia2},
+                                       tonKho=${selectedTonKho})}">
                                     <i class="bi bi-chevron-double-left"></i>
                                 </a>
                             </li>
-
-                            <!-- Prev -->
                             <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                                <a class="page-link" th:href="@{/sanphamct/index(page=${currentPage - 1}, size=5, size=${selectedSize}, msac=${selectedMauSac}, tt=${selectedStatus}, gia=${selectedGia}, gia2=${selectedGia2}, tonKho=${selectedTonKho})}">
+                                <a class="page-link"
+                                   th:href="@{/sanphamct/index(page=${currentPage - 1},
+                                       size=${selectedSize},
+                                       msac=${selectedMauSac},
+                                       tt=${selectedStatus},
+                                       gia=${selectedGia},
+                                       gia2=${selectedGia2},
+                                       tonKho=${selectedTonKho})}">
                                     <i class="bi bi-chevron-left"></i>
                                 </a>
                             </li>
-
-                            <!-- Pages -->
                             <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
                                 th:if="${i >= 0 && i < totalPages && (
                                     (i >= currentPage - 2 && i <= currentPage + 2) ||
@@ -829,27 +850,42 @@
                                     i == totalPages - 1
                                 )}"
                                 th:classappend="${currentPage == i} ? 'active' : ''">
-
-                                <span class="page-link" th:if="${i == 2 && currentPage > 3}" style="border: none; background: transparent; cursor: default;">...</span>
-
+                                <span class="page-link" th:if="${i == 2 && currentPage > 3}"
+                                      style="border: none; background: transparent; cursor: default;">...</span>
                                 <a class="page-link" th:unless="${i == 2 && currentPage > 3}"
-                                   th:href="@{/sanphamct/index(page=${i}, size=5, size=${selectedSize}, msac=${selectedMauSac}, tt=${selectedStatus}, gia=${selectedGia}, gia2=${selectedGia2}, tonKho=${selectedTonKho})}"
+                                   th:href="@{/sanphamct/index(page=${i},
+                                       size=${selectedSize},
+                                       msac=${selectedMauSac},
+                                       tt=${selectedStatus},
+                                       gia=${selectedGia},
+                                       gia2=${selectedGia2},
+                                       tonKho=${selectedTonKho})}"
                                    th:text="${i + 1}">
                                 </a>
-
-                                <span class="page-link" th:if="${i == totalPages - 3 && currentPage < totalPages - 4}" style="border: none; background: transparent; cursor: default;">...</span>
+                                <span class="page-link" th:if="${i == totalPages - 3 && currentPage < totalPages - 4}"
+                                      style="border: none; background: transparent; cursor: default;">...</span>
                             </li>
-
-                            <!-- Next -->
                             <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
-                                <a class="page-link" th:href="@{/sanphamct/index(page=${currentPage + 1}, size=5, size=${selectedSize}, msac=${selectedMauSac}, tt=${selectedStatus}, gia=${selectedGia}, gia2=${selectedGia2}, tonKho=${selectedTonKho})}">
+                                <a class="page-link"
+                                   th:href="@{/sanphamct/index(page=${currentPage + 1},
+                                       size=${selectedSize},
+                                       msac=${selectedMauSac},
+                                       tt=${selectedStatus},
+                                       gia=${selectedGia},
+                                       gia2=${selectedGia2},
+                                       tonKho=${selectedTonKho})}">
                                     <i class="bi bi-chevron-right"></i>
                                 </a>
                             </li>
-
-                            <!-- Last -->
                             <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
-                                <a class="page-link" th:href="@{/sanphamct/index(page=${totalPages - 1}, size=5, size=${selectedSize}, msac=${selectedMauSac}, tt=${selectedStatus}, gia=${selectedGia}, gia2=${selectedGia2} , tonKho=${selectedTonKho})}">
+                                <a class="page-link"
+                                   th:href="@{/sanphamct/index(page=${totalPages - 1},
+                                       size=${selectedSize},
+                                       msac=${selectedMauSac},
+                                       tt=${selectedStatus},
+                                       gia=${selectedGia},
+                                       gia2=${selectedGia2},
+                                       tonKho=${selectedTonKho})}">
                                     <i class="bi bi-chevron-double-right"></i>
                                 </a>
                             </li>
@@ -871,7 +907,7 @@
                         </div>
 
                         <div class="modal-body p-4 bg-light-subtle">
-                            <form th:action="@{/sanphamct/update}" method="post" th:object="${sanphamct}" enctype="multipart/form-data" onsubmit="saveUpdateMessage()">
+                            <form th:action="@{/sanphamct/update}" method="post" th:object="${sanphamct}" enctype="multipart/form-data" id="updateForm" onsubmit="return saveUpdateMessage()">
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                                 <input type="hidden" name="page" th:value="${currentPage}">
                                 <input type="hidden" name="source" value="index">
@@ -884,14 +920,18 @@
 
                                 <div class="row g-3">
                                     <div class="col-md-6">
-                                        <label class="form-label fw-semibold small text-dark">Mã SPCT</label>
+                                        <label class="form-label fw-semibold small text-dark">Mã biến thể</label>
                                         <input type="text" class="form-control bg-light border-secondary-subtle" th:field="*{maSanPhamChiTiet}" readonly>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label fw-semibold small text-dark">Sản phẩm chính <span class="text-danger">*</span></label>
-                                        <select class="form-select select2-search" th:field="*{sanPham.maSanPham}">
-                                            <option th:each="c : ${listsp}" th:value="${c.maSanPham}" th:text="${c.maSanPham + ' - ' + c.tenSanPham}"></option>
-                                        </select>
+                                        <input type="text" class="form-control bg-light border-secondary-subtle"
+                                               id="tenSanPham"
+                                               th:value="${sanphamct != null && sanphamct.sanPham != null ? sanphamct.sanPham.maSanPham + ' - ' + sanphamct.sanPham.tenSanPham : ''}"
+                                               readonly>
+                                        <!-- QUAN TRỌNG: Hidden field để submit mã sản phẩm -->
+                                        <input type="hidden" name="sanPham.maSanPham"
+                                               th:value="${sanphamct != null && sanphamct.sanPham != null ? sanphamct.sanPham.maSanPham : ''}">
                                     </div>
 
                                     <div class="col-md-6">
@@ -910,7 +950,16 @@
 
                                     <div class="col-md-6">
                                         <label class="form-label fw-semibold small text-dark">Giá bán <span class="text-danger">*</span></label>
-                                        <input type="number" class="form-control border-secondary-subtle" th:field="*{giaBan}" step="1000" min="0">
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light border-secondary-subtle">₫</span>
+                                            <input type="text" class="form-control money-input border-secondary-subtle"
+                                                   id="giaBanDisplay"
+                                                   placeholder="0"
+                                                   oninput="formatMoneyInput(this)"
+                                                   onblur="formatMoneyBlur(this)"
+                                                   onfocus="formatMoneyFocus(this)">
+                                            <input type="hidden" name="giaBan" id="giaBanHidden">
+                                        </div>
                                     </div>
 
                                     <div class="col-md-6">
@@ -1014,7 +1063,10 @@
 
     function showToast(message, type, title) {
         var container = document.getElementById('toastContainer');
-        if (!container) return;
+        if (!container) {
+            console.warn('Toast container not found!');
+            return;
+        }
 
         var icons = {
             error: 'bi bi-x-circle-fill text-danger',
@@ -1047,13 +1099,30 @@
 
         container.appendChild(toast);
 
+        // Tự động ẩn sau 5 giây
         setTimeout(function() {
             if (toast.parentNode) {
                 toast.style.animation = 'slideOutRight 0.3s ease forwards';
-                setTimeout(function() { toast.remove(); }, 300);
+                setTimeout(function() {
+                    if (toast.parentNode) toast.remove();
+                }, 300);
             }
         }, 5000);
     }
+
+    // ===== KIỂM TRA TOAST CONTAINER =====
+    function ensureToastContainer() {
+        var container = document.getElementById('toastContainer');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toastContainer';
+            container.className = 'toast-container-custom';
+            document.body.appendChild(container);
+        }
+        return container;
+    }
+
+
 
     // ===== PREVIEW IMAGE =====
     function previewImage(input) {
@@ -1063,15 +1132,6 @@
             reader.onload = function(e) { preview.src = e.target.result; }
             reader.readAsDataURL(input.files[0]);
         }
-    }
-
-    // ===== TOGGLE STATUS =====
-    function toggleStatus(checkbox) {
-        var form = checkbox.closest('form');
-        var message = checkbox.getAttribute('data-message');
-        sessionStorage.setItem('toastMessage', message);
-        sessionStorage.setItem('toastType', 'success');
-        form.submit();
     }
 
     // ===== SELECT ALL =====
@@ -1115,6 +1175,7 @@
         return codes;
     }
 
+    // ===== DOWNLOAD QR =====
     function downloadSingleQR(btn) {
         var maBienThe = btn.getAttribute('data-id');
         if (!maBienThe) {
@@ -1122,7 +1183,6 @@
             return;
         }
 
-        // Hiển thị trạng thái đang tải
         var originalHtml = btn.innerHTML;
         btn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
         btn.disabled = true;
@@ -1132,7 +1192,6 @@
             .then(data => {
                 if (data.success) {
                     if (data.duplicate) {
-                        // File đã tồn tại
                         showToast('⚠️ ' + data.message, 'warning');
                     } else {
                         showToast('✅ ' + data.message, 'success');
@@ -1145,7 +1204,6 @@
                 showToast('❌ Lỗi: ' + error.message, 'error');
             })
             .finally(() => {
-                // Khôi phục button
                 btn.innerHTML = originalHtml;
                 btn.disabled = false;
             });
@@ -1158,13 +1216,11 @@
             return;
         }
 
-        // Hiển thị trạng thái đang tải
         var btn = event.target.closest('button');
         var originalHtml = btn.innerHTML;
         btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Đang tải...';
         btn.disabled = true;
 
-        // Lấy CSRF token
         var csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
         var csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
 
@@ -1183,10 +1239,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Xây dựng thông báo chi tiết
                     var message = data.message;
-
-                    // Nếu có danh sách chi tiết
                     if (data.saved && data.saved.length > 0) {
                         message += '\n Đã lưu mới: ' + data.saved.join(', ');
                     }
@@ -1197,54 +1250,390 @@
                         message += '\n Không tìm thấy: ' + data.notFound.join(', ');
                     }
 
-                    // Hiển thị toast với message
                     if (data.saved && data.saved.length > 0) {
-                        showToast( data.message, 'success');
+                        showToast(data.message, 'success');
                     } else if (data.duplicate && data.duplicate.length > 0 && !data.saved.length) {
-                        showToast(  data.message, 'warning');
+                        showToast(data.message, 'warning');
                     } else {
-                        showToast( data.message, 'info');
+                        showToast(data.message, 'info');
                     }
                 } else {
-                    showToast( data.message, 'error');
+                    showToast(data.message, 'error');
                 }
             })
             .catch(error => {
-                showToast(' Lỗi: ' + error.message, 'error');
+                showToast('Lỗi: ' + error.message, 'error');
             })
             .finally(() => {
-                // Khôi phục button
                 btn.innerHTML = originalHtml;
                 btn.disabled = false;
             });
     }
 
-    // ===== SAVE UPDATE MESSAGE =====
+    // =============================================
+    // FORMAT TIỀN TỆ
+    // =============================================
+
+    function formatMoneyInput(input) {
+        let value = input.value.replace(/[^0-9]/g, '');
+        if (value === '') {
+            input.value = '';
+            return;
+        }
+        input.value = parseInt(value).toLocaleString('vi-VN');
+    }
+
+    function formatMoneyBlur(input) {
+        let value = input.value.replace(/[^0-9]/g, '');
+        if (value === '') {
+            input.value = '';
+            return;
+        }
+        input.value = parseInt(value).toLocaleString('vi-VN') + ' VNĐ';
+    }
+
+    function formatMoneyFocus(input) {
+        let value = input.value.replace(/[^0-9]/g, '');
+        if (value === '') {
+            input.value = '';
+            return;
+        }
+        input.value = parseInt(value).toLocaleString('vi-VN');
+    }
+
+    function getRawMoneyValue(input) {
+        if (!input) return 0;
+        // Loại bỏ tất cả ký tự không phải số, dấu chấm, dấu phẩy
+        const value = input.value.replace(/[^0-9]/g, '');
+        // Chuyển đổi thành số và KHÔNG NHÂN VỚI 100
+        return parseFloat(value) || 0;
+    }
+    function formatNumber(amount) {
+        if (!amount && amount !== 0) return '0';
+        // Đảm bảo amount là số, KHÔNG NHÂN VỚI 100
+        var num = parseFloat(amount) || 0;
+        return new Intl.NumberFormat('vi-VN').format(num);
+    }
+
+    function formatCurrency(amount) {
+        if (!amount && amount !== 0) return '0 ₫';
+        // Đảm bảo amount là số, KHÔNG NHÂN VỚI 100
+        var num = parseFloat(amount) || 0;
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(num);
+    }
+
+    // =============================================
+    // TOGGLE STATUS
+    // =============================================
+
+    function toggleStatus(checkbox) {
+        var form = checkbox.closest('form');
+        var isActive = checkbox.checked;
+        var message = isActive ? 'Đã bật sản phẩm!' : 'Đã tắt sản phẩm!';
+
+        sessionStorage.setItem('toastMessage', message);
+        sessionStorage.setItem('toastType', 'success');
+        form.submit();
+    }
+
+    function openEditModal(id, kichThuoc, mauSac, giaBan, soLuong, anh) {
+        console.log('Open edit modal:', {id, kichThuoc, mauSac, giaBan, soLuong, anh});
+
+        try {
+            // Set các giá trị
+            var maSanPhamChiTiet = document.getElementById('maSanPhamChiTiet');
+            if (maSanPhamChiTiet) maSanPhamChiTiet.value = id || '';
+
+            var kichThuocSelect = document.getElementById('kichThuoc');
+            if (kichThuocSelect) kichThuocSelect.value = kichThuoc || '';
+
+            var mauSacSelect = document.getElementById('mauSac');
+            if (mauSacSelect) mauSacSelect.value = mauSac || '';
+
+            // Gán giá trị số lượng
+            var soLuongInput = document.getElementById('soLuongTon');
+            if (soLuongInput) soLuongInput.value = soLuong || 0;
+
+            // XỬ LÝ GIÁ BÁN
+            var giaBanInput = document.getElementById('giaBan');
+            if (giaBanInput) {
+                var giaTri = parseFloat(giaBan) || 0;
+                var formatted = giaTri.toLocaleString('vi-VN');
+                giaBanInput.value = formatted + ' VNĐ';
+                giaBanInput.setAttribute('data-raw-value', giaTri);
+            }
+
+            // Cập nhật preview ảnh
+            var imgPreview = document.getElementById('imgPreview');
+            if (imgPreview) {
+                if (anh && anh !== '' && anh !== 'null' && anh !== 'undefined') {
+                    imgPreview.src = '/images/' + anh;
+                } else {
+                    imgPreview.src = '/images/default-product.png';
+                }
+            }
+
+            // Trigger change cho Select2
+            if (typeof $ !== 'undefined') {
+                try {
+                    $('#kichThuoc').trigger('change');
+                    $('#mauSac').trigger('change');
+                } catch(e) {
+                    console.warn('Select2 trigger error:', e);
+                }
+            }
+
+            // Hiển thị modal
+            var modalEl = document.getElementById('spctModal');
+            if (modalEl) {
+                var modal = new bootstrap.Modal(modalEl);
+                modal.show();
+            } else {
+                console.error('Modal element not found!');
+                showToast('Không tìm thấy modal!', 'error');
+            }
+        } catch (error) {
+            console.error('Error opening modal:', error);
+            showToast('Lỗi khi mở modal: ' + error.message, 'error');
+        }
+    }
+
+    function openEditModalFromButton(btn) {
+        try {
+            var id = btn.getAttribute('data-id');
+            var kichThuoc = btn.getAttribute('data-kichthuoc');
+            var mauSac = btn.getAttribute('data-mausac');
+            var giaBan = btn.getAttribute('data-giaban');
+            var soLuong = btn.getAttribute('data-soluong');
+            var anh = btn.getAttribute('data-anh');
+            var tenSanPham = btn.getAttribute('data-tensanpham');
+
+            console.log('=== OPEN EDIT MODAL FROM BUTTON ===');
+            console.log('id:', id);
+            console.log('kichThuoc:', kichThuoc);
+            console.log('mauSac:', mauSac);
+            console.log('giaBan:', giaBan);
+            console.log('soLuong:', soLuong);
+            console.log('anh:', anh);
+            console.log('tenSanPham:', tenSanPham);
+
+            if (!id) {
+                showToast('Không tìm thấy mã biến thể!', 'error');
+                return;
+            }
+
+            // Xử lý giaBan
+            if (giaBan === null || giaBan === undefined || giaBan === 'null' || giaBan === '') {
+                giaBan = 0;
+            }
+            if (typeof giaBan === 'string') {
+                giaBan = parseFloat(giaBan.replace(/[^0-9.-]/g, '')) || 0;
+            }
+            giaBan = parseFloat(giaBan) || 0;
+
+            // Set tên sản phẩm vào input
+            var tenSanPhamInput = document.getElementById('tenSanPham');
+            if (tenSanPhamInput && tenSanPham) {
+                tenSanPhamInput.value = tenSanPham;
+            }
+
+            openEditModal(id, kichThuoc, mauSac, giaBan, soLuong, anh);
+
+        } catch (error) {
+            console.error('Error in openEditModalFromButton:', error);
+            showToast('Lỗi: ' + error.message, 'error');
+        }
+    }
+
+    function submitUpdateForm() {
+        var form = document.getElementById('updateForm');
+        var formData = new FormData(form);
+        var csrfToken = document.querySelector("input[name='_csrf']")?.value || '';
+
+        var giaBanInput = document.getElementById('giaBan');
+        var giaBanValue = getRawMoneyValue(giaBanInput);
+
+        if (giaBanValue === 0) {
+            var rawValue = giaBanInput.getAttribute('data-raw-value');
+            if (rawValue) {
+                giaBanValue = parseFloat(rawValue) || 0;
+            }
+        }
+
+        // Cập nhật giá trị trong FormData
+        formData.set('giaBan', giaBanValue.toString());
+
+        // ĐẢM BẢO source = index để không redirect sang detail
+        formData.set('source', 'index');
+
+        console.log('=== SUBMIT UPDATE ===');
+        console.log('GiaBan raw:', giaBanValue);
+        for (var pair of formData.entries()) {
+            console.log(pair[0] + ': ' + pair[1]);
+        }
+
+        // Hiển thị thông báo đang xử lý
+        showToast('Đang cập nhật biến thể...', 'warning');
+
+        // GỬI REQUEST BẰNG AJAX - KHÔNG SUBMIT FORM THÔNG THƯỜNG
+        fetch('/sanphamct/update-ajax', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: formData
+        })
+            .then(function(response) {
+                var contentType = response.headers.get('content-type');
+                if (contentType && contentType.indexOf('application/json') !== -1) {
+                    return response.json();
+                } else {
+                    return response.text().then(function(text) {
+                        throw new Error(text.substring(0, 200) || 'Lỗi server!');
+                    });
+                }
+            })
+            .then(function(data) {
+                console.log('Update response:', data);
+
+                // Đóng modal
+                var modal = bootstrap.Modal.getInstance(document.getElementById('spctModal'));
+                if (modal) modal.hide();
+
+                if (data.success) {
+                    // HIỂN THỊ THÔNG BÁO THÀNH CÔNG
+                    showToast('✅ ' + (data.message || 'Cập nhật biến thể thành công!'), 'success');
+                    // Cập nhật dòng dữ liệu trên bảng
+                    updateRowData(data);
+                } else {
+                    // HIỂN THỊ THÔNG BÁO LỖI
+                    showToast('❌ ' + (data.message || 'Cập nhật thất bại!'), 'error');
+                }
+            })
+            .catch(function(error) {
+                console.error('Update error:', error);
+                // HIỂN THỊ THÔNG BÁO LỖI
+                showToast('❌ Lỗi: ' + error.message, 'error');
+            });
+    }
+
     function saveUpdateMessage() {
-        sessionStorage.setItem('toastMessage', 'Cập nhật sản phẩm thành công!');
+        var displayInput = document.getElementById('giaBanDisplay');
+        var hiddenInput = document.getElementById('giaBanHidden');
+
+        if (displayInput && hiddenInput) {
+            var rawValue = getRawMoneyValue(displayInput);
+            hiddenInput.value = rawValue;
+            console.log('GiaBan hidden value:', rawValue);
+        }
+
+        sessionStorage.setItem('toastMessage', '✅ Cập nhật biến thể thành công!');
         sessionStorage.setItem('toastType', 'success');
         return true;
     }
 
-    // ===== DOM READY =====
-    document.addEventListener("DOMContentLoaded", function() {
-        // Toast từ sessionStorage
-        var message = sessionStorage.getItem('toastMessage');
-        var type = sessionStorage.getItem('toastType');
-        if (message && message !== '' && message !== 'null') {
-            showToast(message, type || 'success');
-            sessionStorage.removeItem('toastMessage');
-            sessionStorage.removeItem('toastType');
+    function updateRowData(data) {
+        var maBienThe = data.maBienThe;
+        var row = document.getElementById('row-' + maBienThe);
+        if (!row) {
+            location.reload();
+            return;
         }
 
-        // Toast từ server
-        var successMsg = /*[[${successMess}]]*/ null;
-        var errorMsg = /*[[${errorMess}]]*/ null;
-        if (successMsg && successMsg !== '' && successMsg !== 'null') {
-            showToast(successMsg, 'success');
+        var cells = row.querySelectorAll('td');
+        if (cells.length >= 9) {
+            // Size
+            var sizeCell = cells[2];
+            if (sizeCell && data.tenKichThuoc) {
+                sizeCell.innerHTML = '<span class="badge bg-light text-dark border">' + data.tenKichThuoc + '</span>';
+            }
+
+            // Màu sắc
+            var colorCell = cells[3];
+            if (colorCell && data.tenMauSac) {
+                colorCell.innerHTML = '<span class="badge" style="background: #e9ecef; color: #2d3748;">' + data.tenMauSac + '</span>';
+            }
+
+            // Giá bán
+            var giaBanCell = cells[4];
+            if (giaBanCell && data.giaBan) {
+                giaBanCell.innerHTML = '<span class="fw-bold text-danger">' + formatCurrency(data.giaBan) + '</span>';
+            }
+
+            // Số lượng
+            var soLuongCell = cells[5];
+            if (soLuongCell && data.soLuongTon !== undefined) {
+                soLuongCell.textContent = data.soLuongTon;
+            }
+
+            // Trạng thái
+            var statusSpan = document.getElementById('status-' + maBienThe);
+            if (statusSpan && data.trangThai) {
+                statusSpan.textContent = data.trangThai;
+                if (data.trangThai === 'Còn hàng') {
+                    statusSpan.className = 'badge-success';
+                } else if (data.trangThai === 'Sắp hết') {
+                    statusSpan.className = 'badge-warning';
+                } else {
+                    statusSpan.className = 'badge-danger';
+                }
+            }
+
+            // Hình ảnh
+            var imgCell = cells[7];
+            if (imgCell) {
+                if (data.duongDanAnh && data.duongDanAnh !== '') {
+                    imgCell.innerHTML = '<img src="/images/' + data.duongDanAnh + '" width="50" height="50" class="shadow-sm rounded border img-zoom" style="object-fit:cover;" alt="Ảnh sản phẩm" onerror="this.src=\'/images/default-product.png\'">';
+                } else {
+                    imgCell.innerHTML = '<span class="text-muted small">Chưa có ảnh</span>';
+                }
+            }
+
+            // Edit button
+            var editButton = row.querySelector('.btn-action-edit');
+            if (editButton) {
+                editButton.setAttribute('data-kichthuoc', data.maKichThuoc || '');
+                editButton.setAttribute('data-mausac', data.maMauSac || '');
+                editButton.setAttribute('data-giaban', data.giaBan || 0);
+                editButton.setAttribute('data-soluong', data.soLuongTon || 0);
+                editButton.setAttribute('data-anh', data.duongDanAnh || '');
+            }
+
+            // Switch
+            var switchInput = row.querySelector('.custom-switch');
+            if (switchInput && data.trangThai) {
+                switchInput.checked = (data.trangThai === 'Còn hàng');
+                switchInput.setAttribute('data-id', data.maBienThe);
+                switchInput.disabled = false;
+            }
         }
-        if (errorMsg && errorMsg !== '' && errorMsg !== 'null') {
-            showToast(errorMsg, 'error');
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // KIỂM TRA SESSIONSTORAGE TRƯỚC
+        var sessionMessage = sessionStorage.getItem('toastMessage');
+        var sessionType = sessionStorage.getItem('toastType');
+
+        if (sessionMessage && sessionMessage !== '' && sessionMessage !== 'null') {
+            showToast(sessionMessage, sessionType || 'success');
+            sessionStorage.removeItem('toastMessage');
+            sessionStorage.removeItem('toastType');
+        } else {
+            // Nếu không có sessionStorage, kiểm tra từ server
+            var successMsg = /*[[${successMess}]]*/ null;
+            var errorMsg = /*[[${errorMess}]]*/ null;
+
+            if (successMsg && successMsg !== '' && successMsg !== 'null') {
+                showToast(successMsg, 'success');
+            }
+            if (errorMsg && errorMsg !== '' && errorMsg !== 'null') {
+                showToast(errorMsg, 'error');
+            }
         }
 
         // Modal
@@ -1254,8 +1643,39 @@
             myModal.show();
         }
 
-        // Update selected count
         updateSelectedCount();
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                var modal = bootstrap.Modal.getInstance(document.getElementById('spctModal'));
+                if (modal) modal.hide();
+            }
+        });
+
+        var modalElement = document.getElementById('spctModal');
+        if (modalElement) {
+            modalElement.addEventListener('hidden.bs.modal', function() {
+                document.getElementById('giaBan').value = '';
+                document.getElementById('soLuongTon').value = '';
+                document.getElementById('imgPreview').src = '/images/default-product.png';
+                document.getElementById('kichThuoc').value = '';
+                document.getElementById('mauSac').value = '';
+                if (typeof $ !== 'undefined') {
+                    $('#kichThuoc').trigger('change');
+                    $('#mauSac').trigger('change');
+                }
+            });
+
+            modalElement.addEventListener('shown.bs.modal', function() {
+                var giaBanInput = document.getElementById('giaBan');
+                if (giaBanInput && giaBanInput.value) {
+                    var rawValue = getRawMoneyValue(giaBanInput);
+                    if (rawValue > 0) {
+                        giaBanInput.value = formatNumber(rawValue) + ' VNĐ';
+                    }
+                }
+            });
+        }
     });
 </script>
 

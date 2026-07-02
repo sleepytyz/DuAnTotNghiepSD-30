@@ -6,8 +6,10 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 /**
- * Dữ liệu form đăng ký tài khoản khách hàng (gộp cả thông tin đăng nhập và hồ sơ khách hàng
- * để hiển thị/validate trên 1 form duy nhất ở trang đăng ký).
+ * Dữ liệu form đăng ký tài khoản khách hàng.
+ * Đăng ký chỉ yêu cầu: tên đăng nhập, mật khẩu, xác nhận mật khẩu.
+ * Các thông tin cá nhân khác (họ tên, SĐT, email...) khách hàng sẽ bổ sung sau
+ * trong trang "Tài khoản của tôi" sau khi đăng nhập.
  */
 @Data
 public class DangKyKhachHangDTO {
@@ -23,18 +25,4 @@ public class DangKyKhachHangDTO {
 
     @NotBlank(message = "Vui lòng xác nhận mật khẩu")
     private String xnMatKhau;
-
-    @NotBlank(message = "Họ tên không được để trống")
-    @Size(max = 100, message = "Họ tên không được vượt quá 100 ký tự")
-    @Pattern(regexp = "^[\\p{L} ]+$", message = "Họ tên chỉ được chứa chữ cái và khoảng trắng")
-    private String hoTen;
-
-    @NotBlank(message = "Số điện thoại không được để trống")
-    @Pattern(regexp = "^(0(3|5|7|8|9))[0-9]{8}$", message = "Số điện thoại không đúng định dạng Việt Nam (10 số)")
-    private String sdt;
-
-    @NotBlank(message = "Email không được để trống")
-    @jakarta.validation.constraints.Email(message = "Email không đúng định dạng")
-    @Size(max = 100, message = "Email không được vượt quá 100 ký tự")
-    private String email;
 }

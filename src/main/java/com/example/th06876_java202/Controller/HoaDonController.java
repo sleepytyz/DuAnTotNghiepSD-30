@@ -23,6 +23,7 @@ import java.io.ByteArrayInputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 
 @Controller
@@ -52,6 +53,9 @@ public class HoaDonController {
             Model model) {
 
         model.addAttribute("activeMenu", "hoadon");
+
+        // Danh sách trạng thái cho trang HÓA ĐƠN (khác với Đơn hàng)
+        List<String> allowedStatuses = Arrays.asList("Đã thanh toán", "Đã giao", "Đã trả hàng", "Đã huỷ");
 
         // Xử lý lọc nhanh
         if (filterType != null && !filterType.isEmpty()) {
@@ -83,15 +87,30 @@ public class HoaDonController {
             model.addAttribute("filterType", filterType);
         }
 
-        Page<HoaDon> page = service.getALLDH(pageable);
+        Page<HoaDon> page = null;
 
+        // Xử lý lọc theo trạng thái
         if (tt != null && !tt.trim().isEmpty()) {
-            page = service.findByTrangThai(tt, pageable);
+            // Nếu trạng thái được chọn nằm trong danh sách cho phép
+            if (allowedStatuses.contains(tt)) {
+                page = service.findByTrangThai(tt, pageable);
+            } else {
+                // Nếu chọn trạng thái không được phép, vẫn hiển thị các trạng thái cho phép
+                page = service.findByTrangThaiIn(allowedStatuses, pageable);
+            }
         } else if (ngay != null || ngay2 != null) {
-            // ⭐ SỬA: Chuyển LocalDate sang LocalDateTime
+            // Lọc theo ngày và chỉ lấy các trạng thái cho phép
             LocalDateTime startDateTime = ngay != null ? ngay.atStartOfDay() : null;
             LocalDateTime endDateTime = ngay2 != null ? ngay2.atTime(23, 59, 59) : null;
-            page = service.searchByNgayTaodh(startDateTime, endDateTime, pageable);
+            page = service.searchByNgayTaodhAndStatus(startDateTime, endDateTime, allowedStatuses, pageable);
+        } else {
+            // Mặc định: chỉ lấy các trạng thái cho phép (Đã thanh toán, Đã giao, Đã trả hàng, Đã huỷ)
+            page = service.findByTrangThaiIn(allowedStatuses, pageable);
+        }
+
+        // Nếu page vẫn null (trường hợp lỗi), lấy danh sách mặc định
+        if (page == null) {
+            page = service.findByTrangThaiIn(allowedStatuses, pageable);
         }
 
         model.addAttribute("list", page.getContent());
@@ -102,16 +121,22 @@ public class HoaDonController {
         model.addAttribute("ngay", ngay);
         model.addAttribute("ngay2", ngay2);
 
-        // Thống kê
+        // Thống kê số lượng theo từng trạng thái (chỉ trong danh sách cho phép)
         model.addAttribute("totalDaThanhToan", service.countByTrangThai("Đã thanh toán"));
         model.addAttribute("totalDaGiao", service.countByTrangThai("Đã giao"));
         model.addAttribute("totalDaTraHang", service.countByTrangThai("Đã trả hàng"));
         model.addAttribute("totalDaHuy", service.countByTrangThai("Đã huỷ"));
 
+        // Lấy chi tiết hóa đơn nếu có mahd
         HoaDon hd = null;
-        if (mahd != null) {
+        if (mahd != null && !mahd.trim().isEmpty()) {
             hd = service.findById(mahd);
-            model.addAttribute("listsp", hoaDonChiTietService.findById(mahd));
+            if (hd != null && allowedStatuses.contains(hd.getTrangThai())) {
+                model.addAttribute("listsp", hoaDonChiTietService.findById(mahd));
+            } else {
+                model.addAttribute("listsp", List.of());
+                hd = null; // Không hiển thị nếu không thuộc trạng thái cho phép
+            }
         } else {
             model.addAttribute("listsp", List.of());
         }
@@ -122,7 +147,6 @@ public class HoaDonController {
         return "hoadon/index";
     }
 
-    // ===== XUẤT EXCEL HÓA ĐƠN =====
     @GetMapping("/export-excel")
     public ResponseEntity<InputStreamResource> exportExcel(
             @RequestParam(required = false) String mahd,
@@ -138,6 +162,9 @@ public class HoaDonController {
             System.out.println("ngay: [" + ngay + "]");
             System.out.println("ngay2: [" + ngay2 + "]");
             System.out.println("filterType: [" + filterType + "]");
+
+            // Danh sách trạng thái cho trang HÓA ĐƠN
+            List<String> allowedStatuses = Arrays.asList("Đã thanh toán", "Đã giao", "Đã trả hàng", "Đã huỷ");
 
             // Xử lý lọc nhanh
             if (filterType != null && !filterType.isEmpty()) {
@@ -170,7 +197,8 @@ public class HoaDonController {
 
             List<HoaDon> hoaDonList;
 
-            if (mahd != null) {
+            if (mahd != null && !mahd.trim().isEmpty()) {
+                // Xuất chi tiết 1 hóa đơn
                 List<HoaDonChiTiet> chiTietList = hoaDonChiTietService.findById(mahd);
                 if (chiTietList != null && !chiTietList.isEmpty()) {
                     ByteArrayInputStream in = excelExportService.exportChiTietHoaDonToExcel(chiTietList);
@@ -191,22 +219,21 @@ public class HoaDonController {
                 }
 
                 HoaDon hd = service.findById(mahd);
-                if (hd != null) {
+                if (hd != null && allowedStatuses.contains(hd.getTrangThai())) {
                     hoaDonList = List.of(hd);
                 } else {
                     return ResponseEntity.badRequest().build();
                 }
             } else {
                 // Lọc theo điều kiện
-                if (tt != null && !tt.trim().isEmpty()) {
+                if (tt != null && !tt.trim().isEmpty() && allowedStatuses.contains(tt)) {
                     hoaDonList = service.findAllByTrangThai(tt);
                 } else if (ngay != null || ngay2 != null) {
-                    // ⭐ SỬA: Chuyển LocalDate sang LocalDateTime
                     LocalDateTime startDateTime = ngay != null ? ngay.atStartOfDay() : null;
                     LocalDateTime endDateTime = ngay2 != null ? ngay2.atTime(23, 59, 59) : null;
-                    hoaDonList = service.searchByNgayTaodh(startDateTime, endDateTime);
+                    hoaDonList = service.searchByNgayTaodhAndStatusList(startDateTime, endDateTime, allowedStatuses);
                 } else {
-                    hoaDonList = service.getAllDH();
+                    hoaDonList = service.findByTrangThaiInList(allowedStatuses);
                 }
             }
 
@@ -244,7 +271,6 @@ public class HoaDonController {
             return ResponseEntity.badRequest().build();
         }
     }
-
     // ===== CÁC HÀM CHUYỂN TRẠNG THÁI =====
     @GetMapping("/suatt")
     public String suatt(@RequestParam(required = false) String mahd) {

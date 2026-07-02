@@ -17,6 +17,60 @@ public class HoaDonService {
     @Autowired
     private HoaDonRepo repo;
 
+    // ===== PHƯƠNG THỨC MỚI =====
+
+    /**
+     * Tìm hóa đơn theo danh sách trạng thái cho phép (Phân trang)
+     */
+    public Page<HoaDon> findByTrangThaiIn(List<String> trangThaiList, Pageable pageable) {
+        return repo.findByTrangThaiIn(trangThaiList, pageable);
+    }
+
+    /**
+     * Tìm hóa đơn theo danh sách trạng thái cho phép (Không phân trang)
+     */
+    public List<HoaDon> findByTrangThaiInList(List<String> trangThaiList) {
+        return repo.findByTrangThaiIn(trangThaiList);
+    }
+
+    /**
+     * Tìm hóa đơn theo ngày và danh sách trạng thái cho phép (Phân trang)
+     */
+    public Page<HoaDon> searchByNgayTaodhAndStatus(LocalDateTime ngay, LocalDateTime ngay2,
+                                                   List<String> allowedStatuses, Pageable pageable) {
+        if (ngay != null && ngay2 != null) {
+            return repo.findByNgayTaoBetweenAndTrangThaiIn(ngay, ngay2, allowedStatuses, pageable);
+        } else if (ngay != null) {
+            return repo.findByNgayTaoAfterAndTrangThaiIn(ngay, allowedStatuses, pageable);
+        } else if (ngay2 != null) {
+            return repo.findByNgayTaoBeforeAndTrangThaiIn(ngay2, allowedStatuses, pageable);
+        }
+        return repo.findByTrangThaiIn(allowedStatuses, pageable);
+    }
+
+    /**
+     * Tìm hóa đơn theo ngày và danh sách trạng thái cho phép (Không phân trang)
+     */
+    public List<HoaDon> searchByNgayTaodhAndStatusList(LocalDateTime ngay, LocalDateTime ngay2,
+                                                       List<String> allowedStatuses) {
+        if (ngay != null && ngay2 != null) {
+            return repo.findByNgayTaoBetweenAndTrangThaiIn(ngay, ngay2, allowedStatuses);
+        } else if (ngay != null) {
+            return repo.findByNgayTaoAfterAndTrangThaiIn(ngay, allowedStatuses);
+        } else if (ngay2 != null) {
+            return repo.findByNgayTaoBeforeAndTrangThaiIn(ngay2, allowedStatuses);
+        }
+        return repo.findByTrangThaiIn(allowedStatuses);
+    }
+
+    /**
+     * Tìm hóa đơn theo mã và danh sách trạng thái cho phép
+     */
+    public Page<HoaDon> searchByMaAndStatus(String maHoaDon, List<String> allowedStatuses, Pageable pageable) {
+        return repo.findByMaHoaDonAndTrangThaiIn(maHoaDon, allowedStatuses, pageable);
+    }
+
+    // ===== PHƯƠNG THỨC CŨ (GIỮ NGUYÊN) =====
 
     public List<HoaDon> findByTrangThai(String trangThai) {
         return repo.findByTrangThai(trangThai);
@@ -46,17 +100,13 @@ public class HoaDonService {
         return repo.findByTrangThai(trangThai);
     }
 
-
     public List<HoaDon> findByTrangThaiAndLoaiBan(String trangThai, String loaiBan) {
         return repo.findByTrangThaiAndLoaiBan(trangThai, loaiBan);
     }
 
-    public List<HoaDon> getAll(){
+    public List<HoaDon> getAll() {
         return repo.findAll();
     }
-
-
-
 
     public Page<HoaDon> searchByNgayTaodh(LocalDateTime ngay, LocalDateTime ngay2, Pageable pageable) {
         if (ngay != null && ngay2 != null) {
@@ -106,15 +156,13 @@ public class HoaDonService {
 
     public void suattdgg(String mahd) {
         HoaDon hd = repo.findById(mahd).orElse(null);
-        if (hd != null && "Đã xác nhận".equals(hd.getTrangThai())) {
+        if (hd != null && "Đang giao".equals(hd.getTrangThai())) {
             hd.setTrangThai("Đã giao");
             repo.save(hd);
         }
     }
+
     public Page<HoaDon> findByKhachHang(String maKH, Pageable pageable) {
         return repo.findByMaKhachHang_MaKHOrderByMaHoaDonDesc(maKH, pageable);
     }
-
 }
-
-

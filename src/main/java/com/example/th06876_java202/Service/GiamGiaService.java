@@ -2,6 +2,7 @@ package com.example.th06876_java202.Service;
 
 import com.example.th06876_java202.Entity.GiamGia;
 import com.example.th06876_java202.Entity.GiamGiaChiTiet;
+import com.example.th06876_java202.Entity.GiamGiaChiTietId;
 import com.example.th06876_java202.Repository.GiamGiaChiTietRepo;
 import com.example.th06876_java202.Repository.GiamGiaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,19 @@ public class GiamGiaService {
     GiamGiaChiTietRepo giamGiaChiTietRepo;
 
     private final Random random = new Random();
+
+    // Trong GiamGiaService.java - Thêm method
+
+    @Transactional
+    public void markVoucherAsUsed(String maKhachHang, String maGiamGia) {
+        GiamGiaChiTietId id = new GiamGiaChiTietId(maKhachHang, maGiamGia);
+        GiamGiaChiTiet ct = giamGiaChiTietRepo.findById(id).orElse(null);
+
+        if (ct != null) {
+            ct.setTrangThaiSuDung(1);  // Đánh dấu đã sử dụng
+            giamGiaChiTietRepo.save(ct);
+        }
+    }
 
     // ===== TẠO MÃ GIẢM GIÁ TỰ ĐỘNG =====
     public String generateMaGiamGia() {

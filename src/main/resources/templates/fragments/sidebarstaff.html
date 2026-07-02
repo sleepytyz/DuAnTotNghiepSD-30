@@ -24,6 +24,14 @@
             <div class="menu-heading">Khách Hàng</div>
             <a href="/khach-hang/hien-thi"><i class="bi bi-person-lines-fill"></i> Khách hàng</a>
 
+            <div class="menu-heading">Cá Nhân</div>
+            <a href="/cham-cong" th:classappend="${activeMenu == 'chamcong'} ? ' active'">
+                <i class="bi bi-clock-history"></i> Chấm công
+            </a>
+            <a href="/nv-ca-nhan" th:classappend="${activeMenu == 'nvcanhan'} ? ' active'">
+                <i class="bi bi-person-circle"></i> Thông tin cá nhân
+            </a>
+
             <div class="menu-heading">Báo Cáo</div>
             <a href="#"><i class="bi bi-bar-chart-line"></i> Thống kê doanh số</a>
             <a href="#"><i class="bi bi-trophy"></i> Sản phẩm bán chạy</a>

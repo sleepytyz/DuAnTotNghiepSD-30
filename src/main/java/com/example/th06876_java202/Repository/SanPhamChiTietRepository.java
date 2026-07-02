@@ -106,12 +106,40 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
             "   (:tonKho = '1000+' AND s.soLuongTon > 1000)" +
             ") " +
             "ORDER BY s.ngayTao DESC")
-    List<SanPhamChiTiet> findAllWithFilters(@Param("size") String size,
-                                            @Param("msac") String msac,
-                                            @Param("tt") String tt,
-                                            @Param("gia") BigDecimal gia,
-                                            @Param("gia2") BigDecimal gia2,
-                                            @Param("tonKho") String tonKho);
+    List<SanPhamChiTiet> findAllWithFiltersList(
+            @Param("size") String size,
+            @Param("msac") String msac,
+            @Param("tt") String tt,
+            @Param("gia") BigDecimal gia,
+            @Param("gia2") BigDecimal gia2,
+            @Param("tonKho") String tonKho);
+
+    // Trong SanPhamChiTietRepository.java
+    @Query("SELECT s FROM SanPhamChiTiet s " +
+            "WHERE (:size IS NULL OR :size = '' OR s.kichThuoc.maKichThuoc = :size) " +
+            "AND (:msac IS NULL OR :msac = '' OR s.mauSac.maMauSac = :msac) " +
+            "AND (:tt IS NULL OR :tt = '' OR s.trangThai = :tt) " +
+            "AND (:gia IS NULL OR s.giaBan >= :gia) " +
+            "AND (:gia2 IS NULL OR s.giaBan <= :gia2) " +
+            "AND (" +
+            "   (:tonKho IS NULL OR :tonKho = '') OR " +
+            "   (:tonKho = '0' AND s.soLuongTon = 0) OR " +
+            "   (:tonKho = '1-10' AND s.soLuongTon BETWEEN 1 AND 10) OR " +
+            "   (:tonKho = '11-50' AND s.soLuongTon BETWEEN 11 AND 50) OR " +
+            "   (:tonKho = '51-100' AND s.soLuongTon BETWEEN 51 AND 100) OR " +
+            "   (:tonKho = '101-500' AND s.soLuongTon BETWEEN 101 AND 500) OR " +
+            "   (:tonKho = '501-1000' AND s.soLuongTon BETWEEN 501 AND 1000) OR " +
+            "   (:tonKho = '1000+' AND s.soLuongTon > 1000)" +
+            ") " +
+            "ORDER BY s.ngayTao DESC")
+    Page<SanPhamChiTiet> findAllWithFilters(
+            @Param("size") String size,
+            @Param("msac") String msac,
+            @Param("tt") String tt,
+            @Param("gia") BigDecimal gia,
+            @Param("gia2") BigDecimal gia2,
+            @Param("tonKho") String tonKho,
+            Pageable pageable);
 
     // Trong SanPhamChiTietRepo.java
     @Query("SELECT s FROM SanPhamChiTiet s WHERE s.sanPham.maSanPham IN :maSanPhamList")
@@ -119,4 +147,14 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
 
     @Query("SELECT spct FROM SanPhamChiTiet spct WHERE spct.maSanPhamChiTiet = :maSPCT")
     Optional<SanPhamChiTiet> findByMaSanPhamChiTiet(@Param("maSPCT") String maSPCT);
+
+    @Query(value = "select * from  SanPhamChiTiet order by NgayTao desc", nativeQuery = true)
+    List<SanPhamChiTiet> findAllOrderByNgayTaoDesc();
+
+    @Query("SELECT spct FROM SanPhamChiTiet spct " +
+            "LEFT JOIN FETCH spct.sanPham " +
+            "LEFT JOIN FETCH spct.mauSac " +
+            "LEFT JOIN FETCH spct.kichThuoc " +
+            "WHERE spct.maSanPhamChiTiet = :id")
+    Optional<SanPhamChiTiet> findByIdWithSanPham(@Param("id") String id);
 }

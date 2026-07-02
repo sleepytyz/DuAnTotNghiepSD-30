@@ -33,7 +33,10 @@
             </a>
 
             <div class="fs-dropdown" sec:authorize="isAuthenticated()">
-                <button type="button" class="fs-icon-btn" data-fs-dropdown-toggle title="Tài khoản"><i class="bi bi-person"></i></button>
+                <button type="button" class="fs-icon-btn fs-account-btn" data-fs-dropdown-toggle title="Tài khoản">
+                    <i class="bi bi-person-circle"></i>
+                    <span class="fs-account-name" th:text="${tenHienThiHeader}">Tài khoản</span>
+                </button>
                 <div class="fs-dropdown-menu">
                     <a th:href="@{/ca-nhan}"><i class="bi bi-person-circle"></i> Thông tin cá nhân</a>
                     <a th:href="@{/ca-nhan/don-hang}"><i class="bi bi-bag-check"></i> Đơn hàng của tôi</a>

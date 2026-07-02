@@ -497,13 +497,8 @@
 
 <div class="wrapper">
 
-    <div sec:authorize="hasRole('ADMIN')">
-        <div th:replace="fragments/sidebaradmin :: sidebar-admin"></div>
-    </div>
-
-    <div sec:authorize="hasRole('STAFF')">
-        <div th:replace="fragments/sidebarstaff :: sidebar-staff"></div>
-    </div>
+    <div sec:authorize="hasRole('STAFF')" th:replace="~{fragments/sidebarstaff :: sidebar-staff}"></div>
+    <div sec:authorize="hasRole('ADMIN')" th:replace="~{fragments/sidebaradmin :: sidebar-admin}"></div>
 
     <div class="content-wrapper">
 
@@ -532,10 +527,6 @@
                     <i class="bi bi-truck text-info"></i>
                     Đang giao: <span class="num" th:text="${totalDangGiao != null ? totalDangGiao : 0}">0</span>
                 </div>
-                <div class="stats-item">
-                    <i class="bi bi-check2-circle text-success"></i>
-                    Hoàn thành: <span class="num" th:text="${totalHoanThanh != null ? totalHoanThanh : 0}">0</span>
-                </div>
             </div>
 
             <!-- Filter Card -->
@@ -555,8 +546,7 @@
                                     <i class="bi bi-hash text-danger me-1"></i>Mã đơn hàng
                                 </label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-light text-secondary">HD</span>
-                                    <input type="number" class="form-control" name="mahd" th:value="${param.mahd}" placeholder="Nhập mã số...">
+                                    <input type="text" class="form-control" name="mahd" th:value="${param.mahd}" placeholder="Nhập mã số...">
                                 </div>
                             </div>
 
@@ -580,11 +570,9 @@
                                 </label>
                                 <select name="tt" class="form-select" onchange="this.form.submit()">
                                     <option value="">-- Tất cả --</option>
-                                    <option value="Chờ xác nhận" th:selected="${param.tt == 'Chờ xác nhận'}">🟡 Chờ xác nhận</option>
-                                    <option value="Đã xác nhận" th:selected="${param.tt == 'Đã xác nhận'}">🔵 Đã xác nhận</option>
-                                    <option value="Đang giao" th:selected="${param.tt == 'Đang giao'}">🔷 Đang giao</option>
-                                    <option value="Hoàn thành" th:selected="${param.tt == 'Hoàn thành'}">🟢 Hoàn thành</option>
-                                    <option value="Đã huỷ" th:selected="${param.tt == 'Đã huỷ'}">🔴 Đã huỷ</option>
+                                    <option value="Chờ xác nhận" th:selected="${param.tt == 'Chờ xác nhận'}"> Chờ xác nhận</option>
+                                    <option value="Đã xác nhận" th:selected="${param.tt == 'Đã xác nhận'}">Đã xác nhận</option>
+                                    <option value="Đang giao" th:selected="${param.tt == 'Đang giao'}">Đang giao</option>
                                 </select>
                             </div>
 
@@ -638,7 +626,7 @@
                         <tr th:each="hd, stt : ${list}">
                             <td class="col-stt text-center fw-semibold" th:text="${stt.index + 1 + (currentPage * 5)}"></td>
                             <td class="col-mahd">
-                                <span class="fw-bold text-danger" th:text="${'HD' + hd.maHoaDon}"></span>
+                                <span class="fw-bold text-danger" th:text="${hd.maHoaDon}"></span>
                             </td>
                             <td class="col-nhanvien text-left" th:text="${hd.maNhanVien != null ? hd.maNhanVien.hoTen : ''}"></td>
                             <td class="col-khachhang text-left" th:text="${hd.maKhachHang != null ? hd.maKhachHang.hoTen + ' - ' + hd.maKhachHang.sdt : 'Khách lẻ'}"></td>
@@ -658,11 +646,21 @@
                                 </span>
                             </td>
                             <td class="col-hanhdong">
-                                <a class="btn-action btn-action-info"
-                                   th:href="@{/donhang/index(mahd=${hd.maHoaDon})}"
-                                   title="Xem chi tiết">
+                                <button class="btn-action btn-action-info"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#hoaDonModal"
+                                        th:data-mahd="${hd.maHoaDon}"
+                                        th:data-nhanvien="${hd.maNhanVien != null ? hd.maNhanVien.hoTen : ''}"
+                                        th:data-khachhang="${hd.maKhachHang != null ? hd.maKhachHang.hoTen + ' - ' + hd.maKhachHang.sdt : 'Khách lẻ'}"
+                                        th:data-tongtien="${#numbers.formatDecimal(hd.tongTien, 0, 'COMMA', 0, 'POINT')}"
+                                        th:data-thanhtoan="${hd.phuongThucThanhToan}"
+                                        th:data-trangthai="${hd.trangThai}"
+                                        th:data-loaihoadon="${hd.loaiBan}"
+                                        th:data-ngaytao="${#temporals.format(hd.ngayTao, 'dd/MM/yyyy HH:mm')}"
+                                        th:data-ghichu="${hd.ghiChu}"
+                                        title="Xem chi tiết">
                                     <i class="bi bi-eye"></i>
-                                </a>
+                                </button>
                             </td>
                         </tr>
 
@@ -744,7 +742,8 @@
 </div>
 
 <!-- Modal Chi tiết đơn hàng -->
-<div class="modal fade" id="hoaDonModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="hoaDonModal" tabindex="-1" aria-hidden="true"
+     th:data-hd="${hd != null ? hd.maHoaDon : ''}">
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">
 
@@ -933,6 +932,288 @@
     }
 
     // =============================================
+    // MODAL HANDLER
+    // =============================================
+    document.addEventListener('DOMContentLoaded', function() {
+        // Kiểm tra nếu có mahd từ URL (khi reload trang)
+        var urlParams = new URLSearchParams(window.location.search);
+        var mahdFromUrl = urlParams.get('mahd');
+
+        if (mahdFromUrl) {
+            // Tìm button có data-mahd tương ứng và click
+            var buttons = document.querySelectorAll('[data-mahd]');
+            var found = false;
+            for (var i = 0; i < buttons.length; i++) {
+                if (buttons[i].getAttribute('data-mahd') === mahdFromUrl) {
+                    setTimeout(function() {
+                        buttons[i].click();
+                    }, 500);
+                    found = true;
+                    break;
+                }
+            }
+
+            // Nếu không tìm thấy button (trường hợp load lại trang), gọi API trực tiếp
+            if (!found) {
+                loadModalData(mahdFromUrl);
+            }
+        }
+
+        // Lắng nghe sự kiện khi modal được hiển thị
+        var modalElement = document.getElementById('hoaDonModal');
+        if (modalElement) {
+            modalElement.addEventListener('show.bs.modal', function(event) {
+                var button = event.relatedTarget;
+                if (!button) return;
+
+                // Lấy dữ liệu từ data attributes
+                var maHoaDon = button.getAttribute('data-mahd');
+                var nhanVien = button.getAttribute('data-nhanvien') || '';
+                var khachHang = button.getAttribute('data-khachhang') || 'Khách lẻ';
+                var tongTien = button.getAttribute('data-tongtien') || '0';
+                var thanhToan = button.getAttribute('data-thanhtoan') || '';
+                var trangThai = button.getAttribute('data-trangthai') || '';
+                var loaiHoaDon = button.getAttribute('data-loaihoadon') || '';
+                var ngayTao = button.getAttribute('data-ngaytao') || '';
+                var ghiChu = button.getAttribute('data-ghichu') || '';
+
+                // Cập nhật thông tin đơn hàng
+                updateOrderInfo(maHoaDon, nhanVien, khachHang, tongTien, thanhToan, trangThai, loaiHoaDon, ngayTao, ghiChu);
+
+                // Cập nhật stepper
+                updateStepper(trangThai);
+
+                // Cập nhật các nút action
+                updateActionButtons(trangThai, maHoaDon);
+
+                // Load danh sách sản phẩm
+                loadProducts(maHoaDon);
+            });
+        }
+
+        // Xử lý khi modal đóng
+        if (modalElement) {
+            modalElement.addEventListener('hidden.bs.modal', function() {
+                // Xóa param mahd trên URL
+                var url = new URL(window.location.href);
+                url.searchParams.delete('mahd');
+                window.history.replaceState({}, document.title, url.toString());
+            });
+        }
+    });
+
+    // =============================================
+    // HÀM CẬP NHẬT THÔNG TIN ĐƠN HÀNG
+    // =============================================
+    function updateOrderInfo(maHoaDon, nhanVien, khachHang, tongTien, thanhToan, trangThai, loaiHoaDon, ngayTao, ghiChu) {
+        var modalElement = document.getElementById('hoaDonModal');
+        if (!modalElement) return;
+
+        // Cập nhật các input trong modal
+        var inputs = modalElement.querySelectorAll('.modal-body input[readonly]');
+        if (inputs.length >= 8) {
+            inputs[0].value = 'HD' + (maHoaDon || '');
+            inputs[1].value = nhanVien || '';
+            inputs[2].value = khachHang || 'Khách lẻ';
+            inputs[3].value = (tongTien ? formatCurrency(parseInt(tongTien.replace(/,/g, ''))) : '0 ₫');
+            inputs[4].value = thanhToan || '';
+            inputs[5].value = trangThai || '';
+            inputs[6].value = loaiHoaDon || '';
+            inputs[7].value = ngayTao || '';
+        }
+
+        // Cập nhật ghi chú
+        var textarea = modalElement.querySelector('.modal-body textarea');
+        if (textarea) {
+            textarea.value = ghiChu || '';
+        }
+    }
+
+    // =============================================
+    // HÀM LOAD DỮ LIỆU MODAL (KHI KHÔNG CÓ BUTTON)
+    // =============================================
+    function loadModalData(maHoaDon) {
+        fetch('/donhang/api/detail?mahd=' + maHoaDon)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Cập nhật thông tin
+                    updateOrderInfo(
+                        data.maHoaDon,
+                        data.nhanVien,
+                        data.khachHang,
+                        data.tongTien,
+                        data.thanhToan,
+                        data.trangThai,
+                        data.loaiHoaDon,
+                        data.ngayTao,
+                        data.ghiChu
+                    );
+
+                    // Cập nhật stepper
+                    updateStepper(data.trangThai);
+
+                    // Cập nhật nút action
+                    updateActionButtons(data.trangThai, data.maHoaDon);
+
+                    // Load sản phẩm
+                    loadProducts(data.maHoaDon);
+
+                    // Mở modal
+                    var modal = new bootstrap.Modal(document.getElementById('hoaDonModal'));
+                    modal.show();
+                } else {
+                    showToast('Không thể tải thông tin đơn hàng', 'error');
+                }
+            })
+            .catch(error => {
+                showToast('Có lỗi xảy ra: ' + error.message, 'error');
+            });
+    }
+
+    // =============================================
+    // HÀM CẬP NHẬT STEPPER
+    // =============================================
+    function updateStepper(trangThai) {
+        var steps = document.querySelectorAll('.timeline-step');
+        steps.forEach(function(step) {
+            step.classList.remove('active');
+        });
+
+        var statusOrder = ['Chờ xác nhận', 'Đã xác nhận', 'Đang giao', 'Hoàn thành'];
+        var currentIndex = statusOrder.indexOf(trangThai);
+
+        if (currentIndex >= 0) {
+            for (var i = 0; i <= currentIndex && i < steps.length; i++) {
+                steps[i].classList.add('active');
+            }
+        }
+    }
+
+    // =============================================
+    // HÀM CẬP NHẬT NÚT ACTION
+    // =============================================
+    function updateActionButtons(trangThai, maHoaDon) {
+        var footer = document.querySelector('#hoaDonModal .modal-footer .d-flex');
+        if (!footer) return;
+
+        footer.innerHTML = '';
+
+        var buttons = {
+            'Chờ xác nhận': {
+                text: 'Xác nhận',
+                url: '/donhang/suatt?mahd=' + maHoaDon,
+                class: 'btn-success',
+                icon: 'bi-check-circle',
+                confirm: 'Bạn có chắc chắn muốn xác nhận đơn hàng này?'
+            },
+            'Đã xác nhận': {
+                text: 'Giao hàng',
+                url: '/donhang/suattdg?mahd=' + maHoaDon,
+                class: 'btn-warning text-white',
+                icon: 'bi-truck',
+                confirm: 'Chuyển trạng thái đơn hàng này sang Đang giao hàng?'
+            },
+            'Đang giao': {
+                text: 'Hoàn thành',
+                url: '/donhang/suattdgg?mahd=' + maHoaDon,
+                class: 'btn-primary',
+                icon: 'bi-check-circle-fill',
+                confirm: 'Xác nhận hoàn tất chu trình giao đơn hàng thành công?'
+            }
+        };
+
+        if (buttons[trangThai]) {
+            var btn = buttons[trangThai];
+            footer.innerHTML = `
+                <a href="${btn.url}"
+                   class="btn ${btn.class} fw-semibold px-4 py-2 d-inline-flex align-items-center gap-1"
+                   onclick="return confirm('${btn.confirm}')">
+                    <i class="bi ${btn.icon}"></i> ${btn.text}
+                </a>
+            `;
+        }
+    }
+
+    // =============================================
+    // HÀM LOAD SẢN PHẨM
+    // =============================================
+    function loadProducts(maHoaDon) {
+        var tbody = document.querySelector('#hoaDonModal .modal-body .table tbody');
+        if (!tbody) return;
+
+        // Hiển thị loading
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center py-3">
+                    <div class="spinner-border spinner-border-sm text-danger me-2" role="status"></div>
+                    Đang tải sản phẩm...
+                </td>
+            </tr>
+        `;
+
+        // Gọi API để lấy danh sách sản phẩm
+        fetch('/donhang/api/products?mahd=' + maHoaDon)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                tbody.innerHTML = '';
+
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-3">
+                                <i class="bi bi-cart-x me-2"></i>
+                                Không có sản phẩm trong đơn hàng
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    var total = 0;
+                    data.forEach(function(item, index) {
+                        var thanhTien = item.soLuong * item.donGia;
+                        total += thanhTien;
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td class="fw-medium">${item.tenSanPham || ''}</td>
+                                <td><span class="badge bg-light text-dark border">${item.kichThuoc || ''}</span></td>
+                                <td>${item.mauSac || ''}</td>
+                                <td class="fw-bold text-center">${item.soLuong || 0}</td>
+                                <td>${formatCurrency(item.donGia)}</td>
+                                <td class="small text-muted">${item.giamGia || 'Không áp dụng'}</td>
+                                <td class="fw-bold text-dark">${formatCurrency(thanhTien)}</td>
+                            </tr>
+                        `;
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi tải sản phẩm:', error);
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center text-danger py-3">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            Lỗi tải dữ liệu sản phẩm
+                        </td>
+                    </tr>
+                `;
+            });
+    }
+
+    // =============================================
+    // HÀM FORMAT CURRENCY
+    // =============================================
+    function formatCurrency(amount) {
+        if (!amount && amount !== 0) return '0 ₫';
+        return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' ₫';
+    }
+
+    // =============================================
     // DOM READY
     // =============================================
     document.addEventListener("DOMContentLoaded", function() {
@@ -946,14 +1227,18 @@
         if (errorMsg && errorMsg !== '' && errorMsg !== 'null' && errorMsg !== 'undefined') {
             showToast(errorMsg, 'error');
         }
-    });
 
-    // ===== MODAL =====
-    th:if="${hd != null}">
-        document.addEventListener("DOMContentLoaded", function() {
-            var myModal = new bootstrap.Modal(document.getElementById('hoaDonModal'));
-            myModal.show();
-        });
+        // Nếu có hd từ server (khi load trang với mahd)
+        var hdElement = document.querySelector('[data-hd]');
+        if (hdElement) {
+            var maHoaDon = hdElement.getAttribute('data-hd');
+            if (maHoaDon) {
+                setTimeout(function() {
+                    loadModalData(maHoaDon);
+                }, 300);
+            }
+        }
+    });
 </script>
 
 </body>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta name="_csrf" th:content="${_csrf.token}">
   <meta name="_csrf_header" th:content="${_csrf.headerName}">
@@ -86,7 +87,8 @@
 <body>
 
 <div class="wrapper">
-  <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+  <div sec:authorize="hasRole('STAFF')" th:replace="~{fragments/sidebarstaff :: sidebar-staff}"></div>
+  <div sec:authorize="hasRole('ADMIN')" th:replace="~{fragments/sidebaradmin :: sidebar-admin}"></div>
 
   <div class="content-body">
     <div th:replace="~{fragments/header :: header('Thêm khách hàng mới', 'Khách hàng')}"></div>

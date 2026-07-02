@@ -26,20 +26,22 @@ public class SanPhamChiTietService {
 
     private final SanPhamChiTietRepository sanPhamChiTietRepository;
 
-    // ObjectMapper để xử lý JSON
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public SanPhamChiTietService(SanPhamChiTietRepository sanPhamChiTietRepository) {
         this.sanPhamChiTietRepository = sanPhamChiTietRepository;
     }
 
-    // 🔥 SỬA: Sắp xếp theo ngày tạo giảm dần (mới nhất lên đầu)
     public Page<SanPhamChiTiet> getall(Pageable pageable) {
         return sanPhamChiTietRepository.findAll(pageable);
     }
 
     public List<SanPhamChiTiet> getalll() {
         return sanPhamChiTietRepository.findAll();
+    }
+
+    public List<SanPhamChiTiet> getallll() {
+        return sanPhamChiTietRepository.findAllOrderByNgayTaoDesc();
     }
 
     public SanPhamChiTiet them(SanPhamChiTiet sanPhamChiTiet) {
@@ -235,6 +237,10 @@ public class SanPhamChiTietService {
         return optional.get().getDanhSachAnhList().size() >= min;
     }
 
+    public Optional<SanPhamChiTiet> findbyIid(String id) {
+        return sanPhamChiTietRepository.findByIdWithSanPham(id);
+    }
+
     public Optional<SanPhamChiTiet> findbyId(String id) {
         return sanPhamChiTietRepository.findById(id);
     }
@@ -303,13 +309,27 @@ public class SanPhamChiTietService {
         return sanPhamChiTietRepository.findByTonKho(tonKho, pageable);
     }
 
+    public Page<SanPhamChiTiet> findAllWithFilters(
+            String size,
+            String msac,
+            String tt,
+            BigDecimal gia,
+            BigDecimal gia2,
+            String tonKho,
+            Pageable pageable) {
+
+        return sanPhamChiTietRepository.findAllWithFilters(
+                size, msac, tt, gia, gia2, tonKho, pageable);
+    }
+
     public List<SanPhamChiTiet> findAllWithFilters(String size, String msac, String tt,
                                                    BigDecimal gia, BigDecimal gia2, String tonKho) {
-        return sanPhamChiTietRepository.findAllWithFilters(size, msac, tt, gia, gia2, tonKho);
+        return sanPhamChiTietRepository.findAllWithFiltersList(size, msac, tt, gia, gia2, tonKho);
     }
 
     public void capNhatTrangThaii(SanPhamChiTiet spct) {
         Integer soLuong = spct.getSoLuongTon();
+
         if (soLuong == null || soLuong <= 0) {
             spct.setTrangThai("Hết hàng");
         } else if (soLuong < 10) {
@@ -388,5 +408,13 @@ public class SanPhamChiTietService {
         return sanPhamChiTietRepository.findById(id).orElse(null);
     }
 
-
+    public void capNhatTrangThaiTuToggle(SanPhamChiTiet spct, boolean active) {
+        if (active) {
+            // Khi bật: luôn cập nhật dựa trên số lượng tồn
+            capNhatTrangThaii(spct);
+        } else {
+            // Khi tắt: set thành "Ngừng bán"
+            spct.setTrangThai("Ngừng bán");
+        }
+    }
 }

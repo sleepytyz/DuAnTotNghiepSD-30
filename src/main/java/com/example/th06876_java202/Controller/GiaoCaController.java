@@ -34,9 +34,9 @@ public class GiaoCaController {
             @RequestParam(value = "gioBatDau", required = false) String gioBatDau,
             @RequestParam(value = "gioKetThuc", required = false) String gioKetThuc,
             Model model) {
-        
+
         List<CaLamViec> listCa;
-        
+
         if (tenCa != null && !tenCa.isEmpty()) {
             listCa = giaoCaService.findCaByTenCa(tenCa);
         } else if (gioBatDau != null && !gioBatDau.isEmpty() && gioKetThuc != null && !gioKetThuc.isEmpty()) {
@@ -46,7 +46,7 @@ public class GiaoCaController {
         } else {
             listCa = giaoCaService.findCaAll();
         }
-        
+
         model.addAttribute("listCaLamViec", listCa);
         return "giaoca/calamviec";
     }
@@ -57,35 +57,35 @@ public class GiaoCaController {
                          @RequestParam(value = "tuNgay", required = false) LocalDate tuNgay,
                          @RequestParam(value = "denNgay", required = false) LocalDate denNgay,
                          Model model){
-        
+
         if (tuNgay != null && denNgay == null) {
             denNgay = tuNgay.plusDays(7);
         }
-        
+
         if (tuNgay == null) {
             LocalDate homNay = LocalDate.now();
             tuNgay = homNay.minusDays(3);
             denNgay = tuNgay.plusDays(7);
         }
-        
+
         model.addAttribute("today", LocalDate.now());
-        
+
         List<CaLamViec> allCa = giaoCaService.findCaAll();
         model.addAttribute("allCa", allCa);
-        
+
         // SỬA: Dùng ChamCong thay vì ChamCongController
         Map<LocalDate, Map<CaLamViec, List<ChamCong>>> chamCongTheoNgayVaCa =
-            giaoCaService.getChamCongTheoNgayVaCa(tenNhanVien, maCa, tuNgay, denNgay);
+                giaoCaService.getChamCongTheoNgayVaCa(tenNhanVien, maCa, tuNgay, denNgay);
         model.addAttribute("chamCongData", chamCongTheoNgayVaCa);
-        
+
         List<LocalDate> listNgay = giaoCaService.getListNgayTrongKhoang(tuNgay, denNgay);
         model.addAttribute("listNgay", listNgay);
-        
+
         model.addAttribute("listNhanVien", giaoCaService.findAllNhanVien());
-        
+
         model.addAttribute("tuNgayValue", tuNgay);
         model.addAttribute("denNgayValue", denNgay);
-        
+
         return "giaoca/lichnhanvien";
     }
 
@@ -94,25 +94,25 @@ public class GiaoCaController {
         LocalDate homNay = LocalDate.now();
         LocalDate tuNgay = homNay.minusDays(3);
         LocalDate denNgay = tuNgay.plusDays(7);
-        
+
         model.addAttribute("today", homNay);
-        
+
         List<CaLamViec> allCa = giaoCaService.findCaAll();
         model.addAttribute("allCa", allCa);
-        
+
         // SỬA: Dùng ChamCong thay vì ChamCongController
         Map<LocalDate, Map<CaLamViec, List<ChamCong>>> chamCongTheoNgayVaCa =
-            giaoCaService.getChamCongTheoNgayVaCa(null, null, tuNgay, denNgay);
+                giaoCaService.getChamCongTheoNgayVaCa(null, null, tuNgay, denNgay);
         model.addAttribute("chamCongData", chamCongTheoNgayVaCa);
-        
+
         List<LocalDate> listNgay = giaoCaService.getListNgayTrongKhoang(tuNgay, denNgay);
         model.addAttribute("listNgay", listNgay);
-        
+
         model.addAttribute("listNhanVien", giaoCaService.findAllNhanVien());
-        
+
         model.addAttribute("tuNgayValue", tuNgay);
         model.addAttribute("denNgayValue", denNgay);
-        
+
         return "giaoca/lichnhanvien";
     }
 
@@ -120,30 +120,30 @@ public class GiaoCaController {
     public String showTaoLichHangLoat(
             @RequestParam(value = "tuan", required = false, defaultValue = "0") Integer tuan,
             Model model) {
-        
+
         LocalDate homNay = LocalDate.now();
         // Lấy ngày đầu tuần (Thứ 2)
         LocalDate tuNgay = homNay.with(java.time.DayOfWeek.MONDAY);
         tuNgay = tuNgay.plusDays(tuan * 7L);
         LocalDate denNgay = tuNgay.plusDays(6);
-        
+
         model.addAttribute("tuNgay", tuNgay);
         model.addAttribute("denNgay", denNgay);
         model.addAttribute("tuanHienTai", tuan);
         model.addAttribute("today", homNay);
-        
+
         // Lấy danh sách nhân viên
         List<NhanVien> listNhanVien = giaoCaService.findAllNhanVien();
         model.addAttribute("listNhanVien", listNhanVien);
-        
+
         // Lấy danh sách ca
         List<CaLamViec> listCa = giaoCaService.findCaAll();
         model.addAttribute("listCa", listCa);
-        
+
         // Lấy danh sách ngày trong tuần
         List<LocalDate> listNgay = giaoCaService.getListNgayTrongKhoang(tuNgay, denNgay);
         model.addAttribute("listNgay", listNgay);
-        
+
         return "giaoca/taolichhangloat";
     }
 
@@ -155,8 +155,8 @@ public class GiaoCaController {
 
             if (danhSach == null || danhSach.isEmpty()) {
                 return ResponseEntity.badRequest().body(Map.of(
-                    "success", false,
-                    "message", "Vui lòng chọn ít nhất 1 nhân viên và ca làm việc"
+                        "success", false,
+                        "message", "Vui lòng chọn ít nhất 1 nhân viên và ca làm việc"
                 ));
             }
 
@@ -164,14 +164,14 @@ public class GiaoCaController {
             List<ChamCong> result = giaoCaService.taoLichLamViecHangLoatChiTiet(danhSach);
 
             return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Đã tạo lịch thành công cho " + result.size() + " ca làm việc"
+                    "success", true,
+                    "message", "Đã tạo lịch thành công cho " + result.size() + " ca làm việc"
             ));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of(
-                "success", false,
-                "message", "Lỗi: " + e.getMessage()
+                    "success", false,
+                    "message", "Lỗi: " + e.getMessage()
             ));
         }
     }
@@ -203,6 +203,63 @@ public class GiaoCaController {
         }
     }
 
+    @PostMapping("/add-ca")
+    @ResponseBody
+    public ResponseEntity<?> addCa(@Valid @RequestBody CaLamViec caLamViec, BindingResult bindingResult) {
+        try {
+            if (bindingResult.hasErrors()) {
+                Map<String, String> errors = new HashMap<>();
+                for (FieldError error : bindingResult.getFieldErrors()) {
+                    errors.put(error.getField(), error.getDefaultMessage());
+                }
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "errors", errors,
+                        "message", "Vui lòng kiểm tra lại thông tin"
+                ));
+            }
+
+            if (caLamViec.getGioBatDau() != null && caLamViec.getGioKetThuc() != null) {
+                if (caLamViec.getGioBatDau().isAfter(caLamViec.getGioKetThuc()) ||
+                        caLamViec.getGioBatDau().equals(caLamViec.getGioKetThuc())) {
+                    return ResponseEntity.badRequest().body(Map.of(
+                            "success", false,
+                            "message", "Giờ kết thúc phải sau giờ bắt đầu"
+                    ));
+                }
+            }
+
+            // Kiểm tra trùng tên ca
+            List<CaLamViec> allCa = giaoCaService.findCaAll();
+            boolean isDuplicate = allCa.stream()
+                    .anyMatch(c -> c.getTenCa().equalsIgnoreCase(caLamViec.getTenCa().trim()));
+
+            if (isDuplicate) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "Tên ca '" + caLamViec.getTenCa() + "' đã tồn tại"
+                ));
+            }
+
+            caLamViec.setTenCa(caLamViec.getTenCa().trim());
+            if (caLamViec.getMoTa() != null) {
+                caLamViec.setMoTa(caLamViec.getMoTa().trim());
+            }
+            giaoCaService.addCaLamViec(caLamViec);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Thêm ca làm việc thành công"
+            ));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Lỗi: " + e.getMessage()
+            ));
+        }
+    }
+
     @PostMapping("/edit")
     @ResponseBody
     public ResponseEntity<?> editCa(@Valid @RequestBody CaLamViec caLamViec, BindingResult bindingResult) {
@@ -214,19 +271,19 @@ public class GiaoCaController {
                     errors.put(error.getField(), error.getDefaultMessage());
                 }
                 return ResponseEntity.badRequest().body(Map.of(
-                    "success", false,
-                    "errors", errors,
-                    "message", "Vui lòng kiểm tra lại thông tin"
+                        "success", false,
+                        "errors", errors,
+                        "message", "Vui lòng kiểm tra lại thông tin"
                 ));
             }
 
             // Validate giờ bắt đầu < giờ kết thúc (business logic)
             if (caLamViec.getGioBatDau() != null && caLamViec.getGioKetThuc() != null) {
                 if (caLamViec.getGioBatDau().isAfter(caLamViec.getGioKetThuc()) ||
-                    caLamViec.getGioBatDau().equals(caLamViec.getGioKetThuc())) {
+                        caLamViec.getGioBatDau().equals(caLamViec.getGioKetThuc())) {
                     return ResponseEntity.badRequest().body(Map.of(
-                        "success", false,
-                        "message", "Giờ kết thúc phải sau giờ bắt đầu"
+                            "success", false,
+                            "message", "Giờ kết thúc phải sau giờ bắt đầu"
                     ));
                 }
             }
@@ -235,35 +292,35 @@ public class GiaoCaController {
             CaLamViec existing = giaoCaService.findCaById(caLamViec.getMaCa());
             if (existing == null) {
                 return ResponseEntity.badRequest().body(Map.of(
-                    "success", false,
-                    "message", "Không tìm thấy ca làm việc"
+                        "success", false,
+                        "message", "Không tìm thấy ca làm việc"
                 ));
             }
 
             // Kiểm tra tên ca đã tồn tại chưa (trừ chính nó)
             List<CaLamViec> allCa = giaoCaService.findCaAll();
             boolean isDuplicate = allCa.stream()
-                .anyMatch(c -> c.getTenCa().equalsIgnoreCase(caLamViec.getTenCa().trim()) 
-                    && !c.getMaCa().equals(caLamViec.getMaCa()));
-            
+                    .anyMatch(c -> c.getTenCa().equalsIgnoreCase(caLamViec.getTenCa().trim())
+                            && !c.getMaCa().equals(caLamViec.getMaCa()));
+
             if (isDuplicate) {
                 return ResponseEntity.badRequest().body(Map.of(
-                    "success", false,
-                    "message", "Tên ca '" + caLamViec.getTenCa() + "' đã tồn tại"
+                        "success", false,
+                        "message", "Tên ca '" + caLamViec.getTenCa() + "' đã tồn tại"
                 ));
             }
 
             giaoCaService.editCaLamViec(caLamViec);
 
             return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Cập nhật ca làm việc thành công"
+                    "success", true,
+                    "message", "Cập nhật ca làm việc thành công"
             ));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of(
-                "success", false,
-                "message", "Lỗi: " + e.getMessage()
+                    "success", false,
+                    "message", "Lỗi: " + e.getMessage()
             ));
         }
     }

@@ -1,9 +1,7 @@
 package com.example.th06876_java202.Controller;
 
 import com.example.th06876_java202.Entity.*;
-import com.example.th06876_java202.Entity.*;
 import com.example.th06876_java202.Repository.SanPhamChiTietRepository;
-import com.example.th06876_java202.Service.*;
 import com.example.th06876_java202.Service.*;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +12,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -32,14 +29,10 @@ import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -58,16 +51,17 @@ public class SanPhamChiTietController {
     @Autowired
     private SanPhamChiTietRepository sanPhamChiTietRepository;
 
-
     private final SanPhamChiTietService sanPhamChiTietService;
     private final DanhMucSanPhamService danhMucSanPhamService;
     private final SanPhamService sanPhamService;
     private final MauSacService mauSacService;
     private final KichThuocService kichThuocService;
 
-    public SanPhamChiTietController( SanPhamChiTietService sanPhamChiTietService, DanhMucSanPhamService danhMucSanPhamService,
-                                     SanPhamService sanPhamService,
-                                     MauSacService mauSacService, KichThuocService kichThuocService) {
+    public SanPhamChiTietController(SanPhamChiTietService sanPhamChiTietService,
+                                    DanhMucSanPhamService danhMucSanPhamService,
+                                    SanPhamService sanPhamService,
+                                    MauSacService mauSacService,
+                                    KichThuocService kichThuocService) {
         this.sanPhamChiTietService = sanPhamChiTietService;
         this.danhMucSanPhamService = danhMucSanPhamService;
         this.sanPhamService = sanPhamService;
@@ -77,9 +71,7 @@ public class SanPhamChiTietController {
 
     private BigDecimal getMaxDiscountForVariant(String maSanPhamChiTiet) {
         try {
-            // Lấy danh sách đợt giảm giá đang hoạt động có chứa biến thể này
             List<ChiTietDotGiamGia> list = chiTietDotGiamGiaService.findBySanPhamChiTiet_MaSanPhamChiTiet(maSanPhamChiTiet);
-
             if (list == null || list.isEmpty()) {
                 return BigDecimal.ZERO;
             }
@@ -90,24 +82,17 @@ public class SanPhamChiTietController {
             for (ChiTietDotGiamGia ct : list) {
                 DotGiamGia dgg = ct.getDotGiamGia();
                 if (dgg == null) continue;
-
-                // Chỉ tính các đợt giảm giá đang hoạt động
                 if (!"Hoạt động".equals(dgg.getTrangThai())) continue;
 
-                // Kiểm tra ngày hiệu lực
                 if (dgg.getNgayBatDau() != null && dgg.getNgayKetThuc() != null) {
                     if (today.isBefore(dgg.getNgayBatDau()) || today.isAfter(dgg.getNgayKetThuc())) {
                         continue;
                     }
                 }
 
-                // Kiểm tra biến thể có trong đợt giảm giá không
                 if (ct.getSanPhamChiTiet() != null &&
                         maSanPhamChiTiet.equals(ct.getSanPhamChiTiet().getMaSanPhamChiTiet())) {
-
-                    BigDecimal giaTriGiam = dgg.getGiaTriGiam() != null ?
-                            dgg.getGiaTriGiam() : BigDecimal.ZERO;
-
+                    BigDecimal giaTriGiam = dgg.getGiaTriGiam() != null ? dgg.getGiaTriGiam() : BigDecimal.ZERO;
                     if (giaTriGiam.compareTo(maxDiscount) > 0) {
                         maxDiscount = giaTriGiam;
                     }
@@ -120,7 +105,6 @@ public class SanPhamChiTietController {
         }
     }
 
-    // ===== TÍNH GIÁ SAU GIẢM =====
     private BigDecimal calculatePriceAfterDiscount(BigDecimal giaBan, BigDecimal discountPercent) {
         if (giaBan == null || discountPercent == null || discountPercent.compareTo(BigDecimal.ZERO) == 0) {
             return giaBan;
@@ -129,37 +113,65 @@ public class SanPhamChiTietController {
         return giaBan.subtract(discountAmount);
     }
 
-
+    // ===== MAIN INDEX - XỬ LÝ TẤT CẢ FILTER =====
     @GetMapping("/index")
-    public String index(Model model,
-                        @PageableDefault(size = 5, sort = "maSanPhamChiTiet", direction = Sort.Direction.DESC) Pageable pageable) {
+    public String index(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(required = false) String size,
+            @RequestParam(required = false) String msac,
+            @RequestParam(required = false) String tt,
+            @RequestParam(required = false) BigDecimal gia,
+            @RequestParam(required = false) BigDecimal gia2,
+            @RequestParam(required = false) String tonKho,
+            Model model) {
 
-        Page<SanPhamChiTiet> page = sanPhamChiTietService.getall(pageable);
+        // Tạo Pageable với sorting
+        Pageable pageable = PageRequest.of(page, 5, Sort.by("maSanPhamChiTiet").descending());
+
+        // Lấy dữ liệu với các filter
+        Page<SanPhamChiTiet> pageResult = sanPhamChiTietService.findAllWithFilters(
+                size, msac, tt, gia, gia2, tonKho, pageable);
 
         // Lấy danh sách biến thể và thêm thông tin giảm giá
         List<SanPhamChiTietDTOWithDiscount> listWithDiscount = new ArrayList<>();
-        for (SanPhamChiTiet spct : page.getContent()) {
+        for (SanPhamChiTiet spct : pageResult.getContent()) {
             SanPhamChiTietDTOWithDiscount dto = new SanPhamChiTietDTOWithDiscount();
             dto.setSanPhamChiTiet(spct);
-
             BigDecimal maxDiscount = getMaxDiscountForVariant(spct.getMaSanPhamChiTiet());
             dto.setMaxDiscount(maxDiscount);
             dto.setPriceAfterDiscount(calculatePriceAfterDiscount(spct.getGiaBan(), maxDiscount));
             dto.setHasDiscount(maxDiscount.compareTo(BigDecimal.ZERO) > 0);
-
             listWithDiscount.add(dto);
         }
 
-        model.addAttribute("listspct", page.getContent());
+        // Đưa dữ liệu vào model
+        model.addAttribute("listspct", pageResult.getContent());
         model.addAttribute("listWithDiscount", listWithDiscount);
+        model.addAttribute("currentPage", pageResult.getNumber());
+        model.addAttribute("totalPages", pageResult.getTotalPages());
+        model.addAttribute("totalItems", pageResult.getTotalElements());
 
-        setupPageModel(model, page, null, null);
+        // === GIỮ LẠI CÁC THAM SỐ LỌC ===
+        model.addAttribute("selectedSize", size);
+        model.addAttribute("selectedMauSac", msac);
+        model.addAttribute("selectedStatus", tt);
+        model.addAttribute("selectedGia", gia);
+        model.addAttribute("selectedGia2", gia2);
+        model.addAttribute("selectedTonKho", tonKho);
+
+        // Các danh sách cho combobox
+        model.addAttribute("listms", mauSacService.findAll());
+        model.addAttribute("lists", kichThuocService.getall());
 
         Double maxGia = sanPhamChiTietService.gia();
         model.addAttribute("maxGiaBan", maxGia != null ? maxGia : 1000000000);
 
+        model.addAttribute("sanphamct", new SanPhamChiTiet());
+
         return "sanphamct/index";
     }
+
+    // ===== TOGGLE STATUS (FORM SUBMIT) =====
     @GetMapping("/toggle-status/{id}")
     public String toggleStatus(@PathVariable("id") String id,
                                @RequestParam("status") String status,
@@ -169,60 +181,134 @@ public class SanPhamChiTietController {
                                @RequestParam(required = false) String tt,
                                @RequestParam(required = false) String gia,
                                @RequestParam(required = false) String gia2,
+                               @RequestParam(required = false) String tonKho,
                                RedirectAttributes redirectAttributes) {
 
         SanPhamChiTiet spct = sanPhamChiTietService.findbyId(id).orElseThrow();
 
         if (Boolean.FALSE.equals(spct.getSanPham().getTrangThai())) {
             redirectAttributes.addFlashAttribute("errorMess", "Không thể thay đổi trạng thái biến thể khi sản phẩm cha đang ngừng bán!");
-            return "redirect:/sanphamct/index?page=" + page;
+            return buildRedirectUrl(page, size, msac, tt, gia, gia2, tonKho);
         }
 
-        String message = "";
+        // Cập nhật trạng thái
         if ("Ngừng bán".equals(status)) {
             spct.setTrangThai("Ngừng bán");
-            message = "Đã tắt sản phẩm!";
         } else {
             spct.setTrangThai("Còn hàng");
             sanPhamChiTietService.capNhatTrangThaii(spct);
-            message = "Đã bật sản phẩm!";
         }
 
         sanPhamChiTietService.them(spct);
-
-        redirectAttributes.addFlashAttribute("successMess", message);
-
-
-        String redirectUrl = "redirect:/sanphamct/index?page=" + page;
-        if (size != null && !size.isEmpty()) redirectUrl += "&size=" + size;
-        if (msac != null && !msac.isEmpty()) redirectUrl += "&msac=" + msac;
-        if (tt != null && !tt.isEmpty()) redirectUrl += "&tt=" + tt;
-        if (gia != null && !gia.isEmpty()) redirectUrl += "&gia=" + gia;
-        if (gia2 != null && !gia2.isEmpty()) redirectUrl += "&gia2=" + gia2;
-
-        return redirectUrl;
+        return buildRedirectUrl(page, size, msac, tt, gia, gia2, tonKho);
     }
 
+    // ===== TOGGLE STATUS (AJAX) =====
+    @PostMapping("/api/toggle-status/{id}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> toggleStatusApi(
+            @PathVariable String id,
+            @RequestParam boolean active) {
+
+        Map<String, Object> response = new HashMap<>();
+        try {
+            System.out.println("=== TOGGLE STATUS API ===");
+            System.out.println("ID: " + id);
+            System.out.println("Active: " + active);
+
+            Optional<SanPhamChiTiet> spctOpt = sanPhamChiTietService.findbyId(id);
+            if (spctOpt.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "Không tìm thấy biến thể!");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            SanPhamChiTiet spct = spctOpt.get();
+
+            if (spct.getSanPham() != null && !spct.getSanPham().getTrangThai()) {
+                response.put("success", false);
+                response.put("message", "Sản phẩm cha đang ngừng bán, không thể thay đổi!");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            if (active) {
+                sanPhamChiTietService.capNhatTrangThaii(spct);
+            } else {
+                spct.setTrangThai("Ngừng bán");
+            }
+
+            SanPhamChiTiet saved = sanPhamChiTietService.them(spct);
+
+            response.put("success", true);
+            response.put("message", active ? "Đã bật sản phẩm!" : "Đã tắt sản phẩm!");
+            response.put("trangThai", saved.getTrangThai());
+            response.put("soLuongTon", saved.getSoLuongTon());
+            response.put("maBienThe", saved.getMaSanPhamChiTiet());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "Lỗi: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
 
     @GetMapping("/edit/{id}")
     public String edit(@PathVariable("id") String id,
                        @RequestParam(value = "page", defaultValue = "0") int page,
-                       @RequestParam(value = "size", required = false) String size,
-                       @RequestParam(value = "msac", required = false) String msac,
-                       @RequestParam(value = "tt", required = false) String tt,
+                       @RequestParam(required = false) String size,
+                       @RequestParam(required = false) String msac,
+                       @RequestParam(required = false) String tt,
+                       @RequestParam(required = false) String gia,
+                       @RequestParam(required = false) String gia2,
+                       @RequestParam(required = false) String tonKho,
                        Model model) {
 
+        System.out.println("=== EDIT ===");
+        System.out.println("ID: " + id);
+
+        // Lấy danh sách phân trang
         Pageable pageable = PageRequest.of(page, 5, Sort.by("maSanPhamChiTiet").descending());
         Page<SanPhamChiTiet> p = sanPhamChiTietService.getall(pageable);
         model.addAttribute("listspct", p.getContent());
         setupPageModel(model, p, null, null);
 
-        SanPhamChiTiet sanPhamChiTiet = sanPhamChiTietService.findbyId(id).orElse(null);
+        // Lấy biến thể cần chỉnh sửa - QUAN TRỌNG: LẤY ĐẦY ĐỦ THÔNG TIN
+        SanPhamChiTiet sanPhamChiTiet = sanPhamChiTietService.findbyIid(id).orElse(null);
+
+        // DEBUG
+        if (sanPhamChiTiet != null) {
+            System.out.println("SanPhamChiTiet found: " + sanPhamChiTiet.getMaSanPhamChiTiet());
+            if (sanPhamChiTiet.getSanPham() != null) {
+                System.out.println("SanPham: " + sanPhamChiTiet.getSanPham().getMaSanPham() + " - " + sanPhamChiTiet.getSanPham().getTenSanPham());
+            } else {
+                System.out.println("SanPham is NULL!");
+                // Nếu SanPham bị null, thử load lại từ database
+                if (sanPhamChiTiet.getSanPham() == null) {
+                    // Lấy SanPham từ MaSanPham nếu có
+                    String maSanPham = sanPhamChiTiet.getSanPham() != null ? sanPhamChiTiet.getSanPham().getMaSanPham() : null;
+                    if (maSanPham != null) {
+                        sanPhamService.findById(maSanPham).ifPresent(sanPhamChiTiet::setSanPham);
+                    }
+                }
+            }
+        }
+
         model.addAttribute("sanphamct", sanPhamChiTiet);
+
+        // === ĐẢM BẢO TRUYỀN LISTSP VÀO MODEL ===
+        model.addAttribute("listsp", sanPhamService.getAll());
+        model.addAttribute("listms", mauSacService.findAll());
+        model.addAttribute("lists", kichThuocService.getall());
 
         model.addAttribute("selectedSize", size);
         model.addAttribute("selectedMauSac", msac);
         model.addAttribute("selectedStatus", tt);
+        model.addAttribute("selectedGia", gia);
+        model.addAttribute("selectedGia2", gia2);
+        model.addAttribute("selectedTonKho", tonKho);
 
         model.addAttribute("showModal", true);
         model.addAttribute("isEdit", true);
@@ -232,24 +318,6 @@ public class SanPhamChiTietController {
         return "sanphamct/index";
     }
 
-
-
-    @PostMapping("/api/toggle-status/{id}")
-    @ResponseBody
-    public ResponseEntity<String> toggleStatus(@PathVariable String id, @RequestParam boolean active) {
-        try {
-            SanPhamChiTiet spct = sanPhamChiTietService.findbyId(id)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
-
-            spct.setTrangThai(active ? "Còn hàng" : "Ngừng bán");
-            sanPhamChiTietService.capNhatTrangThaii(spct);
-            sanPhamChiTietService.them(spct);
-
-            return ResponseEntity.ok(spct.getTrangThai());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi: " + e.getMessage());
-        }
-    }
     @PostMapping("/update-ajax")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> updateAjax(
@@ -260,11 +328,17 @@ public class SanPhamChiTietController {
         Map<String, Object> response = new HashMap<>();
 
         try {
+            System.out.println("=== UPDATE AJAX ===");
+            System.out.println("MaSanPhamChiTiet: " + sanPhamChiTiet.getMaSanPhamChiTiet());
+
             // Lấy bản ghi cũ
             SanPhamChiTiet old = sanPhamChiTietService.findbyId(sanPhamChiTiet.getMaSanPhamChiTiet())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy biến thể!"));
 
-            // Xử lý upload ảnh mới
+            // DEBUG: In ra thông tin
+            System.out.println("Old SanPham: " + (old.getSanPham() != null ? old.getSanPham().getMaSanPham() : "NULL"));
+
+            // Xử lý upload ảnh
             if (file != null && !file.isEmpty()) {
                 if (old.getDuongDanAnh() != null && !old.getDuongDanAnh().isEmpty()) {
                     Path oldFilePath = Paths.get("D:\\AnhSP\\" + old.getDuongDanAnh());
@@ -278,16 +352,52 @@ public class SanPhamChiTietController {
                 old.setDuongDanAnh(newFileName);
             }
 
-            // Cập nhật thông tin
-            old.setSanPham(sanPhamService.findById(sanPhamChiTiet.getSanPham().getMaSanPham())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm!")));
-            old.setKichThuoc(kichThuocService.getKichThuocById(sanPhamChiTiet.getKichThuoc().getMaKichThuoc())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy kích thước!")));
-            old.setMauSac(mauSacService.findById(sanPhamChiTiet.getMauSac().getMaMauSac())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy màu sắc!")));
-            old.setGiaBan(sanPhamChiTiet.getGiaBan());
-            old.setSoLuongTon(sanPhamChiTiet.getSoLuongTon());
+            // === QUAN TRỌNG: LẤY MÃ SẢN PHẨM TỪ FORM HOẶC GIỮ NGUYÊN ===
+            String maSanPham = null;
 
+            // Cách 1: Lấy từ sanPhamChiTiet (nếu có)
+            if (sanPhamChiTiet.getSanPham() != null) {
+                maSanPham = sanPhamChiTiet.getSanPham().getMaSanPham();
+                System.out.println("MaSanPham from form: " + maSanPham);
+            }
+
+            // Cách 2: Nếu không có, giữ nguyên sản phẩm cũ
+            if (maSanPham == null || maSanPham.trim().isEmpty()) {
+                if (old.getSanPham() != null) {
+                    maSanPham = old.getSanPham().getMaSanPham();
+                    System.out.println("MaSanPham from old: " + maSanPham);
+                } else {
+                    throw new RuntimeException("Không tìm thấy sản phẩm cha!");
+                }
+            }
+
+            // Cập nhật sản phẩm
+            Optional<SanPham> sanPhamOpt = sanPhamService.findById(maSanPham);
+            if (sanPhamOpt.isPresent()) {
+                old.setSanPham(sanPhamOpt.get());
+            } else {
+                throw new RuntimeException("Không tìm thấy sản phẩm với mã: " + maSanPham);
+            }
+
+            // Cập nhật kích thước
+            if (sanPhamChiTiet.getKichThuoc() != null && sanPhamChiTiet.getKichThuoc().getMaKichThuoc() != null) {
+                Optional<KichThuoc> ktOpt = kichThuocService.getKichThuocById(sanPhamChiTiet.getKichThuoc().getMaKichThuoc());
+                ktOpt.ifPresent(old::setKichThuoc);
+            }
+
+            // Cập nhật màu sắc
+            if (sanPhamChiTiet.getMauSac() != null && sanPhamChiTiet.getMauSac().getMaMauSac() != null) {
+                Optional<MauSac> msOpt = mauSacService.findById(sanPhamChiTiet.getMauSac().getMaMauSac());
+                msOpt.ifPresent(old::setMauSac);
+            }
+
+            // Cập nhật giá và số lượng
+            if (sanPhamChiTiet.getGiaBan() != null) {
+                old.setGiaBan(sanPhamChiTiet.getGiaBan());
+            }
+            if (sanPhamChiTiet.getSoLuongTon() != null) {
+                old.setSoLuongTon(sanPhamChiTiet.getSoLuongTon());
+            }
 
             // Cập nhật trạng thái
             sanPhamChiTietService.capNhatTrangThaii(old);
@@ -295,7 +405,6 @@ public class SanPhamChiTietController {
             // Lưu
             SanPhamChiTiet updated = sanPhamChiTietService.them(old);
 
-            // Trả về JSON với đầy đủ thông tin
             response.put("success", true);
             response.put("message", "Cập nhật biến thể thành công!");
             response.put("maBienThe", updated.getMaSanPhamChiTiet());
@@ -328,7 +437,7 @@ public class SanPhamChiTietController {
                          @RequestParam(required = false) String tt,
                          @RequestParam(required = false) String gia,
                          @RequestParam(required = false) String gia2,
-                         @RequestParam(required = false) String tonKho, // THÊM NÀY
+                         @RequestParam(required = false) String tonKho,
                          Errors errors,
                          RedirectAttributes redirectAttributes,
                          Model model) {
@@ -345,14 +454,12 @@ public class SanPhamChiTietController {
         try {
             SanPhamChiTiet old = sanPhamChiTietService.findbyId(sanPhamChiTiet.getMaSanPhamChiTiet()).orElseThrow();
 
-            // Xử lý file ảnh
             if (file != null && !file.isEmpty()) {
                 try {
                     if (old.getDuongDanAnh() != null && !old.getDuongDanAnh().isEmpty()) {
                         Path oldFilePath = Paths.get("D:\\AnhSP\\" + old.getDuongDanAnh());
                         try {
                             Files.deleteIfExists(oldFilePath);
-                            System.out.println("Đã xóa file cũ: " + old.getDuongDanAnh());
                         } catch (IOException e) {
                             System.err.println("Không thể xóa file cũ: " + e.getMessage());
                         }
@@ -371,200 +478,44 @@ public class SanPhamChiTietController {
             old.setGiaBan(sanPhamChiTiet.getGiaBan());
             old.setSoLuongTon(sanPhamChiTiet.getSoLuongTon());
 
-
             sanPhamChiTietService.capNhatTrangThaii(old);
             sanPhamChiTietService.them(old);
+
+            // === THÊM SUCCESS MESS VÀO REDIRECT ===
+            redirectAttributes.addFlashAttribute("successMess", "Cập nhật biến thể thành công!");
 
             if ("detail".equals(source)) {
                 return "redirect:/sanpham/detail/" + old.getSanPham().getMaSanPham();
             } else {
-                // Xây dựng URL redirect với tất cả tham số filter
-                String redirectUrl = "redirect:/sanphamct/index?page=" + page;
-                if (size != null && !size.isEmpty()) redirectUrl += "&size=" + size;
-                if (msac != null && !msac.isEmpty()) redirectUrl += "&msac=" + msac;
-                if (tt != null && !tt.isEmpty()) redirectUrl += "&tt=" + tt;
-                if (gia != null && !gia.isEmpty()) redirectUrl += "&gia=" + gia;
-                if (gia2 != null && !gia2.isEmpty()) redirectUrl += "&gia2=" + gia2;
-                if (tonKho != null && !tonKho.isEmpty()) redirectUrl += "&tonKho=" + tonKho;
-
-                return redirectUrl;
+                return buildRedirectUrl(page, size, msac, tt, gia, gia2, tonKho);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
             redirectAttributes.addFlashAttribute("errorMess", "Lỗi: " + e.getMessage());
-            return "redirect:/sanphamct/index?page=" + page;
+            return buildRedirectUrl(page, size, msac, tt, gia, gia2, tonKho);
         }
     }
 
-    @GetMapping("/loctonkho")
-    public String loctonkho(@RequestParam(value = "tonKho", required = false) String tonKho,
-                            @RequestParam(value = "page", defaultValue = "0") int page,
-                            @RequestParam(required = false) String size,
-                            @RequestParam(required = false) String msac,
-                            @RequestParam(required = false) String tt,
-                            @RequestParam(required = false) String gia,
-                            @RequestParam(required = false) String gia2,
-                            Model model) {
-
-        if (tonKho == null || tonKho.trim().isEmpty()) {
-            return "redirect:/sanphamct/index";
-        }
-
-        Pageable pageable = PageRequest.of(page, 5, Sort.by("maSanPhamChiTiet").descending());
-        Page<SanPhamChiTiet> pageResult = sanPhamChiTietService.getByTonKho(tonKho, pageable);
-
-        List<SanPhamChiTietDTOWithDiscount> listWithDiscount = new ArrayList<>();
-        for (SanPhamChiTiet spct : pageResult.getContent()) {
-            SanPhamChiTietDTOWithDiscount dto = new SanPhamChiTietDTOWithDiscount();
-            dto.setSanPhamChiTiet(spct);
-            BigDecimal maxDiscount = getMaxDiscountForVariant(spct.getMaSanPhamChiTiet());
-            dto.setMaxDiscount(maxDiscount);
-            dto.setPriceAfterDiscount(calculatePriceAfterDiscount(spct.getGiaBan(), maxDiscount));
-            dto.setHasDiscount(maxDiscount.compareTo(BigDecimal.ZERO) > 0);
-            listWithDiscount.add(dto);
-        }
-
-        model.addAttribute("listspct", pageResult.getContent());
-        model.addAttribute("listWithDiscount", listWithDiscount);
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", pageResult.getTotalPages());
-        model.addAttribute("totalItems", pageResult.getTotalElements());
-        model.addAttribute("selectedTonKho", tonKho);
-        model.addAttribute("selectedSize", size);
-        model.addAttribute("selectedMauSac", msac);
-        model.addAttribute("selectedStatus", tt);
-        model.addAttribute("selectedGia", gia);
-        model.addAttribute("selectedGia2", gia2);
-
-        Double maxGia = sanPhamChiTietService.gia();
-        model.addAttribute("maxGiaBan", maxGia != null ? maxGia : 1000000000);
-
-        prepareModel(model);
-        model.addAttribute("sanphamct", new SanPhamChiTiet());
-
-        return "sanphamct/index";
+    // ===== PHƯƠNG THỨC HỖ TRỢ XÂY DỰNG URL REDIRECT =====
+    private String buildRedirectUrl(int page, String size, String msac, String tt, String gia, String gia2, String tonKho) {
+        StringBuilder url = new StringBuilder("redirect:/sanphamct/index?page=" + page);
+        if (size != null && !size.isEmpty()) url.append("&size=").append(size);
+        if (msac != null && !msac.isEmpty()) url.append("&msac=").append(msac);
+        if (tt != null && !tt.isEmpty()) url.append("&tt=").append(tt);
+        if (gia != null && !gia.isEmpty()) url.append("&gia=").append(gia);
+        if (gia2 != null && !gia2.isEmpty()) url.append("&gia2=").append(gia2);
+        if (tonKho != null && !tonKho.isEmpty()) url.append("&tonKho=").append(tonKho);
+        return url.toString();
     }
 
+    // ===== PREPARE MODEL =====
     private void prepareModel(Model model) {
         model.addAttribute("listsp", sanPhamService.getAll());
         model.addAttribute("listdmsp", danhMucSanPhamService.getAll());
         model.addAttribute("listms", mauSacService.findAll());
         model.addAttribute("lists", kichThuocService.getall());
     }
-
-
-    @GetMapping("/locsize")
-    public String locsize(@RequestParam(value = "size", required = false) String size,
-                          @PageableDefault(size = 5) Pageable pageable, Model model) {
-        if (size == null || size.trim().isEmpty()) return "redirect:/sanphamct/index";
-
-        Page<SanPhamChiTiet> page = sanPhamChiTietService.getBySize(size, getSortedPageable(pageable));
-
-        List<SanPhamChiTietDTOWithDiscount> listWithDiscount = new ArrayList<>();
-        for (SanPhamChiTiet spct : page.getContent()) {
-            SanPhamChiTietDTOWithDiscount dto = new SanPhamChiTietDTOWithDiscount();
-            dto.setSanPhamChiTiet(spct);
-            BigDecimal maxDiscount = getMaxDiscountForVariant(spct.getMaSanPhamChiTiet());
-            dto.setMaxDiscount(maxDiscount);
-            dto.setPriceAfterDiscount(calculatePriceAfterDiscount(spct.getGiaBan(), maxDiscount));
-            dto.setHasDiscount(maxDiscount.compareTo(BigDecimal.ZERO) > 0);
-            listWithDiscount.add(dto);
-        }
-
-        model.addAttribute("listspct", page.getContent());
-        model.addAttribute("listWithDiscount", listWithDiscount);
-        setupPageModel(model, page, "selectedSize", size);
-        Double maxGia = sanPhamChiTietService.gia();
-        model.addAttribute("maxGiaBan", maxGia != null ? maxGia : 1000000000);
-        return "sanphamct/index";
-    }
-
-
-    @GetMapping("/locmsac")
-    public String locmsac(@RequestParam(value = "msac", required = false) String msac,
-                          @PageableDefault(size = 5) Pageable pageable, Model model) {
-        if (msac == null || msac.trim().isEmpty()) return "redirect:/sanphamct/index";
-
-        Page<SanPhamChiTiet> page = sanPhamChiTietService.getByMauSac(msac, getSortedPageable(pageable));
-
-        List<SanPhamChiTietDTOWithDiscount> listWithDiscount = new ArrayList<>();
-        for (SanPhamChiTiet spct : page.getContent()) {
-            SanPhamChiTietDTOWithDiscount dto = new SanPhamChiTietDTOWithDiscount();
-            dto.setSanPhamChiTiet(spct);
-            BigDecimal maxDiscount = getMaxDiscountForVariant(spct.getMaSanPhamChiTiet());
-            dto.setMaxDiscount(maxDiscount);
-            dto.setPriceAfterDiscount(calculatePriceAfterDiscount(spct.getGiaBan(), maxDiscount));
-            dto.setHasDiscount(maxDiscount.compareTo(BigDecimal.ZERO) > 0);
-            listWithDiscount.add(dto);
-        }
-
-        model.addAttribute("listspct", page.getContent());
-        model.addAttribute("listWithDiscount", listWithDiscount);
-        setupPageModel(model, page, "selectedMauSac", msac);
-        Double maxGia = sanPhamChiTietService.gia();
-        model.addAttribute("maxGiaBan", maxGia != null ? maxGia : 1000000000);
-        return "sanphamct/index";
-    }
-
-
-    @GetMapping("/loctt")
-    public String loctt(@RequestParam(value = "tt", required = false) String tt,
-                        @PageableDefault(size = 5) Pageable pageable, Model model) {
-        if (tt == null || tt.trim().isEmpty()) return "redirect:/sanphamct/index";
-
-        Page<SanPhamChiTiet> page = sanPhamChiTietService.getByTT(tt, getSortedPageable(pageable));
-
-        List<SanPhamChiTietDTOWithDiscount> listWithDiscount = new ArrayList<>();
-        for (SanPhamChiTiet spct : page.getContent()) {
-            SanPhamChiTietDTOWithDiscount dto = new SanPhamChiTietDTOWithDiscount();
-            dto.setSanPhamChiTiet(spct);
-            BigDecimal maxDiscount = getMaxDiscountForVariant(spct.getMaSanPhamChiTiet());
-            dto.setMaxDiscount(maxDiscount);
-            dto.setPriceAfterDiscount(calculatePriceAfterDiscount(spct.getGiaBan(), maxDiscount));
-            dto.setHasDiscount(maxDiscount.compareTo(BigDecimal.ZERO) > 0);
-            listWithDiscount.add(dto);
-        }
-
-        model.addAttribute("listspct", page.getContent());
-        model.addAttribute("listWithDiscount", listWithDiscount);
-        setupPageModel(model, page, "selectedStatus", tt);
-        Double maxGia = sanPhamChiTietService.gia();
-        model.addAttribute("maxGiaBan", maxGia != null ? maxGia : 1000000000);
-        return "sanphamct/index";
-    }
-
-
-    @GetMapping("/locgia")
-    public String locgia(@RequestParam(value = "gia", required = false) BigDecimal gia,
-                         @RequestParam(value = "gia2", required = false) BigDecimal gia2,
-                         @PageableDefault(size = 5) Pageable pageable, Model model) {
-        BigDecimal min = (gia == null) ? BigDecimal.ZERO : gia;
-        BigDecimal max = (gia2 == null) ? BigDecimal.valueOf(1000000000) : gia2;
-
-        Page<SanPhamChiTiet> page = sanPhamChiTietService.getBygia(min, max, getSortedPageable(pageable));
-
-        List<SanPhamChiTietDTOWithDiscount> listWithDiscount = new ArrayList<>();
-        for (SanPhamChiTiet spct : page.getContent()) {
-            SanPhamChiTietDTOWithDiscount dto = new SanPhamChiTietDTOWithDiscount();
-            dto.setSanPhamChiTiet(spct);
-            BigDecimal maxDiscount = getMaxDiscountForVariant(spct.getMaSanPhamChiTiet());
-            dto.setMaxDiscount(maxDiscount);
-            dto.setPriceAfterDiscount(calculatePriceAfterDiscount(spct.getGiaBan(), maxDiscount));
-            dto.setHasDiscount(maxDiscount.compareTo(BigDecimal.ZERO) > 0);
-            listWithDiscount.add(dto);
-        }
-
-        model.addAttribute("listspct", page.getContent());
-        model.addAttribute("listWithDiscount", listWithDiscount);
-        setupPageModel(model, page, null, null);
-        model.addAttribute("selectedGia", min);
-        model.addAttribute("selectedGia2", max);
-        Double maxGia = sanPhamChiTietService.gia();
-        model.addAttribute("maxGiaBan", maxGia != null ? maxGia : 1000000000);
-        return "sanphamct/index";
-    }
-
 
     private void setupPageModel(Model model, Page<SanPhamChiTiet> page, String attrName, Object attrValue) {
         model.addAttribute("currentPage", page.getNumber());
@@ -575,22 +526,12 @@ public class SanPhamChiTietController {
         model.addAttribute("sanphamct", new SanPhamChiTiet());
     }
 
-
-    private Pageable getSortedPageable(Pageable pageable) {
-        return org.springframework.data.domain.PageRequest.of(
-                pageable.getPageNumber(),
-                pageable.getPageSize(),
-                org.springframework.data.domain.Sort.by("maSanPhamChiTiet").descending()
-        );
-    }
-
-
+    // ===== QR CODE =====
     @GetMapping("/generate-qr/{maBienThe}")
     public ResponseEntity<?> generateQR(@PathVariable("maBienThe") String maBienThe) {
         try {
             SanPhamChiTiet spct = sanPhamChiTietService.findbyId(maBienThe)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy biến thể!"));
-
 
             String qrPath = qrCodeService.generateVariantQRCode(maBienThe);
 
@@ -613,37 +554,27 @@ public class SanPhamChiTietController {
     @GetMapping("/download-qr/{maBienThe}")
     public ResponseEntity<?> downloadQR(@PathVariable("maBienThe") String maBienThe) {
         try {
-            // Kiểm tra biến thể tồn tại
             SanPhamChiTiet spct = sanPhamChiTietService.findbyId(maBienThe)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy biến thể!"));
 
-            // 📁 KIỂM TRA FILE QR ĐÃ TỒN TẠI CHƯA
             String fileName = "QR_" + maBienThe + ".png";
             Path savePath = Paths.get("D:\\QRSanPham", fileName);
 
             if (Files.exists(savePath)) {
-                // File đã tồn tại, trả về thông báo
                 Map<String, Object> response = new HashMap<>();
                 response.put("success", false);
                 response.put("duplicate", true);
-                response.put("message", "Mã QR của biến thể '" + maBienThe + "' đã tồn tại trong thư mục D:\\QRSanPham!");
+                response.put("message", "Mã QR của biến thể '" + maBienThe + "' đã tồn tại!");
                 response.put("filePath", savePath.toString());
                 return ResponseEntity.ok(response);
             }
 
-            // Nội dung QR
             String qrContent = "https://fsshop.com/sanpham/detail/" + maBienThe;
-
-            // Tạo QR Code dưới dạng byte[]
             byte[] qrBytes = qrCodeService.generateQRCodeAsBytes(qrContent);
 
-            // Tạo thư mục nếu chưa tồn tại
             Files.createDirectories(savePath.getParent());
-
-            // Ghi file
             Files.write(savePath, qrBytes);
 
-            // Trả về thông báo thành công
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("duplicate", false);
@@ -669,9 +600,7 @@ public class SanPhamChiTietController {
             List<String> notFoundFiles = new ArrayList<>();
 
             for (String maBienThe : maBienTheList) {
-                SanPhamChiTiet spct = sanPhamChiTietService.findbyId(maBienThe)
-                        .orElse(null);
-
+                SanPhamChiTiet spct = sanPhamChiTietService.findbyId(maBienThe).orElse(null);
                 if (spct == null) {
                     notFoundFiles.add(maBienThe);
                     continue;
@@ -681,40 +610,35 @@ public class SanPhamChiTietController {
                 Path savePath = Paths.get("D:\\QRSanPham", fileName);
 
                 if (Files.exists(savePath)) {
-                    // File đã tồn tại
                     duplicateFiles.add(maBienThe);
                     continue;
                 }
 
-                // Tạo QR mới
                 String qrContent = "https://fsshop.com/sanpham/detail/" + maBienThe;
                 byte[] qrBytes = qrCodeService.generateQRCodeAsBytes(qrContent);
 
                 Files.createDirectories(savePath.getParent());
                 Files.write(savePath, qrBytes);
-
                 savedFiles.add(maBienThe);
             }
 
-            // Xây dựng thông báo
             String message = "";
             if (!savedFiles.isEmpty()) {
-                message += "Đã lưu " + savedFiles.size() + " QR Code mới: " + String.join(", ", savedFiles) + ". ";
+                message += "Đã lưu " + savedFiles.size() + " QR Code mới. ";
             }
             if (!duplicateFiles.isEmpty()) {
-                message += "QR Code đã tồn tại cho biến thể: " + String.join(", ", duplicateFiles) + ". ";
+                message += "QR Code đã tồn tại cho " + duplicateFiles.size() + " biến thể. ";
             }
             if (!notFoundFiles.isEmpty()) {
-                message += " Không tìm thấy biến thể: " + String.join(", ", notFoundFiles) + ". ";
+                message += "Không tìm thấy " + notFoundFiles.size() + " biến thể. ";
             }
-
-            if (savedFiles.isEmpty() && duplicateFiles.isEmpty() && notFoundFiles.isEmpty()) {
+            if (message.isEmpty()) {
                 message = "Không có biến thể nào được chọn!";
             }
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", !savedFiles.isEmpty() || !duplicateFiles.isEmpty());
-            response.put("message", message);
+            response.put("message", message.trim());
             response.put("saved", savedFiles);
             response.put("duplicate", duplicateFiles);
             response.put("notFound", notFoundFiles);
@@ -744,7 +668,6 @@ public class SanPhamChiTietController {
             List<Map<String, String>> qrResults = new ArrayList<>();
             for (SanPhamChiTiet variant : variants) {
                 String qrPath = qrCodeService.generateVariantQRCode(variant.getMaSanPhamChiTiet());
-
                 Map<String, String> result = new HashMap<>();
                 result.put("maBienThe", variant.getMaSanPhamChiTiet());
                 result.put("qrPath", qrPath);
@@ -766,6 +689,7 @@ public class SanPhamChiTietController {
         }
     }
 
+    // ===== EXPORT EXCEL =====
     @GetMapping("/export-excel")
     public ResponseEntity<InputStreamResource> exportExcel(
             @RequestParam(required = false) String size,
@@ -777,16 +701,15 @@ public class SanPhamChiTietController {
 
         try {
             System.out.println("========== EXPORT EXCEL ==========");
-            System.out.println("size: [" + size + "]");
-            System.out.println("msac: [" + msac + "]");
-            System.out.println("tt: [" + tt + "]");
-            System.out.println("gia: [" + gia + "]");
-            System.out.println("gia2: [" + gia2 + "]");
-            System.out.println("tonKho: [" + tonKho + "]");
 
             List<SanPhamChiTiet> list = sanPhamChiTietService.findAllWithFilters(size, msac, tt, gia, gia2, tonKho);
 
-            System.out.println("✅ Số lượng bản ghi tìm thấy: " + (list != null ? list.size() : 0));
+            if (list == null || list.isEmpty()) {
+                System.out.println("⚠️ Không có dữ liệu để xuất!");
+                return ResponseEntity.badRequest().build();
+            }
+
+            System.out.println("✅ Số lượng bản ghi tìm thấy: " + list.size());
 
             ByteArrayInputStream in = excelExportService.exportSanPhamChiTietToExcel(list);
 
@@ -795,7 +718,6 @@ public class SanPhamChiTietController {
                 return ResponseEntity.badRequest().build();
             }
 
-            // 🔥 SỬ DỤNG METHOD readAllBytes Ở ĐÂY
             byte[] excelBytes = readAllBytes(in);
 
             if (excelBytes == null || excelBytes.length == 0) {
@@ -812,8 +734,6 @@ public class SanPhamChiTietController {
             headers.add("Content-Disposition", "attachment; filename=" + fileName);
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
             headers.setContentLength(excelBytes.length);
-
-            // Thêm header để tránh cache
             headers.setCacheControl("no-cache, no-store, must-revalidate");
             headers.setPragma("no-cache");
             headers.setExpires(0);
@@ -840,7 +760,7 @@ public class SanPhamChiTietController {
         return buffer.toByteArray();
     }
 
-
+    // ===== API GET ALL PRODUCTS =====
     @GetMapping("/all")
     public ResponseEntity<List<Map<String, Object>>> getAllProducts() {
         List<SanPhamChiTiet> products = sanPhamChiTietRepository.findAll();
@@ -864,5 +784,4 @@ public class SanPhamChiTietController {
 
         return ResponseEntity.ok(result);
     }
-
 }

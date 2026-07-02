@@ -1,4 +1,4 @@
-    package com.example.th06876_java202.Entity;
+package com.example.th06876_java202.Entity;
 
     import jakarta.persistence.*;
     import jakarta.validation.constraints.*; // Thêm import này
@@ -23,24 +23,26 @@
         @Column(name = "MaKhachHang")
         private String maKH;
 
-        @NotBlank(message = "Họ tên không được để trống")
         @Size(max = 100, message = "Họ tên không được vượt quá 100 ký tự")
         @Pattern(
-                regexp = "^[\\p{L} ]+$",
+                regexp = "^[\\p{L} ]*$",
                 message = "Họ tên chỉ được chứa chữ cái và khoảng trắng"
         )
 
-        @Column(name = "HoTen")
+        @Column(name = "HoTen", nullable = true)
         private String hoTen;
 
-        @Column(name = "SoDienThoai", length = 15, nullable = false, unique = true)
-        // [SỬA] Cho phép số 0 hoặc số điện thoại Việt Nam
-        @Pattern(regexp = "^(0[0-9]{9,10}|[0-9]{10})$",
+        @Column(name = "SoDienThoai", length = 15, nullable = true, unique = false)
+        // [SỬA] Số điện thoại là TÙY CHỌN (khách đăng ký chỉ cần tài khoản + mật khẩu),
+        // nhưng nếu đã nhập thì phải đúng định dạng số VN. Cho phép chuỗi rỗng để không
+        // chặn việc lưu hồ sơ khi khách chưa muốn cung cấp số điện thoại.
+        @Pattern(regexp = "^$|^(0[0-9]{9,10}|[0-9]{10})$",
                 message = "Số điện thoại phải có 10-11 số, bắt đầu bằng 0")
         private String sdt;
 
-        @Column(name = "Email", length = 100)
-        @Pattern(regexp = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$",
+        @Column(name = "Email", length = 100, nullable = true)
+        // [SỬA] Cho phép để trống email (tùy chọn), chỉ kiểm tra định dạng khi có nhập.
+        @Pattern(regexp = "^$|^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$",
                 message = "Email không đúng định dạng")
         private String email;
 

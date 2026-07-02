@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +20,7 @@ public class ThongKeService {
 
 
     public List<ThongKeDoanhThuDTO> thongKeDoanhThuTheoNgay(
-            LocalDate startDate, LocalDate endDate) {
+            LocalDateTime startDate, LocalDateTime endDate) {
 
         List<Object[]> results = hoaDonRepository.thongKeDoanhThuTheoNgay(startDate, endDate);
         List<ThongKeDoanhThuDTO> list = new ArrayList<>();
@@ -71,7 +72,7 @@ public class ThongKeService {
 
     // Thống kê doanh thu theo tháng
     public List<ThongKeTheoThangDTO> thongKeDoanhThuTheoThang(
-            LocalDate startDate, LocalDate endDate) {
+            LocalDateTime startDate, LocalDateTime endDate) {
 
         List<Object[]> results = hoaDonRepository.thongKeDoanhThuTheoThang(startDate, endDate);
         List<ThongKeTheoThangDTO> list = new ArrayList<>();

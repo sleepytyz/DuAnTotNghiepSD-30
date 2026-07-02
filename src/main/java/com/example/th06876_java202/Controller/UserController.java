@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Controller
@@ -47,8 +48,8 @@ public class UserController {
                 model.addAttribute("tongQuan", tongQuan);
 
                 // Thống kê theo ngày cho biểu đồ (7 ngày gần nhất)
-                LocalDate endDate = LocalDate.now();
-                LocalDate startDate = endDate.minusDays(7);
+                LocalDateTime endDate = LocalDateTime.now();
+                LocalDateTime startDate = endDate.minusDays(7);
                 List<ThongKeDoanhThuDTO> thongKeNgay = thongKeService.thongKeDoanhThuTheoNgay(startDate, endDate);
                 model.addAttribute("thongKeNgay", thongKeNgay);
 
@@ -97,8 +98,8 @@ public class UserController {
             } else if (isStaff) {
                 // === DỮ LIỆU CHO STAFF ===
                 // Thống kê theo ngày cho biểu đồ (7 ngày gần nhất)
-                LocalDate endDate = LocalDate.now();
-                LocalDate startDate = endDate.minusDays(7);
+                LocalDateTime endDate = LocalDateTime.now();
+                LocalDateTime startDate = endDate.minusDays(7);
                 List<ThongKeDoanhThuDTO> thongKeNgay = thongKeService.thongKeDoanhThuTheoNgay(startDate, endDate);
                 model.addAttribute("thongKeNgay", thongKeNgay);
 
@@ -180,12 +181,6 @@ public class UserController {
         if (!result.hasFieldErrors("tenDangNhap") && taiKhoanService.isTenDangNhapExist(dangKy.getTenDangNhap())) {
             result.rejectValue("tenDangNhap", "error.dangKy", "Tên đăng nhập đã tồn tại.");
         }
-        if (!result.hasFieldErrors("sdt") && khachHangService.existsBySdt(dangKy.getSdt())) {
-            result.rejectValue("sdt", "error.dangKy", "Số điện thoại đã được sử dụng.");
-        }
-        if (!result.hasFieldErrors("email") && khachHangService.existsByEmail(dangKy.getEmail())) {
-            result.rejectValue("email", "error.dangKy", "Email đã được sử dụng.");
-        }
 
         if (result.hasErrors()) {
             return "account/user/register";
@@ -195,10 +190,12 @@ public class UserController {
         taiKhoan.setTenDangNhap(dangKy.getTenDangNhap().trim());
         taiKhoan.setMatKhau(dangKy.getMatKhau());
 
+        // Đăng ký chỉ thu thập tên đăng nhập/mật khẩu. Các thông tin hồ sơ (họ tên, SĐT, email,
+        // giới tính...) để trống (NULL), khách hàng sẽ tự bổ sung sau trong mục "Tài khoản của tôi".
+        String maKH = khachHangService.generateMaKH();
+
         KhachHang khachHang = new KhachHang();
-        khachHang.setHoTen(dangKy.getHoTen().trim());
-        khachHang.setSdt(dangKy.getSdt().trim());
-        khachHang.setEmail(dangKy.getEmail().trim());
+        khachHang.setMaKH(maKH);
 
         taiKhoanService.registerCustomer(taiKhoan, khachHang);
 

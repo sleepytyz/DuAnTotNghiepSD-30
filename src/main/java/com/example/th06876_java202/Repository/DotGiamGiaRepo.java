@@ -34,28 +34,27 @@ public interface DotGiamGiaRepo extends JpaRepository<DotGiamGia, String> {
     @Query(value = "UPDATE DotGiamGia SET TrangThai = N'Đã huỷ' WHERE MaGiamGia = :id AND TrangThai = N'Sắp hoạt động'", nativeQuery = true)
     int cancelVoucher(@Param("id") String id);
 
-    // ===== FILTER PAGING =====
+    // ===== FILTER PAGING - SỬA LỖI ORDER BY TRÙNG =====
     @Query(value = """
-        SELECT * FROM DotGiamGia
-        WHERE
-        (:keyword IS NULL OR :keyword = '' OR
-         TenGiamGia LIKE CONCAT('%', :keyword, '%')
-         OR MaGiamGia LIKE CONCAT('%', :keyword, '%'))
-        AND (:trangThai IS NULL OR :trangThai = '' OR TrangThai = :trangThai)
-        AND (:tuNgay IS NULL OR NgayBatDau >= :tuNgay)
-        AND (:denNgay IS NULL OR NgayKetThuc <= :denNgay)
-        ORDER BY NgayTao DESC
-        """,
+    SELECT * FROM DotGiamGia
+    WHERE
+    (:keyword = '' OR
+     TenGiamGia LIKE CONCAT('%', :keyword, '%')
+     OR MaGiamGia LIKE CONCAT('%', :keyword, '%'))
+    AND (:trangThai = '' OR TrangThai = :trangThai)
+    AND (:tuNgay IS NULL OR NgayBatDau >= :tuNgay)
+    AND (:denNgay IS NULL OR NgayKetThuc <= :denNgay)
+    """,
             countQuery = """
-        SELECT COUNT(*) FROM DotGiamGia
-        WHERE
-        (:keyword IS NULL OR :keyword = '' OR
-         TenGiamGia LIKE CONCAT('%', :keyword, '%')
-         OR MaGiamGia LIKE CONCAT('%', :keyword, '%'))
-        AND (:trangThai IS NULL OR :trangThai = '' OR TrangThai = :trangThai)
-        AND (:tuNgay IS NULL OR NgayBatDau >= :tuNgay)
-        AND (:denNgay IS NULL OR NgayKetThuc <= :denNgay)
-        """,
+    SELECT COUNT(*) FROM DotGiamGia
+    WHERE
+    (:keyword = '' OR
+     TenGiamGia LIKE CONCAT('%', :keyword, '%')
+     OR MaGiamGia LIKE CONCAT('%', :keyword, '%'))
+    AND (:trangThai = '' OR TrangThai = :trangThai)
+    AND (:tuNgay IS NULL OR NgayBatDau >= :tuNgay)
+    AND (:denNgay IS NULL OR NgayKetThuc <= :denNgay)
+    """,
             nativeQuery = true)
     Page<DotGiamGia> filterPaging(
             @Param("keyword") String keyword,

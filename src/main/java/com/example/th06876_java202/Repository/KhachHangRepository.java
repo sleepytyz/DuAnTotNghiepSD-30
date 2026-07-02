@@ -24,7 +24,7 @@ public interface KhachHangRepository extends JpaRepository<KhachHang, String> {
 
     List<KhachHang> findTop10BySdtContaining(String sdt);
 
-
+    KhachHang findByMaKH(String maKH);
 
     // Method cũ - có phân trang (giữ nguyên)
     @Query("SELECT k FROM KhachHang k WHERE k.sdt LIKE CONCAT('%', :sdt, '%')")
@@ -35,6 +35,8 @@ public interface KhachHangRepository extends JpaRepository<KhachHang, String> {
     List<KhachHang> findAllBySdt(@Param("sdt") String sdt);
 
 
+    @Query(value = "select * from KhachHang order by NgayDangKy  desc", nativeQuery = true)
+    List<KhachHang> findban();
 
     @Modifying
     @Transactional

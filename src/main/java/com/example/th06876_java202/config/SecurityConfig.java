@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.client.RestTemplate;
 import org.thymeleaf.extras.springsecurity6.dialect.SpringSecurityDialect;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Configuration
@@ -23,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @EnableMethodSecurity
 @EnableAsync
 public class SecurityConfig {
+
     @Bean
     public WebServerFactoryCustomizer<TomcatServletWebServerFactory> tomcatCustomizer() {
         return factory -> factory.addConnectorCustomizers(connector -> {
@@ -33,6 +35,15 @@ public class SecurityConfig {
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();
+    }
+
+    // [SỬA] Bắt buộc phải có bean này khi dùng .maximumSessions(...) trong sessionManagement,
+    // nếu không Spring Security sẽ không nhận được sự kiện session bị hủy (logout, hết hạn,...)
+    // -> SessionRegistry bị sai lệch -> có thể coi phiên đang hợp lệ là "đã hết hạn" và đá
+    // người dùng về lại trang đăng nhập một cách ngẫu nhiên, dù họ vừa mới đăng nhập xong.
+    @Bean
+    public HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
     }
 
     @Bean
@@ -83,19 +94,24 @@ public class SecurityConfig {
                 .requestMatchers("/ca-nhan", "/ca-nhan/**").hasRole("USER")
                 .requestMatchers("/user/**").hasRole("USER")
 
-                // === Khu vực quản lý bán hàng (chỉ ADMIN/STAFF) ===
+                // === Khu vực dùng chung cho cả ADMIN và STAFF: bán hàng tại quầy,
+                // đơn hàng, hóa đơn, khách hàng, chấm công, hồ sơ cá nhân
+                // (đây cũng chính là các mục có trong sidebar-staff) ===
                 .requestMatchers(
-                        "/banhang/**", "/chatlieu/**", "/chi-tiet-dot-giam-gia/**", "/danhmucsp/**",
-                        "/detail/**", "/donhang/**", "/giamgia/**", "/hoa-don/**", "/khach-hang/**",
-                        "/kichthuoc/**", "/kieugiay/**", "/mausac/**", "/nhan-vien/**", "/nhap-hang/**",
-                        "/sanphamct/**", "/sanpham/**", "/tai-khoan/**", "/thong-ke/**", "/thuonghieu/**"
+                        "/banhang/**", "/donhang/**", "/hoa-don/**", "/khach-hang/**",
+                        "/cham-cong/**", "/nv-ca-nhan/**", "/staff/**"
                 ).hasAnyRole("ADMIN", "STAFF")
 
-                // admin và staff mới vào đc
-                .requestMatchers("/staff/**").hasAnyRole("ADMIN", "STAFF")
+                // === Khu vực quản trị: sản phẩm, thuộc tính sản phẩm, nhân viên,
+                // nhập hàng, giảm giá, giao ca & thống kê (chỉ ADMIN) ===
+                .requestMatchers(
+                        "/chatlieu/**", "/chi-tiet-dot-giam-gia/**", "/danhmucsp/**",
+                        "/detail/**", "/giamgia/**", "/kichthuoc/**", "/kieugiay/**",
+                        "/mausac/**", "/nhan-vien/**", "/nhap-hang/**", "/sanphamct/**",
+                        "/sanphamha/**", "/sanpham/**", "/tai-khoan/**", "/thong-ke/**",
+                        "/thuonghieu/**", "/giao-ca/**", "/admin/**"
+                ).hasRole("ADMIN")
 
-                // chỉ admin mới vào đc
-                .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated());
 
         http.formLogin(form -> form
@@ -128,16 +144,24 @@ public class SecurityConfig {
                 .useSecureCookie(false)
         );
 
-        // ✅ Cấu hình CSRF - Bỏ qua cho các URL upload file
         http.csrf(csrf -> csrf
-                .ignoringRequestMatchers("/sanpham/add", "/sanpham/add/**")
-                .ignoringRequestMatchers("/uploads/**")
-                .ignoringRequestMatchers("/khach-hang/xoa-dia-chi/**")
+                .ignoringRequestMatchers(
+                        // API bán hàng
+                        "/banhang/**",
+                        // Upload file
+                        "/sanpham/add", "/sanpham/add/**",
+                        "/uploads/**",
+                        "/khach-hang/xoa-dia-chi/**",
+                        // API địa chỉ
+                        "/banhang/themdiachi",
+                        "/banhang/suadiachi/**",
+                        "/banhang/xoadiachi/**",
+                        "/banhang/chondiachi",
+                        "/banhang/setdefault/**",
+                        "/banhang/diachi/**"
+                )
         );
 
         return http.build();
     }
-
-
-    // day them sua xoa bat lam ban hang - 2 thang
 }

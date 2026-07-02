@@ -32,7 +32,18 @@ public class ChamCongController {
                                Model model) {
         NhanVien nhanVien = getCurrentNhanVien();
         if (nhanVien == null) {
-            return "redirect:/login";
+            // Tài khoản đã đăng nhập hợp lệ nhưng chưa được gán hồ sơ nhân viên (thiếu liên kết
+            // NhanVien.MaTaiKhoan). Trước đây code redirect thẳng về /login khiến người dùng
+            // tưởng bị đăng xuất/hết phiên. Giờ hiển thị thông báo rõ ràng ngay trên trang.
+            model.addAttribute("nhanVien", null);
+            model.addAttribute("chamCongMap", java.util.Collections.emptyMap());
+            model.addAttribute("listNgay", java.util.Collections.emptyList());
+            model.addAttribute("allCa", java.util.Collections.emptyList());
+            model.addAttribute("today", LocalDate.now());
+            model.addAttribute("tuanHienTai", tuan);
+            model.addAttribute("soNgayDaCham", 0L);
+            model.addAttribute("tongSoGioLam", 0.0);
+            return "chamcong/chamcong";
         }
 
         LocalDate today = LocalDate.now();
