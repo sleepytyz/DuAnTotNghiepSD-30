@@ -1,138 +1,148 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/client-head :: head('Thanh toán')}"></head>
-<body class="fs-body">
+<head th:replace="~{fragments/client-layout :: head('Thanh toán')}"></head>
+<body>
+<header th:replace="~{fragments/client-layout :: header}"></header>
 
-<header th:replace="~{fragments/client-header :: header('shop')}"></header>
+<div class="fs-container">
+    <nav class="fs-breadcrumb">
+        <a th:href="@{/}">Trang chủ</a> <i class="bi bi-chevron-right"></i>
+        <a th:href="@{/gio-hang}">Giỏ hàng</a> <i class="bi bi-chevron-right"></i> <b>Thanh toán</b>
+    </nav>
 
-<main class="fs-main">
-    <div class="fs-container" style="padding-bottom:60px;">
-        <div class="fs-breadcrumb">
-            <a th:href="@{/}">Trang chủ</a><span class="sep">/</span>
-            <a th:href="@{/gio-hang}">Giỏ hàng</a><span class="sep">/</span><span class="current">Thanh toán</span>
-        </div>
-        <h1 class="fs-h2" style="margin-bottom:24px;">Thanh toán đơn hàng</h1>
+    <div class="fs-alert fs-alert-error" th:if="${loiDatHang}">
+        <i class="bi bi-x-circle-fill"></i><span th:text="${loiDatHang}"></span></div>
+    <div class="fs-alert fs-alert-warn" th:each="c : ${gio.canhBao}">
+        <i class="bi bi-exclamation-triangle-fill"></i><span th:text="${c}"></span></div>
 
-        <div class="fs-alert fs-alert-danger" th:if="${loiDatHang}" th:text="${loiDatHang}"></div>
+    <form th:action="@{/thanh-toan/dat-hang}" method="post" class="fs-checkout">
+        <!-- ================= CỘT TRÁI ================= -->
+        <div>
+            <!-- Địa chỉ giao hàng -->
+            <div class="fs-panel">
+                <h3><i class="bi bi-geo-alt-fill"></i> Địa chỉ giao hàng</h3>
 
-        <form th:action="@{/thanh-toan/dat-hang}" method="post" id="checkoutForm">
-            <div class="fs-cart-layout">
-                <div>
-                    <div class="fs-form-card" style="margin-bottom:20px;">
-                        <h3 class="fs-h3" style="margin-bottom:16px;">Địa chỉ giao hàng</h3>
+                <label class="fs-radio-card" th:each="d, st : ${diaChis}">
+                    <input type="radio" name="chonDiaChi" th:value="${d.maDiaChi}"
+                           th:checked="${d.diaChiMacDinh == true || (st.first && diaChis.?[diaChiMacDinh == true].isEmpty())}">
+                    <b th:text="${d.tenNguoiNhan} + '  •  ' + ${d.soDienThoaiNguoiNhan}">Nguyễn Văn A • 0912345678</b>
+                    <span class="tag" th:if="${d.diaChiMacDinh == true}"
+                          style="position:static;margin-left:8px;background:var(--fs-primary);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px">Mặc định</span>
+                    <div class="mota"
+                         th:text="${d.diaChiCuThe} + ', ' + ${d.phuongXa} + ', ' + ${d.quanHuyen} + ', ' + ${d.tinhThanh}">Địa chỉ</div>
+                </label>
 
-                        <div th:each="dc : ${diaChis}" class="fs-addr-card" style="box-shadow:none;border:1.5px solid var(--fs-gray-100);">
-                            <label class="fs-check" style="align-items:flex-start;gap:12px;">
-                                <input type="radio" name="chonDiaChi" th:value="${dc.maDiaChi}" th:checked="${dc.diaChiMacDinh}">
-                                <span>
-                                    <b th:text="${dc.tenNguoiNhan}">Tên</b> — <span th:text="${dc.soDienThoaiNguoiNhan}">SĐT</span>
-                                    <span class="default-pill" th:if="${dc.diaChiMacDinh}">Mặc định</span><br>
-                                    <span class="fs-muted" th:text="${dc.diaChiCuThe + ', ' + dc.phuongXa + ', ' + dc.quanHuyen + ', ' + dc.tinhThanh}">Địa chỉ</span>
-                                </span>
-                            </label>
-                        </div>
+                <label class="fs-radio-card">
+                    <input type="radio" name="chonDiaChi" value="moi" id="fsRadioMoi"
+                           th:checked="${diaChis == null || diaChis.isEmpty()}">
+                    <b><i class="bi bi-plus-circle"></i> Giao đến địa chỉ mới</b>
+                    <div class="mota">Nhập thông tin người nhận bên dưới</div>
+                </label>
 
-                        <label class="fs-check" style="margin-top:6px;">
-                            <input type="radio" name="chonDiaChi" value="moi" th:checked="${#lists.isEmpty(diaChis)}" id="radioMoi">
-                            <span>Nhập địa chỉ giao hàng mới</span>
-                        </label>
-
-                        <div id="diaChiMoiFields" style="display:none;margin-top:14px;">
-                            <div class="fs-row-2">
-                                <div class="fs-field">
-                                    <label>Họ tên người nhận <span class="req">*</span></label>
-                                    <input type="text" name="tenNguoiNhan" class="fs-input">
-                                </div>
-                                <div class="fs-field">
-                                    <label>Số điện thoại <span class="req">*</span></label>
-                                    <input type="text" name="soDienThoaiNguoiNhan" class="fs-input">
-                                </div>
-                            </div>
-                            <div class="fs-row-2">
-                                <div class="fs-field">
-                                    <label>Tỉnh / Thành phố <span class="req">*</span></label>
-                                    <input type="text" name="tinhThanh" class="fs-input" placeholder="VD: Hà Nội">
-                                </div>
-                                <div class="fs-field">
-                                    <label>Quận / Huyện <span class="req">*</span></label>
-                                    <input type="text" name="quanHuyen" class="fs-input">
-                                </div>
-                            </div>
-                            <div class="fs-field">
-                                <label>Phường / Xã <span class="req">*</span></label>
-                                <input type="text" name="phuongXa" class="fs-input">
-                            </div>
-                            <div class="fs-field">
-                                <label>Địa chỉ cụ thể (số nhà, đường) <span class="req">*</span></label>
-                                <input type="text" name="diaChiCuThe" class="fs-input">
-                            </div>
-                            <label class="fs-check"><input type="checkbox" name="luuDiaChi" value="true"> Lưu địa chỉ này cho lần sau</label>
-                        </div>
+                <div id="fsDiaChiMoi" style="display:none; margin-top:6px">
+                    <div class="fs-form-grid">
+                        <div class="fs-field"><label>Họ tên người nhận *</label>
+                            <input type="text" name="tenNguoiNhan" th:value="${khachHang.hoTen}" placeholder="Nguyễn Văn A"></div>
+                        <div class="fs-field"><label>Số điện thoại *</label>
+                            <input type="text" name="soDienThoaiNguoiNhan" th:value="${khachHang.sdt}" placeholder="09xxxxxxxx"></div>
+                        <div class="fs-field"><label>Tỉnh / Thành phố *</label>
+                            <input type="text" name="tinhThanh" placeholder="Hà Nội"></div>
+                        <div class="fs-field"><label>Quận / Huyện *</label>
+                            <input type="text" name="quanHuyen" placeholder="Nam Từ Liêm"></div>
+                        <div class="fs-field"><label>Phường / Xã *</label>
+                            <input type="text" name="phuongXa" placeholder="Phương Canh"></div>
+                        <div class="fs-field"><label>Địa chỉ cụ thể *</label>
+                            <input type="text" name="diaChiCuThe" placeholder="Số 13 Trịnh Văn Bô"></div>
                     </div>
-
-                    <div class="fs-form-card" style="margin-bottom:20px;">
-                        <h3 class="fs-h3" style="margin-bottom:16px;">Phương thức thanh toán</h3>
-                        <label class="fs-check" style="margin-bottom:12px;">
-                            <input type="radio" name="phuongThucThanhToan" value="COD" checked> Thanh toán khi nhận hàng (COD)
-                        </label>
-                        <label class="fs-check">
-                            <input type="radio" name="phuongThucThanhToan" value="ChuyenKhoan" id="radioCK"> Chuyển khoản ngân hàng
-                        </label>
-                        <div id="bankInfo" style="display:none; margin-top:14px; background:var(--fs-bg); border-radius:10px; padding:14px 16px; font-size:13.5px;">
-                            <p class="fs-muted" style="margin:0;">Sau khi đặt hàng, thông tin chuyển khoản sẽ hiển thị ở trang xác nhận. Đơn hàng được xử lý sau khi FS Shoes xác nhận đã nhận thanh toán.</p>
-                        </div>
-                    </div>
-
-                    <div class="fs-form-card">
-                        <h3 class="fs-h3" style="margin-bottom:16px;">Ghi chú đơn hàng</h3>
-                        <textarea name="ghiChu" class="fs-input" rows="3" placeholder="Ví dụ: giao giờ hành chính..."></textarea>
-                    </div>
-                </div>
-
-                <div class="fs-summary-box">
-                    <h3 class="fs-h3" style="margin-bottom:18px;">Đơn hàng của bạn</h3>
-                    <div th:each="line : ${gioHang.dongHang}" class="fs-summary-row">
-                        <span th:text="${line.tenSanPham} + ' x' + ${line.soLuong}">SP</span>
-                        <span th:text="${#numbers.formatDecimal(line.thanhTien,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
-                    </div>
-                    <div class="fs-divider" style="margin:14px 0;"></div>
-                    <div class="fs-summary-row">
-                        <span>Tạm tính</span>
-                        <span th:text="${#numbers.formatDecimal(gioHang.tongTienHang,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
-                    </div>
-                    <div class="fs-summary-row" th:if="${gioHang.soTienGiamVoucher.signum() > 0}">
-                        <span>Giảm giá voucher</span>
-                        <span th:text="'-' + ${#numbers.formatDecimal(gioHang.soTienGiamVoucher,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
-                    </div>
-                    <div class="fs-summary-row">
-                        <span>Phí vận chuyển</span>
-                        <span th:if="${gioHang.tienShip.signum() == 0}" class="free">Miễn phí</span>
-                        <span th:if="${gioHang.tienShip.signum() > 0}" th:text="${#numbers.formatDecimal(gioHang.tienShip,0,'COMMA',0,'POINT')} + 'đ'"></span>
-                    </div>
-                    <div class="fs-summary-row total">
-                        <span>Tổng thanh toán</span>
-                        <span th:text="${#numbers.formatDecimal(gioHang.tongThanhToan,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
-                    </div>
-                    <button type="submit" class="fs-btn fs-btn-primary fs-btn-block" style="margin-top:16px;">Đặt hàng</button>
+                    <label class="fs-check"><input type="checkbox" name="luuDiaChi" value="true" checked>
+                        Lưu vào sổ địa chỉ của tôi</label>
+                    <label class="fs-check"><input type="checkbox" name="datMacDinh" value="true">
+                        Đặt làm địa chỉ mặc định</label>
                 </div>
             </div>
-        </form>
-    </div>
-</main>
 
-<footer th:replace="~{fragments/client-footer :: footer}"></footer>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script th:src="@{/storefront/js/storefront.js}"></script>
+            <!-- Phương thức thanh toán -->
+            <div class="fs-panel">
+                <h3><i class="bi bi-wallet2"></i> Phương thức thanh toán</h3>
+                <label class="fs-radio-card">
+                    <input type="radio" name="phuongThucThanhToan" value="Tiền mặt khi nhận hàng (COD)" checked>
+                    <b><i class="bi bi-cash-coin"></i> Thanh toán khi nhận hàng (COD)</b>
+                    <div class="mota">Kiểm tra hàng rồi mới trả tiền cho nhân viên giao hàng.</div>
+                </label>
+                <label class="fs-radio-card">
+                    <input type="radio" name="phuongThucThanhToan" value="Chuyển khoản ngân hàng (VietQR)">
+                    <b><i class="bi bi-qr-code-scan"></i> Chuyển khoản ngân hàng (VietQR)</b>
+                    <div class="mota">Sau khi đặt hàng, hệ thống hiển thị mã QR đúng số tiền — quét là xong.</div>
+                </label>
+            </div>
+
+            <!-- Ghi chú -->
+            <div class="fs-panel">
+                <h3><i class="bi bi-chat-left-text"></i> Ghi chú cho đơn hàng</h3>
+                <div class="fs-field">
+                    <textarea name="ghiChu" rows="3" maxlength="500"
+                              placeholder="VD: Giao giờ hành chính, gọi trước khi giao..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= CỘT PHẢI: ĐƠN HÀNG ================= -->
+        <aside class="fs-panel" style="position:sticky; top:130px">
+            <h3><i class="bi bi-bag-check"></i> Đơn hàng của bạn
+                <span style="margin-left:auto;font-size:12.5px;color:var(--fs-muted)"
+                      th:text="${gio.tongSoLuong} + ' sản phẩm'">3 sản phẩm</span></h3>
+
+            <div class="fs-mini-line" th:each="l : ${gio.dongHang}" th:if="${l.conHopLe}">
+                <img th:src="${l.anh}" alt="" onerror="this.src='/storefront/img/no-image.svg'">
+                <div>
+                    <div class="ten" th:text="${l.tenSanPham}">Tên sản phẩm</div>
+                    <div class="pl" th:text="${l.tenMauSac} + ' / ' + ${l.tenKichThuoc} + '  ×' + ${l.soLuong}">Đen / 42 ×2</div>
+                </div>
+                <div class="tt" th:text="${#numbers.formatDecimal(l.thanhTien,0,'POINT',0,'COMMA')} + '₫'">2.400.000₫</div>
+            </div>
+
+            <div class="fs-sum-row" style="margin-top:10px"><span>Tạm tính</span>
+                <span th:text="${#numbers.formatDecimal(gio.tongTienHang,0,'POINT',0,'COMMA')} + '₫'">2.400.000₫</span></div>
+            <div class="fs-sum-row save" th:if="${gio.soTienGiamVoucher.signum() > 0}">
+                <span>Voucher <b th:text="${gio.voucherApDung != null ? gio.voucherApDung.tenGiamGia : ''}"></b></span>
+                <span th:text="'-' + ${#numbers.formatDecimal(gio.soTienGiamVoucher,0,'POINT',0,'COMMA')} + '₫'">-50.000₫</span></div>
+            <div class="fs-sum-row"><span>Phí vận chuyển</span>
+                <span th:text="${gio.tienShip.signum() > 0 ? #numbers.formatDecimal(gio.tienShip,0,'POINT',0,'COMMA') + '₫' : 'Miễn phí'}">Miễn phí</span></div>
+            <div class="fs-sum-row total"><span>Tổng thanh toán</span>
+                <b th:text="${#numbers.formatDecimal(gio.tongThanhToan,0,'POINT',0,'COMMA')} + '₫'">2.350.000₫</b></div>
+
+            <div class="fs-voucher-pick" style="margin-top:8px">
+                <i class="bi bi-ticket-perforated"></i>
+                Muốn dùng mã giảm giá? <a th:href="@{/gio-hang}">Áp dụng tại giỏ hàng</a>
+                <span th:if="${voucherKhaDung != null && !voucherKhaDung.isEmpty()}"
+                      th:text="'(bạn đang có ' + ${voucherKhaDung.size()} + ' mã khả dụng)'"></span>
+            </div>
+
+            <button type="submit" class="fs-btn fs-btn-primary fs-btn-lg fs-btn-block" style="margin-top:14px">
+                <i class="bi bi-bag-heart"></i> Đặt hàng</button>
+            <p style="font-size:12px;color:var(--fs-muted);margin-top:10px;text-align:center">
+                Đơn sẽ xuất hiện ngay tại quầy quản lý với trạng thái <b>“Chờ xác nhận”</b>.
+                Bạn có thể huỷ khi đơn chưa được xác nhận.</p>
+        </aside>
+    </form>
+</div>
+
+<footer th:replace="~{fragments/client-layout :: footer}"></footer>
+<div th:replace="~{fragments/client-layout :: toast}"></div>
+<th:block th:replace="~{fragments/client-layout :: scripts}"></th:block>
 <script>
-    function toggleDiaChiMoi() {
-        document.getElementById('diaChiMoiFields').style.display = document.getElementById('radioMoi').checked ? 'block' : 'none';
-    }
-    document.querySelectorAll('input[name="chonDiaChi"]').forEach(function (r) { r.addEventListener('change', toggleDiaChiMoi); });
-    toggleDiaChiMoi();
-
-    document.querySelectorAll('input[name="phuongThucThanhToan"]').forEach(function (r) {
-        r.addEventListener('change', function () { document.getElementById('bankInfo').style.display = (this.value === 'ChuyenKhoan' && this.checked) ? 'block' : 'none'; });
-    });
+    // Hiện / ẩn form địa chỉ mới theo lựa chọn
+    (function () {
+        var box = document.getElementById('fsDiaChiMoi');
+        function capNhat() {
+            var moi = document.getElementById('fsRadioMoi');
+            box.style.display = (moi && moi.checked) ? '' : 'none';
+        }
+        document.querySelectorAll('input[name=chonDiaChi]').forEach(function (r) {
+            r.addEventListener('change', capNhat);
+        });
+        capNhat();
+    })();
 </script>
 </body>
 </html>

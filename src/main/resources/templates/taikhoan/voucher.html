@@ -1,39 +1,53 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/client-head :: head('Voucher của tôi')}"></head>
-<body class="fs-body">
+<head th:replace="~{fragments/client-layout :: head('Voucher của tôi')}"></head>
+<body>
+<header th:replace="~{fragments/client-layout :: header}"></header>
+<div class="fs-container">
+    <div class="fs-account-layout">
+        <aside th:replace="~{fragments/client-layout :: taikhoanMenu(${tabActive})}"></aside>
+        <main class="fs-account-main">
+            <div class="fs-panel">
+                <h2><i class="bi bi-ticket-perforated"></i> Voucher của tôi</h2>
+                <p class="sub">Gồm voucher công khai còn lượt và voucher được cửa hàng tặng riêng cho bạn.
+                    Nhập <b>tên mã</b> tại giỏ hàng để áp dụng.</p>
 
-<header th:replace="~{fragments/client-header :: header('account')}"></header>
+                <div class="fs-voucher-strip" style="grid-template-columns:1fr 1fr"
+                     th:if="${!voucherKhaDung.isEmpty()}">
+                    <div class="fs-voucher" th:each="v : ${voucherKhaDung}">
+                        <div class="fs-voucher-icon"><i class="bi bi-ticket-perforated-fill"></i></div>
+                        <div style="flex:1">
+                            <b th:text="${v.tenGiamGia}">FSSALE10</b>
+                            <small>
+                                <span th:if="${v.loaiGiamGia == 'PhanTram'}"
+                                      th:text="'Giảm ' + ${#numbers.formatDecimal(v.giaTriGiam,0,'POINT',0,'COMMA')} + '%'
+                                               + (${v.giamToiDa != null} ? ' (tối đa ' + ${#numbers.formatDecimal(v.giamToiDa,0,'POINT',0,'COMMA')} + '₫)' : '')">Giảm 10%</span>
+                                <span th:unless="${v.loaiGiamGia == 'PhanTram'}"
+                                      th:text="'Giảm ' + ${#numbers.formatDecimal(v.giaTriGiam,0,'POINT',0,'COMMA')} + '₫'">Giảm 50K</span>
+                                <span th:if="${v.donToiThieu != null && v.donToiThieu.signum() > 0}"
+                                      th:text="' • Đơn tối thiểu ' + ${#numbers.formatDecimal(v.donToiThieu,0,'POINT',0,'COMMA')} + '₫'"></span>
+                                <br>
+                                <span th:if="${v.ngayKetThuc != null}"
+                                      th:text="'HSD: ' + ${#temporals.format(v.ngayKetThuc,'dd/MM/yyyy')}">HSD</span>
+                                <span th:if="${v.loaiApDung != null && v.loaiApDung == 2}"
+                                      style="color:var(--fs-primary);font-weight:700"> • Dành riêng cho bạn</span>
+                            </small>
+                        </div>
+                    </div>
+                </div>
 
-<main class="fs-main">
-    <div class="fs-container" style="padding:30px 0 60px;">
-        <div class="fs-account-layout">
-            <div th:replace="~{fragments/account-menu :: menu('voucher')}"></div>
-
-            <div>
-                <h2 class="fs-h3" style="margin-bottom:16px;">Voucher của tôi</h2>
-
-                <div class="fs-empty-state" th:if="${#lists.isEmpty(vouchers)}">
+                <div class="fs-empty" th:if="${voucherKhaDung.isEmpty()}" style="border:0">
                     <i class="bi bi-ticket-perforated"></i>
                     <h3>Bạn chưa có voucher khả dụng</h3>
-                    <p>Hãy theo dõi FS Shoes để không bỏ lỡ ưu đãi nhé!</p>
-                </div>
-
-                <div th:each="v : ${vouchers}" class="fs-order-card" style="border-left:4px solid var(--fs-red);">
-                    <div class="head">
-                        <span class="code" th:text="${v.tenGiamGia}">Voucher</span>
-                        <span class="fs-status-pill fs-status-done" th:if="${v.loaiGiamGia == 'PhanTram'}" th:text="'-' + ${v.giaTriGiam} + '%'"></span>
-                        <span class="fs-status-pill fs-status-done" th:if="${v.loaiGiamGia != 'PhanTram'}" th:text="'-' + ${#numbers.formatDecimal(v.giaTriGiam,0,'COMMA',0,'POINT')} + 'đ'"></span>
-                    </div>
-                    <p class="fs-muted" th:if="${v.donToiThieu != null}" th:text="'Đơn tối thiểu: ' + ${#numbers.formatDecimal(v.donToiThieu,0,'COMMA',0,'POINT')} + 'đ'"></p>
-                    <p class="fs-muted" th:text="'Hạn sử dụng đến: ' + ${#temporals.format(v.ngayKetThuc, 'dd/MM/yyyy')}">Hạn</p>
+                    <p>Theo dõi trang chủ để săn mã giảm giá mới nhé!</p>
+                    <a th:href="@{/}" class="fs-btn fs-btn-primary">Về trang chủ</a>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
-</main>
-
-<footer th:replace="~{fragments/client-footer :: footer}"></footer>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</div>
+<footer th:replace="~{fragments/client-layout :: footer}"></footer>
+<div th:replace="~{fragments/client-layout :: toast}"></div>
+<th:block th:replace="~{fragments/client-layout :: scripts}"></th:block>
 </body>
 </html>

@@ -73,6 +73,16 @@ public class ChamCongController {
             }
         }
 
+        // [SỬA GỐC] Không so sánh ngày trong template nữa (Thymeleaf so LocalDate rất
+        // dễ sai). Tính sẵn tập các mã chấm công (maChamCong) mà ngày trùng HÔM NAY
+        // ngay tại Java, rồi truyền xuống. Gán cờ laHomNay cho từng bản ghi để template
+        // chỉ cần đọc chamCong.laHomNay (tránh Set.contains dễ sai kiểu Integer/Long).
+        for (ChamCong cc : listChamCong) {
+            boolean laHomNay = cc.getNgayChamCong() != null
+                    && cc.getNgayChamCong().isEqual(today);
+            cc.setLaHomNay(laHomNay);
+        }
+
         long soNgayDaCham = listChamCong.stream()
                 .filter(cc -> cc.getGioVao() != null)
                 .map(ChamCong::getNgayChamCong)

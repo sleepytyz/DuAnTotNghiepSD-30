@@ -1,9 +1,11 @@
 package com.example.th06876_java202.Controller;
 
 import com.example.th06876_java202.Entity.DiaChi;
+import com.example.th06876_java202.Entity.GiamGia;
 import com.example.th06876_java202.Entity.HoaDon;
 import com.example.th06876_java202.Entity.KhachHang;
 import com.example.th06876_java202.Service.DiaChiService;
+import com.example.th06876_java202.Service.GiamGiaService;
 import com.example.th06876_java202.Service.HoaDonChiTietService;
 import com.example.th06876_java202.Service.HoaDonService;
 import com.example.th06876_java202.Service.KhachHangService;
@@ -13,6 +15,7 @@ import com.example.th06876_java202.Storefront.GioHang;
 import com.example.th06876_java202.Storefront.GioHangService;
 import com.example.th06876_java202.Storefront.GioHangView;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,8 +25,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 
 /**
- * Thanh toán / đặt hàng online. Toàn bộ các đường dẫn /thanh-toan/** yêu cầu đăng nhập
- * bằng tài khoản khách hàng (đã cấu hình trong SecurityConfig).
+ * Thanh toán / đặt hàng online (yêu cầu đăng nhập tài khoản khách hàng).
+ * Hỗ trợ sổ địa chỉ, địa chỉ mới, COD hoặc Chuyển khoản (hiện mã VietQR tự động
+ * theo cấu hình vietqr.* trong application.properties).
  */
 @Controller
 @RequestMapping("/thanh-toan")
@@ -37,51 +41,71 @@ public class ThanhToanController {
     private final DonHangOnlineService donHangOnlineService;
     private final HoaDonService hoaDonService;
     private final HoaDonChiTietService hoaDonChiTietService;
+    private final GiamGiaService giamGiaService;
 
-    public static final String SO_TAI_KHOAN_NGAN_HANG = "0123456789";
-    public static final String TEN_NGAN_HANG = "Ngân hàng TMCP Ngoại Thương Việt Nam (Vietcombank)";
-    public static final String CHU_TAI_KHOAN = "CONG TY TNHH FS SHOES";
+    @Value("${vietqr.bank:MB}")
+    private String vietqrBank;
+
+    @Value("${vietqr.account:0000000000}")
+    private String vietqrAccount;
+
+    @Value("${vietqr.account-name:FS%20SHOES}")
+    private String vietqrAccountName;
 
     private KhachHang khachHangHienTai(Authentication authentication) {
         return khachHangService.findByTenDangNhap(authentication.getName());
     }
 
+    // =====================================================================
+    // TRANG THANH TOÁN
+    // =====================================================================
+
     @GetMapping
     public String trangThanhToan(Model model, Authentication authentication, RedirectAttributes redirectAttributes) {
         KhachHang kh = khachHangHienTai(authentication);
         if (kh == null) {
-            redirectAttributes.addFlashAttribute("loiTaiKhoan", "Không tìm thấy hồ sơ khách hàng cho tài khoản này.");
+            redirectAttributes.addFlashAttribute("thongBaoGioHang", "Không tìm thấy hồ sơ khách hàng cho tài khoản này.");
             return "redirect:/gio-hang";
         }
 
         GioHangView view = gioHangService.xemGioHang(gioHang, kh.getMaKH());
         if (view.getDongHang().isEmpty() || view.getTongTienHang().signum() <= 0) {
-            redirectAttributes.addFlashAttribute("thongBaoGioHang", "Giỏ hàng của bạn đang trống, vui lòng chọn sản phẩm trước khi thanh toán.");
+            redirectAttributes.addFlashAttribute("thongBaoGioHang",
+                    "Giỏ hàng của bạn đang trống, vui lòng chọn sản phẩm trước khi thanh toán.");
             return "redirect:/gio-hang";
         }
 
-        List<DiaChi> diaChis = diaChiService.findByKhachHang_MaKH(kh.getMaKH());
+        List<DiaChi> diaChis = diaChiService.findByKhachHang(kh.getMaKH());
+        List<GiamGia> voucherKhaDung = List.of();
+        try {
+            voucherKhaDung = giamGiaService.getVoucherKhaDungChoKhachHang(kh.getMaKH());
+        } catch (Exception ignored) { }
 
-        model.addAttribute("gioHang", view);
+        model.addAttribute("gio", view);
         model.addAttribute("diaChis", diaChis);
         model.addAttribute("khachHang", kh);
+        model.addAttribute("voucherKhaDung", voucherKhaDung);
         return "thanhtoan/index";
     }
 
+    // =====================================================================
+    // ĐẶT HÀNG
+    // =====================================================================
+
     @PostMapping("/dat-hang")
     public String datHang(@RequestParam String chonDiaChi,
-                           @RequestParam(required = false) String tenNguoiNhan,
-                           @RequestParam(required = false) String soDienThoaiNguoiNhan,
-                           @RequestParam(required = false) String tinhThanh,
-                           @RequestParam(required = false) String quanHuyen,
-                           @RequestParam(required = false) String phuongXa,
-                           @RequestParam(required = false) String diaChiCuThe,
-                           @RequestParam(defaultValue = "false") boolean luuDiaChi,
-                           @RequestParam(defaultValue = "false") boolean datMacDinh,
-                           @RequestParam String phuongThucThanhToan,
-                           @RequestParam(required = false) String ghiChu,
-                           Authentication authentication,
-                           RedirectAttributes redirectAttributes) {
+                          @RequestParam(required = false) String tenNguoiNhan,
+                          @RequestParam(required = false) String soDienThoaiNguoiNhan,
+                          @RequestParam(required = false) String tinhThanh,
+                          @RequestParam(required = false) String quanHuyen,
+                          @RequestParam(required = false) String phuongXa,
+                          @RequestParam(required = false) String diaChiCuThe,
+                          @RequestParam(defaultValue = "false") boolean luuDiaChi,
+                          @RequestParam(defaultValue = "false") boolean datMacDinh,
+                          @RequestParam String phuongThucThanhToan,
+                          @RequestParam(required = false) String ghiChu,
+                          Authentication authentication,
+                          RedirectAttributes redirectAttributes) {
 
         KhachHang kh = khachHangHienTai(authentication);
         if (kh == null) {
@@ -128,7 +152,8 @@ public class ThanhToanController {
                     return "redirect:/thanh-toan";
                 }
                 DiaChi diaChi = diaChiService.findById(maDiaChi).orElse(null);
-                if (diaChi == null || diaChi.getKhachHang() == null || !diaChi.getKhachHang().getMaKH().equals(kh.getMaKH())) {
+                if (diaChi == null || diaChi.getKhachHang() == null
+                        || !diaChi.getKhachHang().getMaKH().equals(kh.getMaKH())) {
                     redirectAttributes.addFlashAttribute("loiDatHang", "Địa chỉ giao hàng không hợp lệ.");
                     return "redirect:/thanh-toan";
                 }
@@ -144,8 +169,12 @@ public class ThanhToanController {
         }
     }
 
+    // =====================================================================
+    // ĐẶT HÀNG THÀNH CÔNG (+ mã VietQR nếu chuyển khoản)
+    // =====================================================================
+
     @GetMapping("/thanh-cong/{id}")
-    public String thanhCong(@PathVariable String  id, Model model, Authentication authentication) {
+    public String thanhCong(@PathVariable String id, Model model, Authentication authentication) {
         KhachHang kh = khachHangHienTai(authentication);
         HoaDon hoaDon = hoaDonService.findById(id);
         if (hoaDon == null || kh == null || hoaDon.getMaKhachHang() == null
@@ -155,9 +184,22 @@ public class ThanhToanController {
 
         model.addAttribute("hoaDon", hoaDon);
         model.addAttribute("chiTiet", hoaDonChiTietService.findByHoaDOn(hoaDon));
-        model.addAttribute("soTaiKhoan", SO_TAI_KHOAN_NGAN_HANG);
-        model.addAttribute("tenNganHang", TEN_NGAN_HANG);
-        model.addAttribute("chuTaiKhoan", CHU_TAI_KHOAN);
+
+        // Chuyển khoản → tạo ảnh VietQR động (đúng số tiền + nội dung là mã đơn)
+        boolean chuyenKhoan = hoaDon.getPhuongThucThanhToan() != null
+                && hoaDon.getPhuongThucThanhToan().toLowerCase().contains("chuyển khoản");
+        model.addAttribute("chuyenKhoan", chuyenKhoan);
+        if (chuyenKhoan) {
+            long soTien = hoaDon.getTongTien() != null ? hoaDon.getTongTien().longValue() : 0L;
+            String qrUrl = "https://img.vietqr.io/image/" + vietqrBank + "-" + vietqrAccount
+                    + "-compact2.png?amount=" + soTien
+                    + "&addInfo=" + hoaDon.getMaHoaDon()
+                    + "&accountName=" + vietqrAccountName;
+            model.addAttribute("qrUrl", qrUrl);
+            model.addAttribute("nganHang", vietqrBank);
+            model.addAttribute("soTaiKhoan", vietqrAccount);
+            model.addAttribute("chuTaiKhoan", vietqrAccountName.replace("%20", " "));
+        }
         return "thanhtoan/thanh-cong";
     }
 

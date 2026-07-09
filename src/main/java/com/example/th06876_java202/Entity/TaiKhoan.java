@@ -12,7 +12,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TaiKhoan {
+public class TaiKhoan implements java.io.Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MaTaiKhoan")
@@ -31,10 +31,8 @@ public class TaiKhoan {
     private Boolean trangThai;
 
     @OneToOne(mappedBy = "taiKhoan", fetch = FetchType.EAGER)
-    @JoinColumn(name = "MaTaiKhoan", referencedColumnName = "MaTaiKhoan")
     private NhanVien nhanVien;
 
     @OneToOne(mappedBy = "taiKhoan", fetch = FetchType.EAGER)
-    @JoinColumn(name = "MaTaiKhoan", referencedColumnName = "MaTaiKhoan")
     private KhachHang khachHang;
 }

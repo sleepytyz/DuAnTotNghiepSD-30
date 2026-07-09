@@ -328,6 +328,11 @@ public class SanPhamChiTietService {
     }
 
     public void capNhatTrangThaii(SanPhamChiTiet spct) {
+        // Nếu biến thể đã bị NGƯNG BÁN thủ công thì giữ nguyên, không tự bật lại khi cập nhật tồn kho.
+        String hienTai = spct.getTrangThai();
+        if ("Ngừng bán".equals(hienTai) || "Ngừng kinh doanh".equals(hienTai)) {
+            return;
+        }
         Integer soLuong = spct.getSoLuongTon();
 
         if (soLuong == null || soLuong <= 0) {

@@ -2,6 +2,7 @@ package com.example.th06876_java202.Service;
 
 import com.example.th06876_java202.Entity.HoaDon;
 import com.example.th06876_java202.Repository.HoaDonRepo;
+import com.example.th06876_java202.realtime.ThongBaoRealtimeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +17,9 @@ public class HoaDonService {
 
     @Autowired
     private HoaDonRepo repo;
+
+    @Autowired
+    private ThongBaoRealtimeService thongBaoRealtimeService;
 
     // ===== PHƯƠNG THỨC MỚI =====
 
@@ -108,6 +112,7 @@ public class HoaDonService {
         return repo.findAll();
     }
 
+
     public Page<HoaDon> searchByNgayTaodh(LocalDateTime ngay, LocalDateTime ngay2, Pageable pageable) {
         if (ngay != null && ngay2 != null) {
             return repo.findByNgayTaoBetween(ngay, ngay2, pageable);
@@ -134,11 +139,17 @@ public class HoaDonService {
         return repo.countByTrangThai(trangThai);
     }
 
+    /**
+     * Chờ xác nhận -> Đã xác nhận (nhân viên bấm "Xác nhận" bên quản lý).
+     * Sau khi lưu sẽ phát thông báo thời gian thực cho cả 2 phía (quản lý + khách).
+     */
     public void suatt(String mahd) {
         HoaDon hd = repo.findById(mahd).orElse(null);
         if (hd != null && "Chờ xác nhận".equals(hd.getTrangThai())) {
+            String cu = hd.getTrangThai();
             hd.setTrangThai("Đã xác nhận");
             repo.save(hd);
+            thongBaoRealtimeService.trangThaiDonThayDoi(hd, cu, "Quản lý bán hàng");
         }
     }
 
@@ -146,19 +157,29 @@ public class HoaDonService {
         return repo.save(hoaDon);
     }
 
+    /** Đã xác nhận -> Đang giao. */
     public void suattdg(String mahd) {
         HoaDon hd = repo.findById(mahd).orElse(null);
         if (hd != null && "Đã xác nhận".equals(hd.getTrangThai())) {
+            String cu = hd.getTrangThai();
             hd.setTrangThai("Đang giao");
             repo.save(hd);
+            thongBaoRealtimeService.trangThaiDonThayDoi(hd, cu, "Quản lý bán hàng");
         }
     }
 
+    /** Đang giao -> Đã giao (hoàn tất; COD ghi nhận thanh toán khi giao). */
     public void suattdgg(String mahd) {
         HoaDon hd = repo.findById(mahd).orElse(null);
         if (hd != null && "Đang giao".equals(hd.getTrangThai())) {
+            String cu = hd.getTrangThai();
             hd.setTrangThai("Đã giao");
+            // Giao thành công = hoàn tất thanh toán (COD nhận tiền khi giao)
+            if (hd.getNgayThanhToan() == null) {
+                hd.setNgayThanhToan(LocalDateTime.now());
+            }
             repo.save(hd);
+            thongBaoRealtimeService.trangThaiDonThayDoi(hd, cu, "Quản lý bán hàng");
         }
     }
 

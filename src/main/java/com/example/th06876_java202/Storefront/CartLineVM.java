@@ -1,18 +1,16 @@
 package com.example.th06876_java202.Storefront;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
 /**
- * Thông tin 1 dòng giỏ hàng để hiển thị ở trang giỏ hàng / thanh toán.
- * Được build lại mỗi lần hiển thị từ GioHangItem (session) + dữ liệu mới nhất trong CSDL.
+ * Một dòng giỏ hàng để hiển thị (trang giỏ hàng / thanh toán / giỏ mini).
+ * Luôn được dựng lại từ dữ liệu mới nhất trong CSDL mỗi lần xem.
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class CartLineVM {
     private String maSanPhamChiTiet;
     private String maSanPham;
@@ -20,10 +18,11 @@ public class CartLineVM {
     private String tenMauSac;
     private String tenKichThuoc;
     private String anh;
-    private BigDecimal donGia;       // giá đã áp khuyến mãi (đơn giá thực tế tính tiền)
-    private BigDecimal donGiaGoc;    // giá gốc trước khuyến mãi (để hiển thị gạch ngang)
+    private BigDecimal donGia;      // đơn giá thực tế (đã áp khuyến mãi)
+    private BigDecimal donGiaGoc;   // giá gốc (hiển thị gạch ngang nếu có KM)
+    private Integer phanTramGiam;
     private Integer soLuong;
-    private Integer soLuongTon;      // tồn kho hiện tại, dùng để cảnh báo vượt tồn
+    private Integer soLuongTon;     // tồn kho hiện tại (để giới hạn nút tăng)
     private BigDecimal thanhTien;
-    private boolean conHopLe;        // false nếu sản phẩm đã ngừng bán / hết hàng hoàn toàn
+    private boolean conHopLe;       // false nếu hết hàng / ngừng bán / không tồn tại
 }

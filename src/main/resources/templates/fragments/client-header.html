@@ -18,10 +18,20 @@
 
         <nav class="fs-nav-links">
             <a th:href="@{/}" th:classappend="${active=='home'} ? 'active'">Trang chủ</a>
-            <a th:href="@{/san-pham}" th:classappend="${active=='shop'} ? 'active'">Sản phẩm</a>
+            <div class="fs-nav-dropdown">
+                <a th:href="@{/cua-hang/san-pham}" th:classappend="${active=='danh-muc'} ? 'active'">Danh mục <i class="bi bi-chevron-down" style="font-size:11px;"></i></a>
+                <div class="fs-nav-dropdown-menu" th:if="${danhMucMenu != null}">
+                    <a th:each="dm : ${danhMucMenu}" th:href="@{/cua-hang/san-pham(danhMuc=${dm.maDanhMuc})}" th:text="${dm.tenDanhMuc}">Danh mục</a>
+                </div>
+            </div>
+            <a th:href="@{/cua-hang/san-pham}" th:classappend="${active=='shop'} ? 'active'">Sản phẩm</a>
+            <a th:href="@{/(noibat='1')} + '#noi-bat'" th:classappend="${active=='noi-bat'} ? 'active'">Nổi bật</a>
+            <a th:href="@{/danh-gia}" th:classappend="${active=='danh-gia'} ? 'active'">Đánh giá</a>
+            <a th:href="@{/theo-doi-don-hang}" th:classappend="${active=='theo-doi'} ? 'active'">Theo dõi đơn</a>
+            <a th:href="@{/gioi-thieu}" th:classappend="${active=='gioi-thieu'} ? 'active'">Giới thiệu</a>
         </nav>
 
-        <form class="fs-search-form" th:action="@{/san-pham}" method="get">
+        <form class="fs-search-form" th:action="@{/cua-hang/san-pham}" method="get">
             <input type="text" name="q" placeholder="Tìm giày, thương hiệu..." th:value="${fQ}">
             <button type="submit"><i class="bi bi-search"></i></button>
         </form>
@@ -56,7 +66,11 @@
     <div id="fs-mobile-menu" class="fs-container" style="display:none; padding-bottom:14px;">
         <div style="display:flex; flex-direction:column; gap:10px;">
             <a th:href="@{/}" style="color:#fff;font-weight:700;">Trang chủ</a>
-            <a th:href="@{/san-pham}" style="color:#fff;font-weight:700;">Sản phẩm</a>
+            <a th:href="@{/cua-hang/san-pham}" style="color:#fff;font-weight:700;">Sản phẩm</a>
+            <a th:href="@{/(noibat='1')} + '#noi-bat'" style="color:#fff;font-weight:700;">Nổi bật</a>
+            <a th:href="@{/danh-gia}" style="color:#fff;font-weight:700;">Đánh giá</a>
+            <a th:href="@{/theo-doi-don-hang}" style="color:#fff;font-weight:700;">Theo dõi đơn</a>
+            <a th:href="@{/gioi-thieu}" style="color:#fff;font-weight:700;">Giới thiệu</a>
             <a th:href="@{/gio-hang}" style="color:#fff;font-weight:700;">Giỏ hàng</a>
         </div>
     </div>

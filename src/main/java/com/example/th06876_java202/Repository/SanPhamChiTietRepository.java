@@ -33,7 +33,7 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
     int updateTrangThaiii(String maSanPham);
 
     List<SanPhamChiTiet> findBySanPham_MaSanPhamAndMauSac_TenMauSac(
-            Integer maSP,
+            String maSP,
             String tenMauSac);
 
     @Query("SELECT s FROM SanPhamChiTiet s ORDER BY s.ngayTao DESC")
@@ -87,7 +87,7 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
     List<SanPhamChiTiet> findByMaSanPham(String maSanPham);
 
     @Query(value = "SELECT * FROM SanPhamChiTiet WHERE MaSanPham IN (:listMaSanPham) ORDER BY NgayTao DESC", nativeQuery = true)
-    List<SanPhamChiTiet> findByidmasp(@Param("listMaSanPham") List<Integer> listMaSanPham);
+    List<SanPhamChiTiet> findByidmasp(@Param("listMaSanPham") List<String> listMaSanPham);
 
     @Query("SELECT s FROM SanPhamChiTiet s " +
             "WHERE (:size IS NULL OR :size = '' OR s.kichThuoc.maKichThuoc = :size) " +
@@ -148,6 +148,25 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
     @Query("SELECT spct FROM SanPhamChiTiet spct WHERE spct.maSanPhamChiTiet = :maSPCT")
     Optional<SanPhamChiTiet> findByMaSanPhamChiTiet(@Param("maSPCT") String maSPCT);
 
+    // ================= Website bán hàng online (đặt hàng an toàn + trạng thái kho) =================
+
+    /**
+     * Khoá dòng biến thể (PESSIMISTIC_WRITE) trong lúc đặt hàng online để 2 khách
+     * đặt cùng lúc không thể trừ tồn kho chồng lên nhau (chống bán vượt tồn).
+     */
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT s FROM SanPhamChiTiet s WHERE s.maSanPhamChiTiet = :ma")
+    Optional<SanPhamChiTiet> khoaBienTheDeDatHang(@Param("ma") String ma);
+
+    /** Số biến thể đang bán nhưng tồn kho thấp (0 < tồn <= :nguong). */
+    @Query("SELECT COUNT(s) FROM SanPhamChiTiet s WHERE s.soLuongTon > 0 AND s.soLuongTon <= :nguong "
+            + "AND (s.trangThai IS NULL OR (s.trangThai <> 'Ngừng bán' AND s.trangThai <> 'Ngừng kinh doanh'))")
+    long demBienTheSapHet(@Param("nguong") int nguong);
+
+    /** Số biến thể đang bán nhưng đã hết hàng (tồn = 0). */
+    @Query("SELECT COUNT(s) FROM SanPhamChiTiet s WHERE (s.soLuongTon IS NULL OR s.soLuongTon = 0) "
+            + "AND (s.trangThai IS NULL OR (s.trangThai <> 'Ngừng bán' AND s.trangThai <> 'Ngừng kinh doanh'))")
+    long demBienTheHetHang();
     @Query(value = "select * from  SanPhamChiTiet order by NgayTao desc", nativeQuery = true)
     List<SanPhamChiTiet> findAllOrderByNgayTaoDesc();
 

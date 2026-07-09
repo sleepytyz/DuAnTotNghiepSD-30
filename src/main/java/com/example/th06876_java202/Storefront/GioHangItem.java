@@ -8,8 +8,8 @@ import java.io.Serializable;
 
 /**
  * Một dòng trong giỏ hàng (lưu trong session của khách).
- * Chỉ lưu ID biến thể sản phẩm + số lượng, mọi thông tin giá/tồn kho luôn được
- * lấy mới từ CSDL khi hiển thị để đảm bảo chính xác (giá/khuyến mãi/tồn kho có thể thay đổi).
+ * Chỉ lưu mã biến thể + số lượng; giá / tồn kho / khuyến mãi LUÔN được đọc lại
+ * từ CSDL tại thời điểm hiển thị và đặt hàng để bảo đảm chính xác.
  */
 @Data
 @NoArgsConstructor

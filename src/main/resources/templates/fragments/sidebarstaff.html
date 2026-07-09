@@ -33,8 +33,9 @@
             </a>
 
             <div class="menu-heading">Báo Cáo</div>
-            <a href="#"><i class="bi bi-bar-chart-line"></i> Thống kê doanh số</a>
-            <a href="#"><i class="bi bi-trophy"></i> Sản phẩm bán chạy</a>
+            <a href="/thong-ke/ca-nhan" th:classappend="${activeMenu == 'thongkecanhan'} ? ' active'">
+                <i class="bi bi-bar-chart-line"></i> Thống kê của tôi
+            </a>
         </div>
     </div>
 
@@ -48,4 +49,9 @@
 
         <form id="logout-form-staff" th:action="@{/logout}" method="post" style="display: none;"></form>
     </div>
+
+            <a href="/lienhe/index"><i class="bi bi-envelope-paper"></i> Liên hệ</a>
+            <a href="/danhgia/index"><i class="bi bi-star-half"></i> Đánh giá</a>
+            <a href="/hotro/index"><i class="bi bi-headset"></i> Hỗ trợ trực tuyến</a>
+    <div th:replace="~{fragments/quanly-realtime :: realtime-quanly}"></div>
 </nav>

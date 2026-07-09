@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -82,12 +83,43 @@ public class GiamGiaService {
         return giamGiaRepository.findDanhSachCanCapNhat();
     }
 
-    // ⭐ SỬA: Lấy TẤT CẢ voucher (không filter)
+    // ⭐ Lấy voucher đang hoạt động và còn số lượng (dùng cho khách hàng)
     public List<GiamGia> getGiamGia1() {
-        return giamGiaRepository.findSoLuongVoucher();
+        List<GiamGia> result = giamGiaRepository.findSoLuongVoucher();
+
+        System.out.println("========== getGiamGia1 ==========");
+        System.out.println("Tổng số voucher lấy được: " + (result != null ? result.size() : 0));
+
+        if (result != null) {
+            for (GiamGia gg : result) {
+                System.out.println("  - " + gg.getMaGiamGia() +
+                        " | " + gg.getTenGiamGia() +
+                        " | Trạng thái: " + gg.getTrangThai() +
+                        " | SL: " + gg.getSoLuong() +
+                        " | Vô hạn: " + gg.getIsVoHan());
+            }
+        }
+        System.out.println("==================================");
+
+        return result;
     }
 
-    // ⭐ THÊM: Lấy voucher đang hoạt động
+    // ⭐ Lấy TẤT CẢ voucher (không filter) - Dùng cho admin
+    public List<GiamGia> getAllVouchers() {
+        return giamGiaRepository.findAllVouchers();
+    }
+
+    // ⭐ Lấy voucher đang hoạt động
+    public List<GiamGia> getActiveVouchers() {
+        return giamGiaRepository.findActiveVouchers();
+    }
+
+    // ⭐ Lấy voucher có thể sử dụng (hoạt động + còn số lượng)
+    public List<GiamGia> getAvailableVouchers() {
+        return giamGiaRepository.findAvailableVouchers();
+    }
+
+    // ⭐ Lấy voucher đang hoạt động (còn hạn + còn số lượng)
     public List<GiamGia> getVoucherDangHoatDong() {
         return giamGiaRepository.findVoucherDangHoatDong();
     }
@@ -144,38 +176,28 @@ public class GiamGiaService {
     @Transactional
     public void xoaMem(String id) {
         giamGiaRepository.updateTrangThai("Ngừng hoạt động", id);
-
-        // 2. Cập nhật chi tiết
         giamGiaChiTietRepo.updateTrangThaiByMaGiamGia(id, 0);
     }
 
+    // ===== TÍNH TOÁN TRẠNG THÁI =====
     public String tinhToanTrangThai(GiamGia gg) {
         if (gg == null) return "Ngừng hoạt động";
 
         LocalDateTime now = LocalDateTime.now();
-        if (gg.getNgayBatDau() == null || gg.getNgayKetThuc() == null) return "Ngừng hoạt động";
 
-        // ⭐ KIỂM TRA VÔ HẠN TRƯỚC - NẾU VÔ HẠN THÌ KHÔNG CẦN KIỂM TRA SỐ LƯỢNG
+        // ⭐ KIỂM TRA TRẠNG THÁI TRONG DB TRƯỚC
+        if (gg.getTrangThai() != null && !"Hoạt động".equals(gg.getTrangThai())) {
+            return gg.getTrangThai();
+        }
+
+        // ⭐ KIỂM TRA NGÀY THÁNG
+        if (gg.getNgayBatDau() == null || gg.getNgayKetThuc() == null) {
+            return "Ngừng hoạt động";
+        }
+
+        // ⭐ KIỂM TRA VÔ HẠN
         if (gg.getIsVoHan() != null && gg.getIsVoHan()) {
             // Vô hạn: chỉ cần kiểm tra ngày tháng
-            if (gg.getNgayBatDau() != null && gg.getNgayKetThuc() != null) {
-                if (now.isBefore(gg.getNgayBatDau())) {
-                    return "Sắp hoạt động";
-                } else if (now.isAfter(gg.getNgayKetThuc())) {
-                    return "Ngừng hoạt động";
-                } else {
-                    return "Hoạt động";
-                }
-            }
-            return "Hoạt động"; // Nếu không có ngày tháng, mặc định hoạt động
-        }
-
-        // ⭐ KHÔNG VÔ HẠN: KIỂM TRA SỐ LƯỢNG + NGÀY THÁNG
-        if (gg.getSoLuong() == null || gg.getSoLuong() <= 0) {
-            return "Hết lượt";
-        }
-
-        if (gg.getNgayBatDau() != null && gg.getNgayKetThuc() != null) {
             if (now.isBefore(gg.getNgayBatDau())) {
                 return "Sắp hoạt động";
             } else if (now.isAfter(gg.getNgayKetThuc())) {
@@ -185,7 +207,18 @@ public class GiamGiaService {
             }
         }
 
-        return "Hoạt động";
+        // ⭐ KHÔNG VÔ HẠN: KIỂM TRA SỐ LƯỢNG + NGÀY THÁNG
+        if (gg.getSoLuong() == null || gg.getSoLuong() <= 0) {
+            return "Hết lượt";
+        }
+
+        if (now.isBefore(gg.getNgayBatDau())) {
+            return "Sắp hoạt động";
+        } else if (now.isAfter(gg.getNgayKetThuc())) {
+            return "Ngừng hoạt động";
+        } else {
+            return "Hoạt động";
+        }
     }
 
     @Transactional
@@ -197,13 +230,13 @@ public class GiamGiaService {
     public void updateTrangThaiToStop(String id) {
         giamGiaRepository.updateTrangThaiToStop(id);
     }
+
     public Optional<GiamGia> findByTen(String tenGiamGia) {
         return giamGiaRepository.findByTenGiamGiaIgnoreCase(tenGiamGia == null ? "" : tenGiamGia.trim());
     }
 
     /**
-     * Kiểm tra voucher có dùng được cho khách hàng (đang đăng nhập hoặc khách lẻ) với tổng tiền đơn hàng hiện tại không.
-     * Trả về null nếu hợp lệ, hoặc chuỗi lý do không hợp lệ.
+     * Kiểm tra voucher có dùng được cho khách hàng với tổng tiền đơn hàng hiện tại
      */
     public String kiemTraVoucherHopLe(GiamGia gg, String maKhachHang, BigDecimal tongTienHang) {
         if (gg == null) return "Mã giảm giá không tồn tại.";
@@ -240,10 +273,10 @@ public class GiamGiaService {
     }
 
     /**
-     * Danh sách voucher khách hàng (đăng nhập) có thể dùng: voucher công khai còn lượt + voucher riêng được gán cho khách và chưa dùng.
+     * Danh sách voucher khách hàng có thể dùng: voucher công khai + voucher riêng được gán
      */
     public List<GiamGia> getVoucherKhaDungChoKhachHang(String maKhachHang) {
-        List<GiamGia> ketQua = new java.util.ArrayList<>();
+        List<GiamGia> ketQua = new ArrayList<>();
         for (GiamGia gg : giamGiaRepository.findAll()) {
             if (!"Hoạt động".equals(gg.getTrangThai())) continue;
             if (gg.getSoLuong() == null || gg.getSoLuong() <= 0) continue;
@@ -285,5 +318,4 @@ public class GiamGiaService {
                     });
         }
     }
-
 }

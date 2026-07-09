@@ -1,64 +1,108 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/client-head :: head('Đặt hàng thành công')}"></head>
-<body class="fs-body">
+<head th:replace="~{fragments/client-layout :: head('Đặt hàng thành công')}"></head>
+<body>
+<header th:replace="~{fragments/client-layout :: header}"></header>
 
-<header th:replace="~{fragments/client-header :: header('shop')}"></header>
-
-<main class="fs-main">
-    <div class="fs-container" style="padding:50px 0 60px;max-width:760px;">
-
-        <div style="text-align:center;margin-bottom:30px;">
-            <i class="bi bi-check-circle-fill" style="font-size:64px;color:#059669;"></i>
-            <h1 class="fs-h2" style="margin-top:14px;">Đặt hàng thành công!</h1>
-            <p class="fs-muted">Mã đơn hàng <b th:text="'#' + ${hoaDon.maHoaDon}">#0</b> đã được ghi nhận. FS Shoes sẽ liên hệ xác nhận sớm nhất.</p>
+<div class="fs-container" style="max-width:900px">
+    <div class="fs-panel" style="text-align:center; margin-top:22px">
+        <div style="width:74px;height:74px;border-radius:999px;background:var(--fs-green-soft);color:var(--fs-green);display:grid;place-items:center;font-size:36px;margin:6px auto 12px">
+            <i class="bi bi-check-lg"></i>
         </div>
-
-        <div class="fs-form-card" th:if="${hoaDon.phuongThucThanhToan == 'ChuyenKhoan'}" style="margin-bottom:20px;background:var(--fs-red-light);">
-            <h3 class="fs-h3" style="margin-bottom:12px;">Thông tin chuyển khoản</h3>
-            <p style="margin:4px 0;">Ngân hàng: <b th:text="${tenNganHang}"></b></p>
-            <p style="margin:4px 0;">Số tài khoản: <b th:text="${soTaiKhoan}"></b></p>
-            <p style="margin:4px 0;">Chủ tài khoản: <b th:text="${chuTaiKhoan}"></b></p>
-            <p style="margin:4px 0;">Số tiền: <b th:text="${#numbers.formatDecimal(hoaDon.tongTien,0,'COMMA',0,'POINT')} + 'đ'"></b></p>
-            <p style="margin:4px 0;">Nội dung CK: <b th:text="'FSSHOES ' + ${hoaDon.maHoaDon}"></b></p>
-            <p class="fs-muted" style="margin-top:10px;font-size:13px;">Đơn hàng sẽ được xử lý sau khi chúng tôi xác nhận đã nhận được thanh toán.</p>
+        <h1 style="font-size:24px;font-weight:900;letter-spacing:-.4px">Đặt hàng thành công!</h1>
+        <p style="color:var(--fs-muted);margin:8px 0 14px">
+            Cảm ơn bạn đã mua sắm tại FS Shoes. Đơn hàng đã được chuyển <b>ngay lập tức</b>
+            đến quầy quản lý bán hàng để xử lý.</p>
+        <div>
+            Mã đơn hàng: <b th:text="${hoaDon.maHoaDon}" style="color:var(--fs-primary)">HD250101...</b>
+            &nbsp;•&nbsp;
+            <span id="fsTTChip" class="fs-tt"
+                  th:classappend="${hoaDon.trangThai == 'Chờ xác nhận'} ? ' fs-tt-cho' :
+                                  (${hoaDon.trangThai == 'Đã xác nhận'} ? ' fs-tt-xacnhan' :
+                                  (${hoaDon.trangThai == 'Đang giao'} ? ' fs-tt-giao' :
+                                  (${hoaDon.trangThai == 'Đã giao'} ? ' fs-tt-xong' : ' fs-tt-huy')))"
+                  th:text="${hoaDon.trangThai}">Chờ xác nhận</span>
         </div>
+        <p style="font-size:12.5px;color:var(--fs-muted);margin-top:8px">
+            <i class="bi bi-broadcast"></i> Trạng thái trên trang này sẽ <b>tự cập nhật</b> khi cửa hàng xử lý đơn — không cần tải lại.</p>
+    </div>
 
-        <div class="fs-form-card" style="margin-bottom:20px;">
-            <h3 class="fs-h3" style="margin-bottom:14px;">Chi tiết đơn hàng</h3>
-            <table class="fs-table-simple">
-                <thead><tr><th>Sản phẩm</th><th>SL</th><th>Thành tiền</th></tr></thead>
-                <tbody>
-                <tr th:each="ct : ${chiTiet}">
-                    <td th:text="${ct.sanPhamChiTiet.sanPham.tenSanPham} + ' (' + ${ct.sanPhamChiTiet.mauSac.tenMauSac} + ' / ' + ${ct.sanPhamChiTiet.kichThuoc.tenKichThuoc} + ')'">SP</td>
-                    <td th:text="${ct.soLuong}">1</td>
-                    <td th:text="${#numbers.formatDecimal(ct.thanhTien,0,'COMMA',0,'POINT')} + 'đ'">0đ</td>
-                </tr>
-                </tbody>
-            </table>
-            <div class="fs-summary-row" style="margin-top:14px;">
-                <span>Phí vận chuyển</span>
-                <span th:text="${#numbers.formatDecimal(hoaDon.tienShip,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
+    <!-- ============ CHUYỂN KHOẢN VIETQR ============ -->
+    <div class="fs-panel" th:if="${chuyenKhoan}">
+        <h3><i class="bi bi-qr-code-scan"></i> Thanh toán chuyển khoản</h3>
+        <div style="display:grid;grid-template-columns:230px 1fr;gap:20px;align-items:center">
+            <img th:src="${qrUrl}" alt="Mã VietQR thanh toán"
+                 style="width:230px;border:1px solid var(--fs-line);border-radius:12px">
+            <div>
+                <p style="margin-bottom:10px">Quét mã bằng ứng dụng ngân hàng bất kỳ — số tiền và nội dung đã được điền sẵn:</p>
+                <div class="fs-sum-row"><span>Ngân hàng</span><b th:text="${nganHang}">MB</b></div>
+                <div class="fs-sum-row"><span>Số tài khoản</span><b th:text="${soTaiKhoan}">0344552008</b></div>
+                <div class="fs-sum-row"><span>Chủ tài khoản</span><b th:text="${chuTaiKhoan}">TRUONG HAI MINH</b></div>
+                <div class="fs-sum-row"><span>Số tiền</span>
+                    <b th:text="${#numbers.formatDecimal(hoaDon.tongTien,0,'POINT',0,'COMMA')} + '₫'" style="color:var(--fs-primary)">2.350.000₫</b></div>
+                <div class="fs-sum-row"><span>Nội dung</span><b th:text="${hoaDon.maHoaDon}">HD2501...</b></div>
+                <div class="fs-alert fs-alert-warn" style="margin-bottom:0">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span>Vui lòng ghi đúng nội dung <b th:text="${hoaDon.maHoaDon}"></b> để cửa hàng đối soát nhanh nhất.</span>
+                </div>
             </div>
-            <div class="fs-summary-row total">
-                <span>Tổng thanh toán</span>
-                <span th:text="${#numbers.formatDecimal(hoaDon.tongTien,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
-            </div>
-        </div>
-
-        <div class="fs-form-card" style="margin-bottom:20px;">
-            <h3 class="fs-h3" style="margin-bottom:10px;">Giao đến</h3>
-            <p class="fs-muted" th:text="${hoaDon.diaChiGiaoHang}">Địa chỉ</p>
-        </div>
-
-        <div style="display:flex;gap:14px;justify-content:center;">
-            <a th:href="@{/ca-nhan/don-hang}" class="fs-btn fs-btn-outline">Xem đơn hàng của tôi</a>
-            <a th:href="@{/san-pham}" class="fs-btn fs-btn-primary">Tiếp tục mua sắm</a>
         </div>
     </div>
-</main>
 
-<footer th:replace="~{fragments/client-footer :: footer}"></footer>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- ============ THÔNG TIN ĐƠN ============ -->
+    <div class="fs-panel">
+        <h3><i class="bi bi-receipt"></i> Chi tiết đơn hàng</h3>
+        <div class="fs-sum-row"><span>Thời gian đặt</span>
+            <b th:text="${#temporals.format(hoaDon.ngayTao, 'HH:mm dd/MM/yyyy')}">10:30 01/01/2025</b></div>
+        <div class="fs-sum-row"><span>Giao đến</span>
+            <b style="text-align:right;max-width:70%" th:text="${hoaDon.diaChiGiaoHang}">Địa chỉ</b></div>
+        <div class="fs-sum-row"><span>Thanh toán</span><b th:text="${hoaDon.phuongThucThanhToan}">COD</b></div>
+        <div class="fs-sum-row" th:if="${hoaDon.ghiChu != null && !#strings.isEmpty(hoaDon.ghiChu)}">
+            <span>Ghi chú</span><b style="text-align:right;max-width:70%" th:text="${hoaDon.ghiChu}"></b></div>
+
+        <div style="border-top:1.5px dashed var(--fs-line); margin-top:10px; padding-top:6px">
+            <div class="fs-mini-line" th:each="ct : ${chiTiet}">
+                <img th:src="${ct.sanPhamChiTiet != null && ct.sanPhamChiTiet.anhDaiDien != null
+                              ? '/images/' + ct.sanPhamChiTiet.anhDaiDien : '/storefront/img/no-image.svg'}"
+                     alt="" onerror="this.src='/storefront/img/no-image.svg'">
+                <div>
+                    <div class="ten" th:text="${ct.sanPhamChiTiet != null && ct.sanPhamChiTiet.sanPham != null
+                                               ? ct.sanPhamChiTiet.sanPham.tenSanPham : 'Sản phẩm'}">Tên</div>
+                    <div class="pl">
+                        <span th:if="${ct.sanPhamChiTiet != null && ct.sanPhamChiTiet.mauSac != null}"
+                              th:text="${ct.sanPhamChiTiet.mauSac.tenMauSac}">Đen</span> /
+                        <span th:if="${ct.sanPhamChiTiet != null && ct.sanPhamChiTiet.kichThuoc != null}"
+                              th:text="${ct.sanPhamChiTiet.kichThuoc.tenKichThuoc}">42</span>
+                        <span th:text="'  ×' + ${ct.soLuong}">×2</span>
+                    </div>
+                </div>
+                <div class="tt" th:text="${#numbers.formatDecimal(ct.thanhTien,0,'POINT',0,'COMMA')} + '₫'">2.400.000₫</div>
+            </div>
+        </div>
+
+        <div class="fs-sum-row" style="margin-top:8px"><span>Phí vận chuyển</span>
+            <span th:text="${hoaDon.tienShip != null && hoaDon.tienShip.signum() > 0
+                             ? #numbers.formatDecimal(hoaDon.tienShip,0,'POINT',0,'COMMA') + '₫' : 'Miễn phí'}">Miễn phí</span></div>
+        <div class="fs-sum-row total"><span>Tổng thanh toán</span>
+            <b th:text="${#numbers.formatDecimal(hoaDon.tongTien,0,'POINT',0,'COMMA')} + '₫'">2.350.000₫</b></div>
+    </div>
+
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin:6px 0 44px">
+        <a th:href="@{/ca-nhan/don-hang/{ma}(ma=${hoaDon.maHoaDon})}" class="fs-btn fs-btn-primary">
+            <i class="bi bi-truck"></i> Theo dõi đơn hàng</a>
+        <a th:href="@{/cua-hang/san-pham}" class="fs-btn fs-btn-outline">
+            <i class="bi bi-bag"></i> Tiếp tục mua sắm</a>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/client-layout :: footer}"></footer>
+<div th:replace="~{fragments/client-layout :: toast}"></div>
+<th:block th:replace="~{fragments/client-layout :: scripts}"></th:block>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<script th:inline="javascript">
+    /* Kết nối WebSocket: trạng thái đơn tự cập nhật khi quầy quản lý thao tác */
+    fsKetNoiDonHang(/*[[${hoaDon.maHoaDon}]]*/ '');
+</script>
 </body>
 </html>

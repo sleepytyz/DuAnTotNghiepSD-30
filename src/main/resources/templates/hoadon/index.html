@@ -514,6 +514,7 @@
 
     <div sec:authorize="hasRole('STAFF')" th:replace="~{fragments/sidebarstaff :: sidebar-staff}"></div>
     <div sec:authorize="hasRole('ADMIN')" th:replace="~{fragments/sidebaradmin :: sidebar-admin}"></div>
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
     <div class="content-wrapper">
 

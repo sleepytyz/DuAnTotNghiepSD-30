@@ -15,7 +15,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class DiaChi {
+public class DiaChi implements java.io.Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,11 +30,11 @@ public class DiaChi {
     @Column(name = "PhuongXa")
     private String phuongXa;
 
-    @Column(name = "DiaChiMacDinh")
+    @Column(name = "DiaChiMacDinh", columnDefinition = "BIT")
     private Boolean diaChiMacDinh;
 
     @ManyToOne
-    @JoinColumn(name = "MaKH")
+    @JoinColumn(name = "MaKhachHang")
     private KhachHang khachHang;
 
     @NotBlank(message = "Tên người nhận không được để trống")

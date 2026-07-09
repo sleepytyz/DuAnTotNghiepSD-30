@@ -18,7 +18,7 @@ package com.example.th06876_java202.Entity;
     @NoArgsConstructor
     @Getter
     @Setter
-    public class KhachHang {
+    public class KhachHang implements java.io.Serializable {
         @Id
         @Column(name = "MaKhachHang")
         private String maKH;
@@ -49,7 +49,7 @@ package com.example.th06876_java202.Entity;
         @OneToMany(mappedBy = "khachHang",
                 cascade = CascadeType.ALL,
                 orphanRemoval = true)
-        private List<DiaChi> danhSachDiaChi;
+        private transient List<DiaChi> danhSachDiaChi;
 
         @Past(message = "Ngày sinh phải là một ngày trong quá khứ")
         @DateTimeFormat(pattern = "yyyy-MM-dd")

@@ -42,14 +42,16 @@ public interface SanPhamRepository extends JpaRepository<SanPham, String> {
 
     List<SanPham> findTop8ByTrangThaiTrueOrderByMaSanPhamDesc();
 
-    // SỬA: Đổi tên tham số từ :t thành :keyword
-    @Query("SELECT s FROM SanPham s WHERE " +
-            "(:maDanhMuc IS NULL OR s.danhMucSanPham.maDanhMuc = :maDanhMuc) AND " +
+    @Query("SELECT s FROM SanPham s " +
+            "LEFT JOIN s.danhMucSanPham dm " +
+            "LEFT JOIN s.thuongHieu th " +
+            "LEFT JOIN s.kieuGiay kg " +
+            "WHERE (:maDanhMuc IS NULL OR dm.maDanhMuc = :maDanhMuc) AND " +
             "(:tt IS NULL OR s.trangThai = :tt) AND " +
-            "(:maTH IS NULL OR s.thuongHieu.maThuongHieu = :maTH) AND " +
-            "(:maKG IS NULL OR s.kieuGiay.maKieuGiay = :maKG) AND " +
+            "(:maTH IS NULL OR th.maThuongHieu = :maTH) AND " +
+            "(:maKG IS NULL OR kg.maKieuGiay = :maKG) AND " +
             "(:keyword IS NULL OR s.tenSanPham LIKE %:keyword% OR CAST(s.maSanPham AS string) LIKE %:keyword%) " +
-            "ORDER BY s.ngayTao DESC")
+            "ORDER BY s.maSanPham DESC")
     Page<SanPham> searchSanPham(@Param("maDanhMuc") String maDanhMuc,
                                 @Param("tt") Boolean tt,
                                 @Param("maTH") String maTH,

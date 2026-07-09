@@ -1,104 +1,203 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{fragments/client-head :: head('Trang chủ')}"></head>
-<body class="fs-body">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/client-layout :: head('Trang chủ')}"></head>
+<body>
+<header th:replace="~{fragments/client-layout :: header}"></header>
 
-<header th:replace="~{fragments/client-header :: header('home')}"></header>
-
-<main class="fs-main">
-
-    <section class="fs-hero">
-        <div class="fs-container fs-hero-inner">
-            <div class="fs-hero-text">
-                <div class="fs-eyebrow">FS SHOES — BỘ SƯU TẬP MỚI</div>
-                <h1 class="fs-h1">Bứt phá phong cách<br>cùng giày thể thao nam</h1>
-                <p class="fs-tagline">Thiết kế năng động, êm chân cả ngày, chính hãng 100% — chọn đôi giày đồng hành cho mọi bước chạy của bạn.</p>
-                <div class="fs-hero-cta">
-                    <a th:href="@{/san-pham}" class="fs-btn fs-btn-primary">Mua ngay <i class="bi bi-arrow-right"></i></a>
-                    <a th:href="@{/san-pham}" class="fs-btn fs-btn-outline-light">Xem bộ sưu tập</a>
-                </div>
-                <div class="fs-hero-stats">
-                    <div><b>500+</b><span>Mẫu giày</span></div>
-                    <div><b>10K+</b><span>Khách hài lòng</span></div>
-                    <div><b>100%</b><span>Chính hãng</span></div>
-                </div>
+<!-- ============ HERO ============ -->
+<section class="fs-hero">
+    <div class="fs-container fs-hero-inner">
+        <div>
+            <span class="fs-hero-kicker"><i class="bi bi-stars"></i> Bộ sưu tập 2025 đã có mặt</span>
+            <h1>Bứt phá mọi bước chạy cùng <em>FS Shoes</em></h1>
+            <p>Giày thể thao nam chính hãng từ các thương hiệu hàng đầu.
+                Đặt online — nhận hàng tận nơi, theo dõi đơn theo thời gian thực.</p>
+            <div class="fs-hero-cta">
+                <a th:href="@{/cua-hang/san-pham}" class="fs-btn fs-btn-primary fs-btn-lg">
+                    <i class="bi bi-bag"></i> Mua sắm ngay</a>
+                <a th:href="@{/cua-hang/san-pham(khuyenMai=true)}" class="fs-btn fs-btn-outline fs-btn-lg"
+                   style="background:transparent;color:#fff;border-color:rgba(255,255,255,.35)">
+                    <i class="bi bi-fire"></i> Săn khuyến mãi</a>
             </div>
-            <div class="fs-hero-art">
-                <div class="fs-shoe-frame">
-                    <span class="fs-badge-corner">New</span>
-                    <i class="bi bi-bag-heart" style="font-size:140px;color:#3A3C46;"></i>
-                </div>
+            <div class="fs-hero-stats">
+                <div><b th:text="${tongSoSanPham}">120</b><span>Mẫu giày đang bán</span></div>
+                <div><b>100%</b><span>Chính hãng</span></div>
+                <div><b>24h</b><span>Xác nhận đơn</span></div>
             </div>
         </div>
-    </section>
-
-    <section class="fs-section">
-        <div class="fs-container">
-            <div class="fs-section-head">
-                <div><div class="fs-eyebrow">Danh mục</div><h2 class="fs-h2">Mua theo nhu cầu</h2></div>
-            </div>
-            <div class="fs-cat-row">
-                <a th:each="dm : ${danhMucs}" th:href="@{/san-pham(danhMuc=${dm.maDanhMuc})}" class="fs-cat-card">
-                    <i class="bi bi-tag"></i>
-                    <span th:text="${dm.tenDanhMuc}">Danh mục</span>
-                </a>
-            </div>
+        <div class="fs-hero-art">
+            <div class="fs-hero-shoe"><i class="bi bi-lightning-charge-fill"></i></div>
+            <div class="fs-hero-chip c1"><i class="bi bi-truck"></i> Freeship đơn từ 500K</div>
+            <div class="fs-hero-chip c2"><i class="bi bi-qr-code-scan"></i> Thanh toán VietQR</div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <section class="fs-section" style="padding-top:0;">
-        <div class="fs-container">
-            <div class="fs-section-head">
-                <div><div class="fs-eyebrow">Hàng mới về</div><h2 class="fs-h2">Sản phẩm nổi bật</h2></div>
-                <a th:href="@{/san-pham}" class="fs-more">Xem tất cả <i class="bi bi-arrow-right"></i></a>
+<!-- ============ USP ============ -->
+<section class="fs-usp">
+    <div class="fs-container fs-usp-grid">
+        <div class="fs-usp-item"><i class="bi bi-truck"></i>
+            <div><b>Miễn phí vận chuyển</b><span>Cho đơn hàng từ 500.000₫</span></div></div>
+        <div class="fs-usp-item"><i class="bi bi-shield-check"></i>
+            <div><b>Hàng chính hãng 100%</b><span>Nhập trực tiếp từ thương hiệu</span></div></div>
+        <div class="fs-usp-item"><i class="bi bi-broadcast"></i>
+            <div><b>Theo dõi thời gian thực</b><span>Trạng thái đơn cập nhật tức thì</span></div></div>
+        <div class="fs-usp-item"><i class="bi bi-arrow-repeat"></i>
+            <div><b>Huỷ đơn dễ dàng</b><span>Khi đơn chưa được xác nhận</span></div></div>
+    </div>
+</section>
+
+<!-- ============ DANH MỤC ============ -->
+<section class="fs-section" th:if="${danhMucs != null && !danhMucs.isEmpty()}">
+    <div class="fs-container">
+        <div class="fs-section-head">
+            <div><h2><i class="bi bi-grid"></i> Danh mục nổi bật</h2>
+                <p>Chọn nhanh phong cách của bạn</p></div>
+            <a th:href="@{/cua-hang/san-pham}" class="fs-link-all">Xem tất cả <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="fs-brand-strip">
+            <a th:each="dm : ${danhMucs}" class="fs-brand-chip reveal"
+               th:href="@{/cua-hang/san-pham(danhMuc=${dm.maDanhMuc})}"
+               th:text="${dm.tenDanhMuc}">Giày chạy bộ</a>
+        </div>
+    </div>
+</section>
+
+<!-- ============ FLASH SALE (khu riêng — khác hẳn lưới sản phẩm thường) ============ -->
+<section class="fs-sale" th:if="${sanPhamKhuyenMai != null && !sanPhamKhuyenMai.isEmpty()}">
+    <div class="fs-container">
+        <div class="fs-sale-head">
+            <div class="fs-sale-title">
+                <span class="fs-sale-flame"><i class="bi bi-lightning-charge-fill"></i></span>
+                <div>
+                    <h2>FLASH SALE <em>đang diễn ra</em></h2>
+                    <p>Giảm giá trực tiếp từ quầy quản lý — hết đợt là hết giá này!</p>
+                </div>
             </div>
+            <a th:href="@{/cua-hang/san-pham(khuyenMai=true)}" class="fs-btn fs-btn-lg fs-sale-cta">
+                Săn ngay <i class="bi bi-arrow-right"></i></a>
+        </div>
 
-            <div class="fs-grid" th:if="${!#lists.isEmpty(sanPhamNoiBat)}">
-                <div class="fs-card" th:each="sp : ${sanPhamNoiBat}">
-                    <a th:href="@{/san-pham/{id}(id=${sp.maSanPham})}" class="fs-card-link"></a>
-                    <div class="fs-card-img">
-                        <span class="fs-card-badge" th:if="${sp.phanTramGiam > 0}" th:text="'-' + ${sp.phanTramGiam} + '%'"></span>
-                        <span class="fs-card-badge fs-badge-out" th:if="${!sp.conHang}">Hết hàng</span>
-                        <img th:src="${sp.anh}" th:alt="${sp.tenSanPham}">
+        <div class="fs-sale-track">
+            <a class="fs-sale-card" th:each="c : ${sanPhamKhuyenMai}"
+               th:href="@{/cua-hang/san-pham/{id}(id=${c.maSanPham})}">
+                <span class="fs-sale-off" th:text="'-' + ${c.phanTramGiam} + '%'">-25%</span>
+                <div class="fs-sale-img">
+                    <img th:src="${c.anh}" th:alt="${c.tenSanPham}" loading="lazy"
+                         onerror="this.src='/storefront/img/no-image.svg'">
+                </div>
+                <div class="fs-sale-info">
+                    <small th:text="${c.tenThuongHieu}">NIKE</small>
+                    <b th:text="${c.tenSanPham}">Tên sản phẩm</b>
+                    <div class="fs-sale-price">
+                        <span class="now" th:text="${#numbers.formatDecimal(c.giaSauGiam,0,'POINT',0,'COMMA')} + '₫'">899.000₫</span>
+                        <s th:text="${#numbers.formatDecimal(c.giaGoc,0,'POINT',0,'COMMA')} + '₫'">1.200.000₫</s>
                     </div>
-                    <div class="fs-card-body">
-                        <div class="fs-card-brand" th:text="${sp.tenThuongHieu}">Brand</div>
-                        <div class="fs-card-name" th:text="${sp.tenSanPham}">Tên sản phẩm</div>
-                        <div class="fs-card-price">
-                            <span class="now" th:text="${#numbers.formatDecimal(sp.giaSauGiam,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
-                            <span class="old" th:if="${sp.phanTramGiam > 0}" th:text="${#numbers.formatDecimal(sp.giaGoc,0,'COMMA',0,'POINT')} + 'đ'"></span>
-                        </div>
-                        <a th:href="@{/san-pham/{id}(id=${sp.maSanPham})}" class="fs-card-add" style="text-align:center;display:block;text-decoration:none;">Xem chi tiết</a>
+                    <div class="fs-sale-bar">
+                        <div class="fill" th:style="'width:' + ${c.phanTramGiam > 60 ? 92 : (30 + c.phanTramGiam)} + '%'"></div>
                     </div>
+                    <small class="fs-sale-sold">
+                        <i class="bi bi-fire"></i>
+                        <span th:text="${c.daBan > 0 ? 'Đã bán ' + c.daBan + ' — nhanh kẻo lỡ!' : 'Vừa mở bán — nhanh tay!'}">Đã bán 12</span>
+                    </small>
+                </div>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ============ BÁN CHẠY ============ -->
+<section class="fs-section" th:if="${sanPhamBanChay != null && !sanPhamBanChay.isEmpty()}">
+    <div class="fs-container">
+        <div class="fs-section-head">
+            <div><h2><i class="bi bi-graph-up-arrow"></i> Bán chạy nhất</h2>
+                <p>Xếp theo số lượng đã bán thực tế</p></div>
+            <a th:href="@{/cua-hang/san-pham(sapXep='ban-chay')}" class="fs-link-all">Xem tất cả <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="fs-grid">
+            <th:block th:each="c : ${sanPhamBanChay}">
+                <div th:replace="~{fragments/client-layout :: card(${c}, false)}"></div>
+            </th:block>
+        </div>
+    </div>
+</section>
+
+<!-- ============ VOUCHER ============ -->
+<section class="fs-section" th:if="${voucherCongKhai != null && !voucherCongKhai.isEmpty()}">
+    <div class="fs-container">
+        <div class="fs-section-head">
+            <div><h2><i class="bi bi-ticket-perforated"></i> Săn mã giảm giá</h2>
+                <p>Nhập tên mã ở giỏ hàng để được giảm ngay</p></div>
+        </div>
+        <div class="fs-voucher-strip">
+            <div th:each="v : ${voucherCongKhai}" class="fs-voucher reveal">
+                <div class="fs-voucher-icon"><i class="bi bi-ticket-perforated-fill"></i></div>
+                <div>
+                    <b th:text="${v.tenGiamGia}">FSSALE10</b>
+                    <small>
+                        <span th:if="${v.loaiGiamGia == 'PhanTram'}"
+                              th:text="'Giảm ' + ${#numbers.formatDecimal(v.giaTriGiam,0,'POINT',0,'COMMA')} + '%'
+                                       + (${v.giamToiDa != null} ? ', tối đa ' + ${#numbers.formatDecimal(v.giamToiDa,0,'POINT',0,'COMMA')} + '₫' : '')">Giảm 10%</span>
+                        <span th:unless="${v.loaiGiamGia == 'PhanTram'}"
+                              th:text="'Giảm ' + ${#numbers.formatDecimal(v.giaTriGiam,0,'POINT',0,'COMMA')} + '₫'">Giảm 50.000₫</span>
+                        <span th:if="${v.donToiThieu != null && v.donToiThieu.signum() > 0}"
+                              th:text="' • Đơn từ ' + ${#numbers.formatDecimal(v.donToiThieu,0,'POINT',0,'COMMA')} + '₫'"></span>
+                    </small>
                 </div>
             </div>
-
-            <div class="fs-empty-state" th:if="${#lists.isEmpty(sanPhamNoiBat)}">
-                <i class="bi bi-box-seam"></i>
-                <h3>Chưa có sản phẩm</h3>
-                <p>Cửa hàng đang cập nhật sản phẩm mới, vui lòng quay lại sau.</p>
-            </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <section class="fs-section" style="padding-top:0;" th:if="${!#lists.isEmpty(thuongHieus)}">
-        <div class="fs-container">
-            <div class="fs-section-head">
-                <div><div class="fs-eyebrow">Thương hiệu</div><h2 class="fs-h2">Đối tác của chúng tôi</h2></div>
-            </div>
-            <div class="fs-cat-row">
-                <a th:each="th : ${thuongHieus}" th:href="@{/san-pham(thuongHieu=${th.maThuongHieu})}" class="fs-cat-card">
-                    <i class="bi bi-award"></i>
-                    <span th:text="${th.tenThuongHieu}">Brand</span>
-                </a>
-            </div>
+<!-- ============ MỚI VỀ ============ -->
+<section class="fs-section" th:if="${sanPhamMoi != null && !sanPhamMoi.isEmpty()}">
+    <div class="fs-container">
+        <div class="fs-section-head">
+            <div><h2><i class="bi bi-box-seam"></i> Hàng mới về</h2>
+                <p>Những mẫu vừa lên kệ</p></div>
+            <a th:href="@{/cua-hang/san-pham(sapXep='moi-nhat')}" class="fs-link-all">Xem tất cả <i class="bi bi-arrow-right"></i></a>
         </div>
-    </section>
+        <div class="fs-grid">
+            <th:block th:each="c : ${sanPhamMoi}">
+                <div th:replace="~{fragments/client-layout :: card(${c}, false)}"></div>
+            </th:block>
+        </div>
+    </div>
+</section>
 
-</main>
+<!-- ============ ĐÁNH GIÁ CAO ============ -->
+<section class="fs-section" th:if="${sanPhamDanhGiaCao != null && !sanPhamDanhGiaCao.isEmpty()}">
+    <div class="fs-container">
+        <div class="fs-section-head">
+            <div><h2><i class="bi bi-star-fill"></i> Được đánh giá cao</h2>
+                <p>Khách hàng đã mua và chấm điểm</p></div>
+            <a th:href="@{/danh-gia}" class="fs-link-all">Xem đánh giá <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="fs-grid">
+            <th:block th:each="c : ${sanPhamDanhGiaCao}">
+                <div th:replace="~{fragments/client-layout :: card(${c}, false)}"></div>
+            </th:block>
+        </div>
+    </div>
+</section>
 
-<footer th:replace="~{fragments/client-footer :: footer}"></footer>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script th:src="@{/storefront/js/storefront.js}"></script>
+<!-- ============ THƯƠNG HIỆU ============ -->
+<section class="fs-section" th:if="${thuongHieus != null && !thuongHieus.isEmpty()}" style="padding-bottom:44px">
+    <div class="fs-container">
+        <div class="fs-section-head">
+            <div><h2><i class="bi bi-award"></i> Thương hiệu</h2>
+                <p>Đối tác chính hãng của FS Shoes</p></div>
+        </div>
+        <div class="fs-brand-strip">
+            <a th:each="th : ${thuongHieus}" class="fs-brand-chip reveal"
+               th:href="@{/cua-hang/san-pham(thuongHieu=${th.maThuongHieu})}"
+               th:text="${th.tenThuongHieu}">Nike</a>
+        </div>
+    </div>
+</section>
+
+<footer th:replace="~{fragments/client-layout :: footer}"></footer>
+<div th:replace="~{fragments/client-layout :: toast}"></div>
+<th:block th:replace="~{fragments/client-layout :: scripts}"></th:block>
 </body>
 </html>

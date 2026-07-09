@@ -8,11 +8,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Giỏ hàng của khách, được Spring quản lý theo phạm vi session (mỗi khách truy cập
- * website sẽ có một instance riêng, không cần đăng nhập mới dùng được).
- * Vì ứng dụng đang dùng spring-session-jdbc (lưu session vào CSDL) nên bean này
- * phải implement Serializable và CHỈ lưu các kiểu dữ liệu nguyên thuỷ/đơn giản,
- * không lưu trực tiếp các Entity (tránh lỗi serialize proxy Hibernate).
+ * Giỏ hàng theo phiên (session) — mỗi khách truy cập website có một giỏ riêng,
+ * không cần đăng nhập vẫn thêm được sản phẩm. Chỉ lưu dữ liệu nguyên thuỷ
+ * (mã biến thể + số lượng) để an toàn khi serialize session.
  */
 @Component
 @SessionScope
@@ -20,14 +18,11 @@ public class GioHang implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    // key = maSanPhamChiTiet, value = dòng giỏ hàng
+    /** key = maSanPhamChiTiet, value = dòng giỏ hàng (giữ thứ tự thêm vào). */
     private final Map<String, GioHangItem> danhSach = new LinkedHashMap<>();
 
-    // Mã voucher (GiamGia) đang được áp dụng cho giỏ hàng này, null nếu không áp dụng
+    /** Mã voucher (GiamGia) đang áp dụng cho giỏ, null nếu không có. */
     private String maGiamGiaApDung;
-
-    // Ghi chú khách nhập ở bước thanh toán (lưu tạm trước khi đặt hàng thành công)
-    private String ghiChu;
 
     public synchronized void themSanPham(String maSPCT, int soLuong) {
         if (maSPCT == null || soLuong <= 0) return;
@@ -58,7 +53,6 @@ public class GioHang implements Serializable {
     public synchronized void xoaTatCa() {
         danhSach.clear();
         maGiamGiaApDung = null;
-        ghiChu = null;
     }
 
     public Map<String, GioHangItem> getDanhSach() {
@@ -79,13 +73,5 @@ public class GioHang implements Serializable {
 
     public void setMaGiamGiaApDung(String maGiamGiaApDung) {
         this.maGiamGiaApDung = maGiamGiaApDung;
-    }
-
-    public String getGhiChu() {
-        return ghiChu;
-    }
-
-    public void setGhiChu(String ghiChu) {
-        this.ghiChu = ghiChu;
     }
 }

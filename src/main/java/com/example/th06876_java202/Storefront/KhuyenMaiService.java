@@ -12,8 +12,10 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Tính giá khuyến mãi hiện tại (nếu có) cho sản phẩm/biến thể, dựa trên các
- * "Đợt giảm giá" (DotGiamGia/ChiTietDotGiamGia) admin đã thiết lập sẵn và còn hiệu lực theo ngày.
+ * Tính giá khuyến mãi hiện tại cho sản phẩm / biến thể, dựa trên các
+ * "Đợt giảm giá" (DotGiamGia / ChiTietDotGiamGia) mà bên Quản lý đã thiết lập
+ * và còn hiệu lực theo ngày. Nhờ đó giá trên website LUÔN khớp với chương trình
+ * khuyến mãi bên quản lý đang chạy.
  */
 @Service
 @RequiredArgsConstructor
@@ -21,10 +23,11 @@ public class KhuyenMaiService {
 
     private final ChiTietDotGiamGiaRepo chiTietDotGiamGiaRepo;
 
-    /** % giảm cao nhất đang áp dụng cho 1 biến thể cụ thể, 0 nếu không có khuyến mãi nào. */
+    /** % giảm cao nhất đang áp dụng cho 1 biến thể cụ thể, 0 nếu không có. */
     public int phanTramGiamBienThe(String maSanPhamChiTiet) {
         if (maSanPhamChiTiet == null) return 0;
-        List<BigDecimal> list = chiTietDotGiamGiaRepo.findActiveDiscountPercentBySanPhamChiTiet(maSanPhamChiTiet, LocalDate.now());
+        List<BigDecimal> list = chiTietDotGiamGiaRepo
+                .findActiveDiscountPercentBySanPhamChiTiet(maSanPhamChiTiet, LocalDate.now());
         if (list == null || list.isEmpty()) return 0;
         return list.get(0).setScale(0, RoundingMode.HALF_UP).intValue();
     }
@@ -32,16 +35,24 @@ public class KhuyenMaiService {
     /** % giảm cao nhất đang áp dụng cho 1 sản phẩm (bất kỳ biến thể nào), 0 nếu không có. */
     public int phanTramGiamSanPham(String maSanPham) {
         if (maSanPham == null) return 0;
-        List<BigDecimal> list = chiTietDotGiamGiaRepo.findActiveDiscountPercentBySanPham(maSanPham, LocalDate.now());
+        List<BigDecimal> list = chiTietDotGiamGiaRepo
+                .findActiveDiscountPercentBySanPham(maSanPham, LocalDate.now());
         if (list == null || list.isEmpty()) return 0;
         return list.get(0).setScale(0, RoundingMode.HALF_UP).intValue();
     }
 
-    /** % giảm thực tế áp dụng cho 1 biến thể: lấy max giữa KM gán riêng cho biến thể (nếu có) và KM gán cho sản phẩm cha (cách admin đang dùng). */
+    /**
+     * % giảm thực áp cho 1 biến thể: dòng khuyến mãi gán ĐÚNG biến thể này,
+     * hoặc dòng gán cho CẢ sản phẩm (không gán biến thể cụ thể).
+     * KHÔNG lấy nhầm % của biến thể khác cùng sản phẩm — bảo đảm giá ở giỏ hàng
+     * / đặt hàng đúng với thiết lập của quầy quản lý.
+     */
     public int phanTramGiamChoBienThe(SanPham sanPham, String maSanPhamChiTiet) {
-        int ptBienThe = phanTramGiamBienThe(maSanPhamChiTiet);
-        int ptSanPham = sanPham != null ? phanTramGiamSanPham(sanPham.getMaSanPham()) : 0;
-        return Math.max(ptBienThe, ptSanPham);
+        String maSP = sanPham != null ? sanPham.getMaSanPham() : null;
+        List<BigDecimal> list = chiTietDotGiamGiaRepo
+                .findActiveDiscountPercentChoBienThe(maSanPhamChiTiet, maSP, LocalDate.now());
+        if (list == null || list.isEmpty()) return 0;
+        return list.get(0).setScale(0, RoundingMode.HALF_UP).intValue();
     }
 
     public BigDecimal giaSauGiam(BigDecimal giaGoc, int phanTramGiam) {

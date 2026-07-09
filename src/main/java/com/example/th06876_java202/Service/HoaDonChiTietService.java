@@ -25,6 +25,10 @@ public class HoaDonChiTietService {
         this.hoaDonChiTietRepository = hoaDonChiTietRepository;
     }
 
+    public void xoa(Integer id) {
+        hoaDonChiTietRepository.deleteById(id);
+    }
+
     public HoaDonChiTiet findAll(String maHoaDon, String maSanPhamChiTiet) {
         return hoaDonChiTietRepository.findByMaHoaDon_MaHoaDonAndSanPhamChiTiet_MaSanPhamChiTiet(
                 maHoaDon, maSanPhamChiTiet

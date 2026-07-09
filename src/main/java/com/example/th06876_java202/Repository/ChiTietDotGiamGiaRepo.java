@@ -63,13 +63,42 @@ public interface ChiTietDotGiamGiaRepo extends JpaRepository<ChiTietDotGiamGia, 
     // Trong ChiTietDotGiamGiaRepo.java
     List<ChiTietDotGiamGia> findBySanPhamChiTiet_MaSanPhamChiTiet(String maSanPhamChiTiet);
 
+    /**
+     * % giảm đang chạy của 1 SẢN PHẨM (hiển thị trên card): bắt CẢ hai kiểu gán
+     * mà quầy quản lý dùng — gán theo sản phẩm (MaSanPham) lẫn gán theo từng
+     * biến thể (MaSanPhamChiTiet). Trạng thái chỉ dùng để "phủ quyết"
+     * (Ngừng hoạt động / Đã huỷ); còn hiệu lực hay không do KHOẢNG NGÀY quyết định
+     * — nhờ vậy không lệ thuộc chuỗi 'Hoạt động' / 'Đang hoạt động' trong dữ liệu.
+     */
     @Query("SELECT d.giaTriGiam FROM ChiTietDotGiamGia c JOIN c.dotGiamGia d " +
-            "WHERE c.sanPham.maSanPham = :maSanPham AND d.trangThai = 'Hoạt động' AND :today BETWEEN d.ngayBatDau AND d.ngayKetThuc " +
+            "LEFT JOIN c.sanPham sp LEFT JOIN c.sanPhamChiTiet spct LEFT JOIN spct.sanPham sp2 " +
+            "WHERE (sp.maSanPham = :maSanPham OR sp2.maSanPham = :maSanPham) " +
+            "AND (d.trangThai IS NULL OR d.trangThai NOT IN ('Ngừng hoạt động', 'Đã huỷ')) " +
+            "AND :today BETWEEN d.ngayBatDau AND d.ngayKetThuc " +
             "ORDER BY d.giaTriGiam DESC")
     List<java.math.BigDecimal> findActiveDiscountPercentBySanPham(@Param("maSanPham") String maSanPham, @Param("today") java.time.LocalDate today);
 
+    /**
+     * % giảm đang chạy áp cho 1 BIẾN THỂ cụ thể (dùng để tính GIÁ THẬT ở giỏ hàng
+     * / đặt hàng): khớp dòng gán đúng biến thể này, HOẶC dòng gán cho cả sản phẩm
+     * (MaSanPhamChiTiet để trống). Không lấy % của biến thể khác cùng sản phẩm.
+     */
     @Query("SELECT d.giaTriGiam FROM ChiTietDotGiamGia c JOIN c.dotGiamGia d " +
-            "WHERE c.sanPhamChiTiet.maSanPhamChiTiet = :maSPCT AND d.trangThai = 'Hoạt động' AND :today BETWEEN d.ngayBatDau AND d.ngayKetThuc " +
+            "LEFT JOIN c.sanPham sp LEFT JOIN c.sanPhamChiTiet spct " +
+            "WHERE (spct.maSanPhamChiTiet = :maSPCT " +
+            "       OR (spct IS NULL AND sp.maSanPham = :maSanPham)) " +
+            "AND (d.trangThai IS NULL OR d.trangThai NOT IN ('Ngừng hoạt động', 'Đã huỷ')) " +
+            "AND :today BETWEEN d.ngayBatDau AND d.ngayKetThuc " +
+            "ORDER BY d.giaTriGiam DESC")
+    List<java.math.BigDecimal> findActiveDiscountPercentChoBienThe(@Param("maSPCT") String maSPCT,
+                                                                   @Param("maSanPham") String maSanPham,
+                                                                   @Param("today") java.time.LocalDate today);
+
+    /** Giữ tương thích: chỉ khớp dòng gán đúng biến thể (không tính dòng gán cả sản phẩm). */
+    @Query("SELECT d.giaTriGiam FROM ChiTietDotGiamGia c JOIN c.dotGiamGia d " +
+            "WHERE c.sanPhamChiTiet.maSanPhamChiTiet = :maSPCT " +
+            "AND (d.trangThai IS NULL OR d.trangThai NOT IN ('Ngừng hoạt động', 'Đã huỷ')) " +
+            "AND :today BETWEEN d.ngayBatDau AND d.ngayKetThuc " +
             "ORDER BY d.giaTriGiam DESC")
     List<java.math.BigDecimal> findActiveDiscountPercentBySanPhamChiTiet(@Param("maSPCT") String maSPCT, @Param("today") java.time.LocalDate today);
 

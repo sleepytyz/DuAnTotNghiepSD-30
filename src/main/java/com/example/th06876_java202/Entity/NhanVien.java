@@ -18,7 +18,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class NhanVien {
+public class NhanVien implements java.io.Serializable {
     @Id
     @Column(name = "MaNhanVien", length = 20)
     private String maNhanVien;
@@ -75,11 +75,11 @@ public class NhanVien {
     private TaiKhoan taiKhoan;
 
     @OneToMany(mappedBy = "nhanVien", fetch = FetchType.LAZY)
-    private List<ChamCong> danhSachChamCong;
+    private transient List<ChamCong> danhSachChamCong;
 
     @OneToMany(mappedBy = "nhanVienBanGiao", fetch = FetchType.LAZY)
-    private List<GiaoCa> danhSachBanGiao;
+    private transient List<GiaoCa> danhSachBanGiao;
 
     @OneToMany(mappedBy = "nhanVienNhanGiao", fetch = FetchType.LAZY)
-    private List<GiaoCa> danhSachNhanGiao;
+    private transient List<GiaoCa> danhSachNhanGiao;
 }

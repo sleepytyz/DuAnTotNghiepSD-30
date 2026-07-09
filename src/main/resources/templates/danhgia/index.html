@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý đánh giá - FS Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .dg-stat { background:#fff; border:1px solid #e9ecf2; border-radius:14px; padding:16px 18px; height:100%; }
+        .dg-stat .so { font-size:26px; font-weight:800; line-height:1; }
+        .dg-stat .nhan { font-size:12.5px; color:#667085; margin-top:5px; }
+        .dg-sao { color:#f6a723; letter-spacing:1px; }
+        .dg-sao .off { color:#d7dde7; }
+        .dg-card { background:#fff; border:1px solid #e9ecf2; border-radius:14px; }
+        .dg-row { padding:15px 18px; border-bottom:1px solid #f2f4f7; }
+        .dg-row:last-child { border-bottom:0; }
+        .dg-ava { width:42px; height:42px; border-radius:999px; background:linear-gradient(135deg,#ff5a1f,#ff8a4c);
+            color:#fff; display:grid; place-items:center; font-weight:700; flex-shrink:0; }
+        .dg-an { opacity:.55; }
+        .badge-an { background:#fee4e2; color:#b42318; }
+        .badge-hien { background:#dcfae6; color:#067647; }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <div sec:authorize="hasRole('ADMIN')"><div th:replace="~{fragments/sidebaradmin :: sidebar-admin}"></div></div>
+    <div sec:authorize="hasRole('STAFF')"><div th:replace="~{fragments/sidebarstaff :: sidebar-staff}"></div></div>
+
+    <div class="content-body px-3">
+        <div th:replace="~{fragments/header :: header('Quản lý đánh giá', 'Đánh giá')}"></div>
+
+        <div class="toast-container-custom" id="toastContainer"></div>
+        <div id="alertData" style="display:none"
+             th:attr="data-message=${thongBao},data-type='success'"></div>
+
+        <!-- THỐNG KÊ -->
+        <div class="row g-3 mt-1">
+            <div class="col-6 col-lg-3"><div class="dg-stat">
+                <div class="so" th:text="${tongTatCa}">0</div>
+                <div class="nhan"><i class="bi bi-chat-square-text me-1"></i>Tổng lượt đánh giá</div>
+            </div></div>
+            <div class="col-6 col-lg-3"><div class="dg-stat">
+                <div class="so text-warning" th:text="${diemTB}">0</div>
+                <div class="nhan"><i class="bi bi-star-fill me-1"></i>Điểm trung bình (đang hiện)</div>
+            </div></div>
+            <div class="col-6 col-lg-3"><div class="dg-stat">
+                <div class="so text-success" th:text="${tongHien}">0</div>
+                <div class="nhan"><i class="bi bi-eye me-1"></i>Đang hiển thị</div>
+            </div></div>
+            <div class="col-6 col-lg-3"><div class="dg-stat">
+                <div class="so text-danger" th:text="${tongAn}">0</div>
+                <div class="nhan"><i class="bi bi-eye-slash me-1"></i>Đã ẩn</div>
+            </div></div>
+        </div>
+
+        <!-- BỘ LỌC -->
+        <div class="dg-card mt-3 p-3">
+            <form method="get" th:action="@{/danhgia/index}" class="row g-2 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold mb-1">Sản phẩm</label>
+                    <select name="sp" class="form-select form-select-sm">
+                        <option value="">Tất cả sản phẩm</option>
+                        <option th:each="p : ${dsSanPham}" th:value="${p.maSanPham}"
+                                th:text="${p.tenSanPham}" th:selected="${p.maSanPham == fSp}"></option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold mb-1">Số sao</label>
+                    <select name="sao" class="form-select form-select-sm">
+                        <option value="">Tất cả</option>
+                        <option th:each="s : ${#numbers.sequence(5,1)}" th:value="${s}"
+                                th:text="${s} + ' sao'" th:selected="${fSao != null && fSao == s}"></option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold mb-1">Trạng thái</label>
+                    <select name="tt" class="form-select form-select-sm">
+                        <option value="">Tất cả</option>
+                        <option value="hien" th:selected="${fTt == 'hien'}">Đang hiện</option>
+                        <option value="an" th:selected="${fTt == 'an'}">Đã ẩn</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold mb-1">Từ khoá (nội dung / tên khách)</label>
+                    <div class="d-flex gap-2">
+                        <input type="text" name="q" class="form-control form-control-sm" th:value="${fQ}"
+                               placeholder="Tìm trong đánh giá...">
+                        <button class="btn btn-sm btn-danger px-3" type="submit"><i class="bi bi-search"></i></button>
+                        <a th:href="@{/danhgia/index}" class="btn btn-sm btn-light border" title="Xoá lọc">
+                            <i class="bi bi-arrow-counterclockwise"></i></a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- DANH SÁCH -->
+        <div class="dg-card mt-3 mb-4">
+            <div th:if="${dsDanhGia.isEmpty()}" class="text-center text-muted py-5">
+                <i class="bi bi-inbox" style="font-size:42px"></i>
+                <div class="mt-2">Không có đánh giá nào khớp bộ lọc.</div>
+            </div>
+
+            <div class="dg-row" th:each="d : ${dsDanhGia}"
+                 th:classappend="${!d.trangThai} ? ' dg-an'">
+                <div class="d-flex gap-3">
+                    <div class="dg-ava"
+                         th:text="${d.khachHang != null && d.khachHang.hoTen != null ? #strings.substring(d.khachHang.hoTen,0,1) : '?'}">A</div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <b th:text="${d.khachHang != null ? d.khachHang.hoTen : 'Khách hàng'}">Nguyễn Văn A</b>
+                            <span class="dg-sao">
+                                <th:block th:each="i : ${#numbers.sequence(1,5)}">
+                                    <i class="bi" th:classappend="${i <= d.soSao} ? ' bi-star-fill' : ' bi-star off'"></i>
+                                </th:block>
+                            </span>
+                            <span class="badge rounded-pill"
+                                  th:classappend="${d.trangThai} ? ' badge-hien' : ' badge-an'"
+                                  th:text="${d.trangThai} ? 'Đang hiện' : 'Đã ẩn'">Đang hiện</span>
+                            <span class="text-muted small ms-auto"
+                                  th:if="${d.ngayDanhGia != null}"
+                                  th:text="${#temporals.format(d.ngayDanhGia,'HH:mm dd/MM/yyyy')}">01/01/2025</span>
+                        </div>
+                        <div class="text-muted small mt-1">
+                            <i class="bi bi-box-seam"></i>
+                            <span th:text="${d.sanPham != null ? d.sanPham.tenSanPham : '(sản phẩm đã xoá)'}">Tên sản phẩm</span>
+                            <span th:if="${d.hoaDon != null}" th:text="' • Đơn ' + ${d.hoaDon.maHoaDon}"></span>
+                        </div>
+                        <div class="mt-2" th:if="${d.noiDung != null && !#strings.isEmpty(d.noiDung)}"
+                             th:text="${d.noiDung}">Nội dung đánh giá của khách hàng...</div>
+                        <div class="mt-2 text-muted fst-italic" th:if="${d.noiDung == null || #strings.isEmpty(d.noiDung)}">
+                            (Khách không để lại nội dung, chỉ chấm sao)</div>
+
+                        <div class="mt-2 d-flex gap-2">
+                            <a th:if="${d.trangThai}" class="btn btn-sm btn-outline-danger"
+                               th:href="@{/danhgia/doi(id=${d.maDanhGia},hien=false)}"
+                               onclick="return confirm('Ẩn đánh giá này khỏi website?')">
+                                <i class="bi bi-eye-slash"></i> Ẩn</a>
+                            <a th:unless="${d.trangThai}" class="btn btn-sm btn-outline-success"
+                               th:href="@{/danhgia/doi(id=${d.maDanhGia},hien=true)}">
+                                <i class="bi bi-eye"></i> Hiện lại</a>
+                            <a th:if="${d.sanPham != null}" class="btn btn-sm btn-light border" target="_blank"
+                               th:href="@{/cua-hang/san-pham/{id}(id=${d.sanPham.maSanPham}) + '#danh-gia'}">
+                                <i class="bi bi-box-arrow-up-right"></i> Xem trên web</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Tự submit khi đổi select (lọc nhanh)
+    document.querySelectorAll('select[name=sp], select[name=sao], select[name=tt]').forEach(function (s) {
+        s.addEventListener('change', function () { s.form.submit(); });
+    });
+    // Thông báo sau thao tác ẩn/hiện
+    (function () {
+        var d = document.getElementById('alertData');
+        var msg = d && d.dataset.message;
+        if (msg && msg !== 'null' && msg.trim() !== '') {
+            var t = document.createElement('div');
+            t.className = 'alert alert-success position-fixed shadow';
+            t.style.cssText = 'top:20px;right:20px;z-index:9999';
+            t.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>' + msg;
+            document.body.appendChild(t);
+            setTimeout(function () { t.remove(); }, 3500);
+        }
+    })();
+</script>
+</body>
+</html>

@@ -25,9 +25,12 @@ public class DonHangController {
     private HoaDonService service;
 
     private final HoaDonChiTietService hoaDonChiTietService;
+    private final com.example.th06876_java202.Storefront.DonHangOnlineService donHangOnlineService;
 
-    public DonHangController(HoaDonChiTietService hoaDonChiTietService) {
+    public DonHangController(HoaDonChiTietService hoaDonChiTietService,
+                            com.example.th06876_java202.Storefront.DonHangOnlineService donHangOnlineService) {
         this.hoaDonChiTietService = hoaDonChiTietService;
+        this.donHangOnlineService = donHangOnlineService;
     }
 
     @GetMapping("/donhang")
@@ -105,7 +108,15 @@ public class DonHangController {
         }
 
         model.addAttribute("hd", hd);
-        model.addAttribute("listhduy", service.findByTrangThai("Đã huỷ"));
+
+        // Thống kê số lượng theo trạng thái (dùng cho các thẻ đếm trên giao diện)
+        model.addAttribute("totalChoXacNhan", service.countByTrangThai("Chờ xác nhận"));
+        model.addAttribute("totalDaXacNhan", service.countByTrangThai("Đã xác nhận"));
+        model.addAttribute("totalDangGiao", service.countByTrangThai("Đang giao"));
+        model.addAttribute("totalDaGiao", service.countByTrangThai("Đã giao"));
+        model.addAttribute("totalDaHuy", service.countByTrangThai("Đã huỷ"));
+
+        model.addAttribute("listhduy", service.getALLDHHUY());
         model.addAttribute("hoaDon", new HoaDon());
 
         return "donhang/index";
@@ -158,6 +169,22 @@ public class DonHangController {
     public String suattdgg(@RequestParam(required = false) String mahd, Model model) {
         service.suattdgg(mahd);
         return "redirect:/donhang/index";
+    }
+
+    /** Nhân viên/Quản lý huỷ đơn (Chờ xác nhận/Đã xác nhận/Đang giao) — hoàn lại tồn kho & voucher. */
+    @GetMapping("/huy")
+    public String huy(@RequestParam(required = false) String mahd,
+                      org.springframework.web.servlet.mvc.support.RedirectAttributes ra) {
+        HoaDon hd = service.findById(mahd);
+        try {
+            donHangOnlineService.huyDonAdmin(hd);
+            ra.addFlashAttribute("mess", "Đã huỷ đơn hàng " + mahd + " và hoàn lại tồn kho.");
+            ra.addFlashAttribute("messageType", "success");
+        } catch (com.example.th06876_java202.Storefront.DatHangException ex) {
+            ra.addFlashAttribute("mess", ex.getMessage());
+            ra.addFlashAttribute("messageType", "warning");
+        }
+        return "redirect:/donhang/index" + (mahd != null ? "?mahd=" + mahd : "");
     }
 
     @GetMapping("/api/detail")

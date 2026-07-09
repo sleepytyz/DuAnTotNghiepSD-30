@@ -48,13 +48,32 @@ public interface GiamGiaRepository extends JpaRepository<GiamGia, String> {
             Pageable pageable
     );
 
-    // ⭐ SỬA: Lấy tất cả voucher (không filter SoLuong > 1)
-    @Query(value = "SELECT * FROM GiamGia", nativeQuery = true)
-    List<GiamGia> findSoLuongVoucher();
+    // ⭐ Lấy TẤT CẢ voucher (không filter gì cả) - Dùng cho admin
+    @Query(value = "SELECT * FROM GiamGia ORDER BY NgayTao DESC", nativeQuery = true)
+    List<GiamGia> findAllVouchers();
 
-    // ⭐ THÊM: Lấy voucher đang hoạt động (bao gồm cả vô hạn)
-    @Query(value = "SELECT * FROM GiamGia WHERE TrangThai = N'Hoạt động'", nativeQuery = true)
+    // ⭐ Lấy voucher đang hoạt động (TrangThai = 'Hoạt động')
+    @Query(value = "SELECT * FROM GiamGia WHERE TrangThai = N'Hoạt động' ORDER BY NgayTao DESC", nativeQuery = true)
+    List<GiamGia> findActiveVouchers();
+
+    // ⭐ Lấy voucher đang hoạt động và còn số lượng (hoặc vô hạn)
+    @Query(value = "SELECT * FROM GiamGia WHERE TrangThai = N'Hoạt động' AND (IsVoHan = 1 OR SoLuong > 0) ORDER BY NgayTao DESC", nativeQuery = true)
+    List<GiamGia> findAvailableVouchers();
+
+    // ⭐ Lấy voucher đang hoạt động, còn số lượng, và còn hạn
+    @Query(value = """
+        SELECT * FROM GiamGia 
+        WHERE TrangThai = N'Hoạt động' 
+        AND (IsVoHan = 1 OR SoLuong > 0)
+        AND (NgayBatDau IS NULL OR NgayBatDau <= GETDATE())
+        AND (NgayKetThuc IS NULL OR NgayKetThuc >= GETDATE())
+        ORDER BY NgayTao DESC
+    """, nativeQuery = true)
     List<GiamGia> findVoucherDangHoatDong();
+
+    // ⭐ GIỮ LẠI: Lấy voucher cho khách hàng (công khai + cá nhân)
+    @Query(value = "SELECT * FROM GiamGia WHERE TrangThai = N'Hoạt động' AND (IsVoHan = 1 OR SoLuong > 0) ORDER BY NgayTao DESC", nativeQuery = true)
+    List<GiamGia> findSoLuongVoucher();
 
     @Modifying
     @Transactional

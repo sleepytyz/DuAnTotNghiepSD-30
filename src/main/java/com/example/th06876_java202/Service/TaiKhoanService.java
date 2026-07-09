@@ -145,10 +145,29 @@ public class TaiKhoanService {
         taiKhoan.setTrangThai(true);
         TaiKhoan savedTk = taiKhoanRepository.save(taiKhoan);
 
+        if (khachHang.getMaKH() == null || khachHang.getMaKH().isBlank()) {
+            khachHang.setMaKH(taoMaKhachHang());
+        }
         khachHang.setTaiKhoan(savedTk);
         khachHang.setTrangThai(true);
         khachHang.setNgayDangKy(java.time.LocalDate.now());
         return khachHangRepository.save(khachHang);
+    }
+
+    /** Sinh mã khách hàng duy nhất dạng KHxxxx (khớp cột MaKhachHang VARCHAR(20)). */
+    private String taoMaKhachHang() {
+        java.util.Random random = new java.util.Random();
+        String code;
+        int attempts = 0;
+        do {
+            code = "KH" + (1000 + random.nextInt(9000));
+            attempts++;
+            if (attempts > 100) {
+                code = "KH" + System.currentTimeMillis();
+                break;
+            }
+        } while (khachHangRepository.existsById(code));
+        return code;
     }
 
     /**

@@ -45,4 +45,10 @@ public class ChamCong {
 
     @Column(name = "GhiChu")
     private String ghiChu;
+
+    // [SỬA] Cờ tạm (KHÔNG map vào DB) đánh dấu bản ghi này có ngày = hôm nay hay không.
+    // Tính sẵn ở controller để template chỉ cần đọc chamCong.laHomNay, tránh dùng
+    // Set.contains() trong Thymeleaf (dễ sai do lệch kiểu Integer/Long).
+    @Transient
+    private boolean laHomNay;
 }

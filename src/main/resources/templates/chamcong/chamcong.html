@@ -69,7 +69,6 @@
             width: 100%;
             border-collapse: collapse;
             min-width: 700px;
-            table-layout: fixed;
         }
         .schedule-table thead tr th {
             border-bottom: 2px solid #E5E7EB;
@@ -115,8 +114,7 @@
             border-right: 1px solid #F3F4F6;
             padding: 10px 8px;
             vertical-align: top;
-            min-height: 80px;
-            height: 100px;
+            height: auto;
         }
         .schedule-table tbody tr td:first-child {
             background: #FAFAFA;
@@ -136,9 +134,7 @@
             border-radius: 8px;
             padding: 10px 12px;
             text-align: center;
-            position: relative;
             transition: box-shadow .15s;
-            min-height: 70px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -170,9 +166,18 @@
             align-items: center;
             gap: 4px;
         }
+        /* [SỬA] Ép nút và thẻ luôn hiện rõ, tránh bị CSS khác che/cắt */
+        .work-card { overflow: visible !important; }
+        .work-card > div { width: 100%; }
+        .btn-check {
+            visibility: visible !important;
+            opacity: 1 !important;
+            min-height: 26px;
+        }
         .btn-check-in {
-            background: #2563EB;
-            color: #fff;
+            background: #2563EB !important;
+            color: #fff !important;
+            display: inline-flex !important;
         }
         .btn-check-in:hover { background: #1D4ED8; }
         .btn-check-in:disabled { opacity: .5; cursor: not-allowed; }
@@ -298,169 +303,170 @@
             </div>
 
             <th:block th:if="${nhanVien != null}">
-            <div class="page-sub" th:text="'Xin chào, ' + ${nhanVien.hoTen} + '!'"></div>
+                <div class="page-sub" th:text="'Xin chào, ' + ${nhanVien.hoTen} + '!'"></div>
 
-            <!-- Stats -->
-            <div class="stats-row">
-                <div class="stat-card">
-                    <div class="stat-icon blue"><i class="bi bi-calendar-check"></i></div>
-                    <div class="stat-info">
-                        <div class="stat-number" th:text="${soNgayDaCham}">0</div>
-                        <div class="stat-label">Ngày đã chấm công trong tuần</div>
+                <!-- Stats -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-icon blue"><i class="bi bi-calendar-check"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-number" th:text="${soNgayDaCham}">0</div>
+                            <div class="stat-label">Ngày đã chấm công trong tuần</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green"><i class="bi bi-clock-history"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-number" th:text="${tongSoGioLam}">0</div>
+                            <div class="stat-label">Tổng giờ làm trong tuần</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon yellow"><i class="bi bi-calendar-week"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-number" th:text="${listNgay.size()}">0</div>
+                            <div class="stat-label">Số ngày làm việc trong tuần</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple"><i class="bi bi-person-badge"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-number" th:text="${nhanVien.maNhanVien}">0</div>
+                            <div class="stat-label">Mã nhân viên</div>
+                        </div>
                     </div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon green"><i class="bi bi-clock-history"></i></div>
-                    <div class="stat-info">
-                        <div class="stat-number" th:text="${tongSoGioLam}">0</div>
-                        <div class="stat-label">Tổng giờ làm trong tuần</div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon yellow"><i class="bi bi-calendar-week"></i></div>
-                    <div class="stat-info">
-                        <div class="stat-number" th:text="${listNgay.size()}">0</div>
-                        <div class="stat-label">Số ngày làm việc trong tuần</div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon purple"><i class="bi bi-person-badge"></i></div>
-                    <div class="stat-info">
-                        <div class="stat-number" th:text="${nhanVien.maNhanVien}">0</div>
-                        <div class="stat-label">Mã nhân viên</div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Schedule Card -->
-            <div class="schedule-card">
-                <div class="schedule-card-header">
+                <!-- Schedule Card -->
+                <div class="schedule-card">
+                    <div class="schedule-card-header">
                     <span>
                         <i class="bi bi-calendar-week me-2" style="color:#E53935"></i>
                         Lịch chấm công tuần
                     </span>
 
-                    <div class="week-nav">
-                        <a th:href="@{/cham-cong(tuan=${tuanHienTai - 1})}" class="week-nav-btn">
-                            <i class="bi bi-chevron-left"></i>
-                        </a>
-                        <span class="week-range">
+                        <div class="week-nav">
+                        <span class="week-range" style="color:#9CA3AF; font-weight:500; margin-right:8px;"
+                              title="Ngày hệ thống (server) đang tính là hôm nay. Nút Check-in chỉ hiện khi ngày của ca TRÙNG với ngày này.">
+                            <i class="bi bi-info-circle"></i> Hôm nay (server):
+                            <strong th:text="${#temporals.format(today, 'dd/MM/yyyy')}" style="color:#374151;"></strong>
+                        </span>
+                            <a th:href="@{/cham-cong(tuan=${tuanHienTai - 1})}" class="week-nav-btn">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                            <span class="week-range">
                             <span th:text="${#temporals.format(startOfWeek, 'dd/MM/yyyy')}"></span>
                             –
                             <span th:text="${#temporals.format(endOfWeek, 'dd/MM/yyyy')}"></span>
                         </span>
-                        <a th:href="@{/cham-cong(tuan=${tuanHienTai + 1})}" class="week-nav-btn">
-                            <i class="bi bi-chevron-right"></i>
-                        </a>
+                            <a th:href="@{/cham-cong(tuan=${tuanHienTai + 1})}" class="week-nav-btn">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </div>
                     </div>
-                </div>
 
-                <div class="schedule-wrap" th:if="${listNgay != null and !listNgay.isEmpty() and allCa != null and !allCa.isEmpty()}">
-                    <table class="schedule-table">
-                        <thead>
-                        <tr>
-                            <th>CA / NGÀY</th>
-                            <th th:each="ngay : ${listNgay}"
-                                th:classappend="${ngay == today} ? 'col-today'">
+                    <div class="schedule-wrap" th:if="${listNgay != null and !listNgay.isEmpty() and allCa != null and !allCa.isEmpty()}">
+                        <table class="schedule-table">
+                            <thead>
+                            <tr>
+                                <th>CA / NGÀY</th>
+                                <th th:each="ngay : ${listNgay}"
+                                    th:classappend="${ngay.isEqual(today)} ? 'col-today'">
                                 <span class="col-day-name"
                                       th:text="${#temporals.format(ngay, 'EEE', new java.util.Locale('vi'))}">
                                 </span>
-                                <span class="col-day-date"
-                                      th:text="${#temporals.format(ngay, 'dd/MM/yyyy')}">
+                                    <span class="col-day-date"
+                                          th:text="${#temporals.format(ngay, 'dd/MM/yyyy')}">
                                 </span>
-                            </th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="ca : ${allCa}">
-                            <td>
-                                <div class="ca-name" th:text="${ca.tenCa}"></div>
-                                <div class="ca-time" th:text="${ca.gioBatDau + ' - ' + ca.gioKetThuc}"></div>
-                            </td>
+                                </th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="ca : ${allCa}">
+                                <td>
+                                    <div class="ca-name" th:text="${ca.tenCa}"></div>
+                                    <div class="ca-time" th:text="${ca.gioBatDau + ' - ' + ca.gioKetThuc}"></div>
+                                </td>
 
-                            <td th:each="ngay : ${listNgay}"
-                                th:classappend="${ngay == today} ? 'cell-today'">
+                                <td th:each="ngay : ${listNgay}"
+                                    th:classappend="${ngay.isEqual(today)} ? 'cell-today'">
 
-                                <th:block th:with="
+                                    <th:block th:with="
                                     chamCong = ${chamCongMap != null
                                                 and chamCongMap.get(ngay) != null
                                                 and chamCongMap.get(ngay).get(ca) != null
                                                 ? chamCongMap.get(ngay).get(ca)
                                                 : null}">
 
-                                    <!-- Có lịch chấm công -->
-                                    <div th:if="${chamCong != null}" class="work-card"
-                                         th:data-machamcong="${chamCong.maChamCong}"
-                                         th:data-ngay="${#temporals.format(chamCong.ngayChamCong, 'yyyy-MM-dd')}">
+                                        <!-- Có lịch chấm công -->
+                                        <div th:if="${chamCong != null}" class="work-card"
+                                             th:data-machamcong="${chamCong.maChamCong}"
+                                             th:data-ngay="${#temporals.format(chamCong.ngayChamCong, 'yyyy-MM-dd')}">
 
-                                        <!-- Trạng thái -->
-                                        <span th:if="${chamCong.gioVao == null and chamCong.gioRa == null}"
-                                              class="status-badge pending">Chưa chấm công</span>
-                                        <span th:if="${chamCong.gioVao != null and chamCong.gioRa == null}"
-                                              class="status-badge checked-in">Đã check-in</span>
-                                        <span th:if="${chamCong.gioVao != null and chamCong.gioRa != null}"
-                                              class="status-badge checked-out">Đã check-out</span>
+                                            <!-- Trạng thái -->
+                                            <span th:if="${chamCong.gioVao == null and chamCong.gioRa == null}"
+                                                  class="status-badge pending">Chưa chấm công</span>
+                                            <span th:if="${chamCong.gioVao != null and chamCong.gioRa == null}"
+                                                  class="status-badge checked-in">Đã check-in</span>
+                                            <span th:if="${chamCong.gioVao != null and chamCong.gioRa != null}"
+                                                  class="status-badge checked-out">Đã check-out</span>
 
-                                        <!-- Thời gian -->
-                                        <div class="time-info">
+                                            <!-- Thời gian -->
+                                            <div class="time-info">
                                             <span th:if="${chamCong.gioVao != null}">
                                                 <i class="bi bi-box-arrow-in-right"></i>
                                                 <strong th:text="${chamCong.gioVao}"></strong>
                                             </span>
-                                            <span th:if="${chamCong.gioRa != null}">
+                                                <span th:if="${chamCong.gioRa != null}">
                                                 &nbsp;→&nbsp;
                                                 <i class="bi bi-box-arrow-left"></i>
                                                 <strong th:text="${chamCong.gioRa}"></strong>
                                             </span>
-                                            <span th:if="${chamCong.soGioLam != null}">
-                                                <br><i class="bi bi-hourglass"></i>
+                                                <span th:if="${chamCong.soGioLam != null}">
+                                                <br/><i class="bi bi-hourglass"></i>
                                                 <strong th:text="${chamCong.soGioLam + 'h'}"></strong>
                                             </span>
-                                        </div>
+                                            </div>
 
-                                        <!-- Nút chấm công -->
-                                        <div>
-                                            <button class="btn-check btn-check-in"
-                                                    th:if="${chamCong.gioVao == null and ngay == today}"
-                                                    onclick="checkin(this)">
-                                                <i class="bi bi-box-arrow-in-right"></i> Check-in
-                                            </button>
-                                            <button class="btn-check btn-check-out"
-                                                    th:if="${chamCong.gioVao != null and chamCong.gioRa == null and ngay == today}"
-                                                    onclick="checkout(this)">
-                                                <i class="bi bi-box-arrow-left"></i> Check-out
-                                            </button>
-                                            <span th:if="${chamCong.gioVao != null and chamCong.gioRa != null}"
-                                                  style="font-size:11px; color:#9CA3AF;">
+                                            <!-- Nút chấm công -->
+                                            <div>
+                                                <button class="btn-check btn-check-in js-check-btn"
+                                                        th:if="${chamCong.gioVao == null}"
+                                                        onclick="checkin(this)">
+                                                    <i class="bi bi-box-arrow-in-right"></i> Check-in
+                                                </button>
+                                                <button class="btn-check btn-check-out js-check-btn"
+                                                        th:if="${chamCong.gioVao != null and chamCong.gioRa == null}"
+                                                        onclick="checkout(this)">
+                                                    <i class="bi bi-box-arrow-left"></i> Check-out
+                                                </button>
+                                                <span th:if="${chamCong.gioVao != null and chamCong.gioRa != null}"
+                                                      style="font-size:11px; color:#9CA3AF;">
                                                 <i class="bi bi-check-circle-fill text-success"></i> Hoàn thành
                                             </span>
-                                            <span th:if="${chamCong.gioVao == null and ngay != today}"
-                                                  style="font-size:11px; color:#9CA3AF;">
-                                                <i class="bi bi-clock"></i> Hết hạn
-                                            </span>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <!-- Không có lịch -->
-                                    <div th:if="${chamCong == null}" class="cell-empty">
-                                        <i class="bi bi-dash"></i>
-                                    </div>
+                                        <!-- Không có lịch -->
+                                        <div th:if="${chamCong == null}" class="cell-empty">
+                                            <i class="bi bi-dash"></i>
+                                        </div>
 
-                                </th:block>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
+                                    </th:block>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Empty state -->
+                    <div class="empty-state" th:if="${listNgay == null or listNgay.isEmpty()}">
+                        <i class="bi bi-calendar-x"></i>
+                        <p style="font-size:14px">Không có lịch làm việc trong tuần này</p>
+                        <p style="font-size:12.5px;color:#B0B7C3">Vui lòng liên hệ quản lý để được phân ca</p>
+                    </div>
+
                 </div>
-
-                <!-- Empty state -->
-                <div class="empty-state" th:if="${listNgay == null or listNgay.isEmpty()}">
-                    <i class="bi bi-calendar-x"></i>
-                    <p style="font-size:14px">Không có lịch làm việc trong tuần này</p>
-                    <p style="font-size:12.5px;color:#B0B7C3">Vui lòng liên hệ quản lý để được phân ca</p>
-                </div>
-
-            </div>
             </th:block>
 
         </div>
@@ -577,6 +583,43 @@
                 btn.innerHTML = '<i class="bi bi-box-arrow-left"></i> Check-out';
             });
     }
+    // [SỬA GỐC] Quyết định hiện nút chấm công bằng JavaScript, so ngày của thẻ
+    // (data-ngay) với ngày HÔM NAY của trình duyệt. Tránh mọi vấn đề so ngày phía
+    // Thymeleaf. Nút chỉ hiển thị đúng ngày hôm nay; ngày khác -> ẩn nút, hiện trạng thái.
+    (function initCheckButtons() {
+        function localTodayStr() {
+            const d = new Date();
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+        const today = localTodayStr();
+        document.querySelectorAll('.work-card').forEach(function (card) {
+            const ngay = card.getAttribute('data-ngay');       // yyyy-MM-dd
+            const isToday = (ngay === today);
+            const btns = card.querySelectorAll('.js-check-btn');
+            btns.forEach(function (btn) {
+                if (isToday) {
+                    btn.style.display = 'inline-flex';
+                } else {
+                    // Không phải hôm nay: ẩn nút, thay bằng "Hết hạn" (chỉ khi chưa check-in)
+                    btn.style.display = 'none';
+                    if (btn.classList.contains('btn-check-in')) {
+                        const wrap = btn.parentElement;
+                        if (wrap && !wrap.querySelector('.js-expired')) {
+                            const span = document.createElement('span');
+                            span.className = 'js-expired';
+                            span.style.cssText = 'font-size:11px; color:#9CA3AF;';
+                            span.innerHTML = '<i class="bi bi-clock"></i> Hết hạn';
+                            wrap.appendChild(span);
+                        }
+                    }
+                }
+            });
+        });
+    })();
+
     /*]]>*/
 </script>
 </body>

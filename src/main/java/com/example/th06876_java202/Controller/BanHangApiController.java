@@ -15,10 +15,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -100,20 +100,30 @@ public class BanHangApiController {
 
             List<HoaDonChiTiet> hdctList = hoaDonChiTietRepository.findByMaHoaDon_MaHoaDon(maHoaDon);
 
+            if (hdctList == null || hdctList.isEmpty()) {
+                return ResponseEntity.ok(new ArrayList<>());
+            }
+
             List<Map<String, Object>> cartItems = hdctList.stream().map(hdct -> {
                 Map<String, Object> item = new HashMap<>();
 
                 SanPhamChiTiet sp = hdct.getSanPhamChiTiet();
+                if (sp == null) {
+                    return item;
+                }
 
+                // ===== THÔNG TIN CƠ BẢN =====
                 item.put("maSPCT", sp.getMaSanPhamChiTiet());
                 item.put("soLuong", hdct.getSoLuong());
 
                 // ===== GIÁ CŨ (GIÁ LÚC THÊM VÀO HÓA ĐƠN) =====
                 BigDecimal giaCu = hdct.getDonGia();
-                item.put("giaCu", giaCu);
+                item.put("giaCu", giaCu != null ? giaCu : BigDecimal.ZERO);
 
+                // ===== TỒN KHO =====
                 item.put("tonKho", sp.getSoLuongTon());
 
+                // ===== THÔNG TIN SẢN PHẨM =====
                 String tenSanPham = sp.getSanPham() != null ? sp.getSanPham().getTenSanPham() : "Sản phẩm";
                 String mauSac = sp.getMauSac() != null ? sp.getMauSac().getTenMauSac() : "";
                 String kichThuoc = sp.getKichThuoc() != null ? sp.getKichThuoc().getTenKichThuoc() : "";
@@ -124,47 +134,61 @@ public class BanHangApiController {
 
                 // ===== GIÁ GỐC HIỆN TẠI =====
                 BigDecimal giaGoc = sp.getGiaBan();
-                item.put("giaGoc", giaGoc);
+                item.put("giaGoc", giaGoc != null ? giaGoc : BigDecimal.ZERO);
 
                 // ===== KIỂM TRA CÓ ĐANG GIẢM GIÁ =====
                 boolean coGiamGia = kiemTraCoGiamGia(sp);
                 item.put("coGiamGia", coGiamGia);
 
                 // ===== TÍNH GIÁ HIỆN TẠI =====
-                BigDecimal giaHienTai = giaGoc;
+                BigDecimal giaHienTai = giaGoc != null ? giaGoc : BigDecimal.ZERO;
                 if (coGiamGia) {
                     BigDecimal tienGiam = tinhTienGiam(sp);
                     if (tienGiam != null && tienGiam.compareTo(BigDecimal.ZERO) > 0) {
                         giaHienTai = giaGoc.subtract(tienGiam);
+                        if (giaHienTai.compareTo(BigDecimal.ZERO) < 0) {
+                            giaHienTai = BigDecimal.ZERO;
+                        }
                     }
                 }
                 item.put("giaMoi", giaHienTai);
 
-                // ===== KIỂM TRA THAY ĐỔI GIÁ =====
+                // ⭐⭐ QUAN TRỌNG: LUÔN KIỂM TRA THAY ĐỔI GIÁ
                 boolean daThayDoiGia = false;
+                String lyDoThayDoi = null;
 
-                // Nếu CÓ giảm giá -> không báo thay đổi giá
-                if (!coGiamGia) {
-                    // So sánh giá cũ (trong hóa đơn) với giá hiện tại
-                    daThayDoiGia = giaCu != null && giaHienTai != null && giaCu.compareTo(giaHienTai) != 0;
+                if (giaCu != null && giaHienTai != null) {
+                    // So sánh giá cũ và giá mới (có làm tròn để tránh lỗi số học)
+                    BigDecimal roundedCu = giaCu.setScale(0, RoundingMode.HALF_UP);
+                    BigDecimal roundedMoi = giaHienTai.setScale(0, RoundingMode.HALF_UP);
+                    daThayDoiGia = roundedCu.compareTo(roundedMoi) != 0;
+
+                    if (daThayDoiGia) {
+                        if (coGiamGia) {
+                            lyDoThayDoi = "Áp dụng giảm giá mới (còn hiệu lực)";
+                        } else {
+                            lyDoThayDoi = "Giá sản phẩm đã thay đổi";
+                        }
+                    }
                 }
-                // Nếu có giảm giá, daThayDoiGia vẫn là false
-
                 item.put("daThayDoiGia", daThayDoiGia);
+                item.put("lyDoThayDoi", lyDoThayDoi);
 
-                // Kiểm tra tồn kho
+                // ===== KIỂM TRA TỒN KHO =====
                 int soLuongTrongHoaDon = hdct.getSoLuong();
                 int tonKhoHienTai = sp.getSoLuongTon();
                 boolean khongDuTonKho = tonKhoHienTai < soLuongTrongHoaDon;
                 item.put("khongDuTonKho", khongDuTonKho);
                 item.put("soLuongTrongHoaDon", soLuongTrongHoaDon);
 
+                // ===== LOG CHI TIẾT =====
                 System.out.println("  - SP: " + tenSanPham + " [" + mauSac + " - " + kichThuoc + "]");
                 System.out.println("    Giá gốc: " + giaGoc);
                 System.out.println("    Giá cũ (trong HD): " + giaCu);
                 System.out.println("    Giá hiện tại: " + giaHienTai);
                 System.out.println("    Có giảm giá: " + coGiamGia);
                 System.out.println("    Đã thay đổi giá: " + daThayDoiGia);
+                System.out.println("    Lý do: " + lyDoThayDoi);
 
                 return item;
             }).collect(Collectors.toList());
@@ -175,6 +199,61 @@ public class BanHangApiController {
             e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
+    }
+
+
+
+    /**
+     * Lấy danh sách đợt giảm giá đang hoạt động cho sản phẩm
+     */
+    private List<com.example.th06876_java202.Entity.DotGiamGia> getActiveDotGiamGia(String maSanPham) {
+        List<com.example.th06876_java202.Entity.DotGiamGia> dggList = dotGiamGiaService.getBymasp(maSanPham);
+        if (dggList == null || dggList.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        LocalDate today = LocalDate.now();
+        List<com.example.th06876_java202.Entity.DotGiamGia> activeList = new ArrayList<>();
+
+        for (com.example.th06876_java202.Entity.DotGiamGia dgg : dggList) {
+            if ("Hoạt động".equals(dgg.getTrangThai())) {
+                LocalDate ngayBatDau = (dgg.getNgayBatDau());
+                LocalDate ngayKetThuc = (dgg.getNgayKetThuc());
+
+                if (ngayBatDau != null && ngayKetThuc != null) {
+                    boolean isActive = (today.isEqual(ngayBatDau) || today.isAfter(ngayBatDau)) &&
+                            (today.isEqual(ngayKetThuc) || today.isBefore(ngayKetThuc));
+                    if (isActive) {
+                        activeList.add(dgg);
+                    }
+                }
+            }
+        }
+
+        return activeList;
+    }
+
+    /**
+     * Kiểm tra đợt giảm giá có hiệu lực tại thời điểm hiện tại
+     */
+    private boolean isDotGiamGiaActive(com.example.th06876_java202.Entity.DotGiamGia dgg) {
+        if (dgg == null) return false;
+        if (!"Hoạt động".equals(dgg.getTrangThai())) return false;
+
+        LocalDate ngayBatDau = dgg.getNgayBatDau();
+        LocalDate ngayKetThuc = dgg.getNgayKetThuc();
+
+        if (ngayBatDau == null || ngayKetThuc == null) return false;
+
+        LocalDate today = LocalDate.now();
+        LocalDate start = (ngayBatDau);
+        LocalDate end = (ngayKetThuc);
+
+        if (start == null || end == null) return false;
+
+        // Kiểm tra ngày hiện tại nằm trong khoảng [start, end]
+        return (today.isEqual(start) || today.isAfter(start)) &&
+                (today.isEqual(end) || today.isBefore(end));
     }
 
     private boolean kiemTraCoGiamGia(SanPhamChiTiet spct) {
@@ -188,20 +267,41 @@ public class BanHangApiController {
                     dotGiamGiaService.getBymasp(maSanPham);
 
             if (dggList != null && !dggList.isEmpty()) {
-                System.out.println("    ✅ Sản phẩm đang trong đợt giảm giá: " + maSanPham);
-                return true;
-            }
+                // ⭐ LẤY NGÀY HIỆN TẠI
+                LocalDate today = LocalDate.now();
 
+                for (com.example.th06876_java202.Entity.DotGiamGia dgg : dggList) {
+                    if ("Hoạt động".equals(dgg.getTrangThai())) {
+                        LocalDate ngayBatDau = (dgg.getNgayBatDau());
+                        LocalDate ngayKetThuc = (dgg.getNgayKetThuc());
+
+                        if (ngayBatDau != null && ngayKetThuc != null) {
+                            // ⭐ KIỂM TRA NGÀY HIỆN TẠI CÓ NẰM TRONG KHOẢNG KHÔNG
+                            boolean isActive = (today.isEqual(ngayBatDau) || today.isAfter(ngayBatDau)) &&
+                                    (today.isEqual(ngayKetThuc) || today.isBefore(ngayKetThuc));
+
+                            if (isActive) {
+                                System.out.println("    ✅ Sản phẩm đang trong đợt giảm giá: " + maSanPham);
+                                System.out.println("    Ngày bắt đầu: " + ngayBatDau);
+                                System.out.println("    Ngày kết thúc: " + ngayKetThuc);
+                                System.out.println("    Ngày hiện tại: " + today);
+                                return true;
+                            }
+                        }
+                    }
+                }
+                // Nếu không có đợt giảm giá nào đang hoạt động
+                System.out.println("    ❌ Sản phẩm KHÔNG trong đợt giảm giá: " + maSanPham);
+                return false;
+            }
             return false;
         } catch (Exception e) {
             System.err.println("Lỗi kiểm tra giảm giá: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
 
-    /**
-     * Tính tiền giảm giá của sản phẩm
-     */
     private BigDecimal tinhTienGiam(SanPhamChiTiet spct) {
         if (spct == null || spct.getSanPham() == null) {
             return BigDecimal.ZERO;
@@ -218,12 +318,24 @@ public class BanHangApiController {
 
             BigDecimal maxGiam = BigDecimal.ZERO;
             BigDecimal giaGoc = spct.getGiaBan();
+            LocalDate today = LocalDate.now();
 
             for (com.example.th06876_java202.Entity.DotGiamGia dgg : dggList) {
                 if ("Hoạt động".equals(dgg.getTrangThai())) {
-                    BigDecimal giam = giaGoc.multiply(dgg.getGiaTriGiam()).divide(BigDecimal.valueOf(100));
-                    if (giam.compareTo(maxGiam) > 0) {
-                        maxGiam = giam;
+                    // ⭐ KIỂM TRA NGÀY HIỆU LỰC
+                    LocalDate ngayBatDau = (dgg.getNgayBatDau());
+                    LocalDate ngayKetThuc = (dgg.getNgayKetThuc());
+
+                    if (ngayBatDau != null && ngayKetThuc != null) {
+                        boolean isActive = (today.isEqual(ngayBatDau) || today.isAfter(ngayBatDau)) &&
+                                (today.isEqual(ngayKetThuc) || today.isBefore(ngayKetThuc));
+
+                        if (isActive) {
+                            BigDecimal giam = giaGoc.multiply(dgg.getGiaTriGiam()).divide(BigDecimal.valueOf(100));
+                            if (giam.compareTo(maxGiam) > 0) {
+                                maxGiam = giam;
+                            }
+                        }
                     }
                 }
             }
@@ -231,6 +343,7 @@ public class BanHangApiController {
             return maxGiam;
         } catch (Exception e) {
             System.err.println("Lỗi tính tiền giảm: " + e.getMessage());
+            e.printStackTrace();
             return BigDecimal.ZERO;
         }
     }
@@ -444,6 +557,7 @@ public class BanHangApiController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+
 
 
 }
