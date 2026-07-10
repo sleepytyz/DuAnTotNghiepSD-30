@@ -109,15 +109,20 @@ public class ChamCongService {
         LocalTime now = LocalTime.now();
         chamCong.setGioRa(now);
 
-        // Tính số giờ làm
+        // Tính số giờ làm (lưu 2 chữ số thập phân để ca ngắn không bị làm tròn sai,
+        // ví dụ 3 phút = 0.05h chứ không phọt thành 0.1h).
         Duration duration = Duration.between(chamCong.getGioVao(), now);
         double hours = duration.toMinutes() / 60.0;
         if (hours > 0) {
-            BigDecimal soGioLam = BigDecimal.valueOf(hours).setScale(1, RoundingMode.HALF_UP);
+            BigDecimal soGioLam = BigDecimal.valueOf(hours).setScale(2, RoundingMode.HALF_UP);
             chamCong.setSoGioLam(soGioLam);
         }
 
-        chamCong.setGhiChu("Đã check-out lúc " + now + " - Tổng giờ: " + chamCong.getSoGioLam() + "h");
+        long tongPhut = duration.toMinutes();
+        String moTaThoiGian = (tongPhut >= 60)
+                ? (tongPhut / 60) + "h " + (tongPhut % 60) + "p"
+                : tongPhut + " phút";
+        chamCong.setGhiChu("Đã check-out lúc " + now + " - Tổng thời gian: " + moTaThoiGian);
 
         return chamCongRepository.save(chamCong);
     }

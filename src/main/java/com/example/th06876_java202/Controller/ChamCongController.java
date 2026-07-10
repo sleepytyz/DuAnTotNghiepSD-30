@@ -37,6 +37,7 @@ public class ChamCongController {
             // tưởng bị đăng xuất/hết phiên. Giờ hiển thị thông báo rõ ràng ngay trên trang.
             model.addAttribute("nhanVien", null);
             model.addAttribute("chamCongMap", java.util.Collections.emptyMap());
+            model.addAttribute("chamCongHomNay", java.util.Collections.emptyList());
             model.addAttribute("listNgay", java.util.Collections.emptyList());
             model.addAttribute("allCa", java.util.Collections.emptyList());
             model.addAttribute("today", LocalDate.now());
@@ -98,6 +99,21 @@ public class ChamCongController {
         for (LocalDate date = startOfWeek; !date.isAfter(endOfWeek); date = date.plusDays(1)) {
             listNgay.add(date);
         }
+
+        // [THÊM] Danh sách ca cần chấm công của RIÊNG HÔM NAY, tính sẵn ở Java để hiện
+        // nút chấm công nổi bật ở đầu trang. Không phụ thuộc vào việc so ngày trong
+        // Thymeleaf hay truy cập map lồng (nguồn gốc khiến nút không hiện trước đây).
+        List<ChamCong> chamCongHomNay = listChamCong.stream()
+                .filter(cc -> cc.getNgayChamCong() != null && cc.getNgayChamCong().isEqual(today))
+                .sorted((a, b) -> {
+                    java.time.LocalTime ta = a.getCaLamViec() != null ? a.getCaLamViec().getGioBatDau() : null;
+                    java.time.LocalTime tb = b.getCaLamViec() != null ? b.getCaLamViec().getGioBatDau() : null;
+                    if (ta == null) return 1;
+                    if (tb == null) return -1;
+                    return ta.compareTo(tb);
+                })
+                .toList();
+        model.addAttribute("chamCongHomNay", chamCongHomNay);
 
         model.addAttribute("nhanVien", nhanVien);
         model.addAttribute("chamCongMap", chamCongMap);

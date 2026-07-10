@@ -113,8 +113,8 @@
             border-bottom: 1px solid #F3F4F6;
             border-right: 1px solid #F3F4F6;
             padding: 10px 8px;
-            vertical-align: top;
-            height: auto;
+            vertical-align: middle;
+            height: 92px;
         }
         .schedule-table tbody tr td:first-child {
             background: #FAFAFA;
@@ -130,9 +130,9 @@
 
         .work-card {
             background: #fff;
-            border: 1px solid #E5E7EB;
+            border: 1px solid #EEF0F3;
             border-radius: 8px;
-            padding: 10px 12px;
+            padding: 8px 10px;
             text-align: center;
             transition: box-shadow .15s;
             display: flex;
@@ -140,6 +140,7 @@
             align-items: center;
             justify-content: center;
             gap: 4px;
+            min-height: 60px;
         }
         .work-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,.08); }
 
@@ -166,14 +167,6 @@
             align-items: center;
             gap: 4px;
         }
-        /* [SỬA] Ép nút và thẻ luôn hiện rõ, tránh bị CSS khác che/cắt */
-        .work-card { overflow: visible !important; }
-        .work-card > div { width: 100%; }
-        .btn-check {
-            visibility: visible !important;
-            opacity: 1 !important;
-            min-height: 26px;
-        }
         .btn-check-in {
             background: #2563EB !important;
             color: #fff !important;
@@ -189,6 +182,82 @@
         .btn-check-out:hover { background: #047857; }
         .btn-check-out:disabled { opacity: .5; cursor: not-allowed; }
 
+        /* [THÊM] Panel chấm công hôm nay ở đầu trang */
+        .today-attendance {
+            background: #fff;
+            border: 1px solid #E5E7EB;
+            border-left: 4px solid #2563EB;
+            border-radius: 12px;
+            padding: 18px 22px;
+            margin-bottom: 22px;
+            box-shadow: 0 1px 3px rgba(0,0,0,.05);
+        }
+        .today-attendance-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .today-empty {
+            color: #6B7280;
+            font-size: 14px;
+            padding: 6px 0;
+        }
+        .today-ca-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .today-ca-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            padding: 12px 16px;
+            background: #F9FAFB;
+            border: 1px solid #EEF0F3;
+            border-radius: 10px;
+        }
+        .today-ca-name {
+            font-weight: 600;
+            color: #1F2937;
+            font-size: 14.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .today-ca-status { margin-top: 4px; }
+        /* [SỬA] Nút chấm công ở panel đầu trang dùng class RIÊNG (btn-cc) để KHÔNG bị
+           đè bởi class .btn-check của Bootstrap (Bootstrap ẩn .btn-check đi). */
+        .btn-cc {
+            display: inline-flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: static !important;
+            clip: auto !important;
+            pointer-events: auto !important;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff !important;
+            cursor: pointer;
+            transition: all .15s;
+        }
+        .btn-cc-in { background: #2563EB !important; }
+        .btn-cc-in:hover { background: #1D4ED8 !important; }
+        .btn-cc-out { background: #059669 !important; }
+        .btn-cc-out:hover { background: #047857 !important; }
+        .btn-cc:disabled { opacity: .55 !important; cursor: not-allowed; }
+
         .time-info {
             font-size: 12px;
             color: #6B7280;
@@ -200,7 +269,10 @@
             color: #E5E7EB;
             font-size: 18px;
             text-align: center;
-            padding-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 60px;
         }
 
         .week-nav {
@@ -337,6 +409,73 @@
                     </div>
                 </div>
 
+                <!-- [THÊM] CHẤM CÔNG HÔM NAY - nút nổi bật ở đầu trang -->
+                <div class="today-attendance">
+                    <div class="today-attendance-title">
+                        <i class="bi bi-alarm" style="color:#2563EB"></i>
+                        Chấm công hôm nay
+                        <span th:text="${#temporals.format(today, 'dd/MM/yyyy')}"
+                              style="font-weight:400;color:#6B7280;font-size:13px;"></span>
+                    </div>
+
+                    <!-- Không có ca nào hôm nay -->
+                    <div th:if="${chamCongHomNay == null or chamCongHomNay.isEmpty()}"
+                         class="today-empty">
+                        <i class="bi bi-cup-hot"></i> Hôm nay bạn không có ca làm việc nào.
+                    </div>
+
+                    <!-- Có ca hôm nay: mỗi ca một nút -->
+                    <div class="today-ca-list" th:unless="${chamCongHomNay == null or chamCongHomNay.isEmpty()}">
+                        <div class="today-ca-item" th:each="cc : ${chamCongHomNay}"
+                             th:data-machamcong="${cc.maChamCong}">
+                            <div class="today-ca-info">
+                                <div class="today-ca-name">
+                                    <i class="bi bi-clock"></i>
+                                    <span th:text="${cc.caLamViec != null ? cc.caLamViec.tenCa : 'Ca'}">Ca sáng</span>
+                                    <span th:if="${cc.caLamViec != null}"
+                                          th:text="'(' + ${cc.caLamViec.gioBatDau} + ' - ' + ${cc.caLamViec.gioKetThuc} + ')'"
+                                          style="color:#6B7280;font-weight:400;"></span>
+                                </div>
+                                <div class="today-ca-status">
+                                    <span th:if="${cc.gioVao == null and cc.gioRa == null}"
+                                          class="status-badge pending">Chưa chấm công</span>
+                                    <span th:if="${cc.gioVao != null and cc.gioRa == null}"
+                                          class="status-badge checked-in">
+                                        Đã check-in lúc <strong th:text="${#temporals.format(cc.gioVao, 'HH:mm:ss')}"></strong>
+                                    </span>
+                                    <span th:if="${cc.gioVao != null and cc.gioRa != null}"
+                                          class="status-badge checked-out">
+                                        Hoàn thành • <strong
+                                            th:with="tongPhut=${cc.soGioLam != null ? T(java.lang.Math).round(cc.soGioLam.doubleValue() * 60) : 0}"
+                                            th:text="${cc.soGioLam == null ? '' :
+                                                  (tongPhut >= 60
+                                                    ? (tongPhut / 60) + 'h ' + (tongPhut % 60) + 'p'
+                                                    : tongPhut + ' phút')}"></strong>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="today-ca-action">
+                                <button class="btn-cc btn-cc-in"
+                                        th:if="${cc.gioVao == null}"
+                                        th:attr="data-machamcong=${cc.maChamCong}"
+                                        onclick="checkinTop(this)">
+                                    <i class="bi bi-box-arrow-in-right"></i> Check-in
+                                </button>
+                                <button class="btn-cc btn-cc-out"
+                                        th:if="${cc.gioVao != null and cc.gioRa == null}"
+                                        th:attr="data-machamcong=${cc.maChamCong}"
+                                        onclick="checkoutTop(this)">
+                                    <i class="bi bi-box-arrow-left"></i> Check-out
+                                </button>
+                                <span th:if="${cc.gioVao != null and cc.gioRa != null}"
+                                      style="color:#16A34A;font-weight:600;font-size:13px;">
+                                    <i class="bi bi-check-circle-fill"></i> Đã xong
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Schedule Card -->
                 <div class="schedule-card">
                     <div class="schedule-card-header">
@@ -415,34 +554,20 @@
                                             <div class="time-info">
                                             <span th:if="${chamCong.gioVao != null}">
                                                 <i class="bi bi-box-arrow-in-right"></i>
-                                                <strong th:text="${chamCong.gioVao}"></strong>
+                                                <strong th:text="${#temporals.format(chamCong.gioVao, 'HH:mm:ss')}"></strong>
                                             </span>
                                                 <span th:if="${chamCong.gioRa != null}">
                                                 &nbsp;→&nbsp;
                                                 <i class="bi bi-box-arrow-left"></i>
-                                                <strong th:text="${chamCong.gioRa}"></strong>
+                                                <strong th:text="${#temporals.format(chamCong.gioRa, 'HH:mm:ss')}"></strong>
                                             </span>
                                                 <span th:if="${chamCong.soGioLam != null}">
                                                 <br/><i class="bi bi-hourglass"></i>
-                                                <strong th:text="${chamCong.soGioLam + 'h'}"></strong>
-                                            </span>
-                                            </div>
-
-                                            <!-- Nút chấm công -->
-                                            <div>
-                                                <button class="btn-check btn-check-in js-check-btn"
-                                                        th:if="${chamCong.gioVao == null}"
-                                                        onclick="checkin(this)">
-                                                    <i class="bi bi-box-arrow-in-right"></i> Check-in
-                                                </button>
-                                                <button class="btn-check btn-check-out js-check-btn"
-                                                        th:if="${chamCong.gioVao != null and chamCong.gioRa == null}"
-                                                        onclick="checkout(this)">
-                                                    <i class="bi bi-box-arrow-left"></i> Check-out
-                                                </button>
-                                                <span th:if="${chamCong.gioVao != null and chamCong.gioRa != null}"
-                                                      style="font-size:11px; color:#9CA3AF;">
-                                                <i class="bi bi-check-circle-fill text-success"></i> Hoàn thành
+                                                <strong
+                                                        th:with="tongPhut=${T(java.lang.Math).round(chamCong.soGioLam.doubleValue() * 60)}"
+                                                        th:text="${tongPhut >= 60
+                                                                ? (tongPhut / 60) + 'h ' + (tongPhut % 60) + 'p'
+                                                                : tongPhut + ' phút'}"></strong>
                                             </span>
                                             </div>
                                         </div>
@@ -583,42 +708,52 @@
                 btn.innerHTML = '<i class="bi bi-box-arrow-left"></i> Check-out';
             });
     }
-    // [SỬA GỐC] Quyết định hiện nút chấm công bằng JavaScript, so ngày của thẻ
-    // (data-ngay) với ngày HÔM NAY của trình duyệt. Tránh mọi vấn đề so ngày phía
-    // Thymeleaf. Nút chỉ hiển thị đúng ngày hôm nay; ngày khác -> ẩn nút, hiện trạng thái.
-    (function initCheckButtons() {
-        function localTodayStr() {
-            const d = new Date();
-            const y = d.getFullYear();
-            const m = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            return `${y}-${m}-${day}`;
+
+    // [THÊM] Check-in/Check-out cho panel "Chấm công hôm nay" ở đầu trang.
+    // Đọc mã chấm công trực tiếp từ thuộc tính data-machamcong của nút, không phụ
+    // thuộc vào ô lịch/nested map -> luôn hoạt động.
+    function chamCongTop(btn, url, iconLabel) {
+        const maChamCong = btn.getAttribute('data-machamcong');
+        if (!maChamCong) {
+            showToast('Không tìm thấy mã chấm công', 'error');
+            return;
         }
-        const today = localTodayStr();
-        document.querySelectorAll('.work-card').forEach(function (card) {
-            const ngay = card.getAttribute('data-ngay');       // yyyy-MM-dd
-            const isToday = (ngay === today);
-            const btns = card.querySelectorAll('.js-check-btn');
-            btns.forEach(function (btn) {
-                if (isToday) {
-                    btn.style.display = 'inline-flex';
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang xử lý...';
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                [csrfHeader]: csrfToken
+            },
+            body: JSON.stringify({ maChamCong: parseInt(maChamCong) })
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    setTimeout(() => location.reload(), 1200);
                 } else {
-                    // Không phải hôm nay: ẩn nút, thay bằng "Hết hạn" (chỉ khi chưa check-in)
-                    btn.style.display = 'none';
-                    if (btn.classList.contains('btn-check-in')) {
-                        const wrap = btn.parentElement;
-                        if (wrap && !wrap.querySelector('.js-expired')) {
-                            const span = document.createElement('span');
-                            span.className = 'js-expired';
-                            span.style.cssText = 'font-size:11px; color:#9CA3AF;';
-                            span.innerHTML = '<i class="bi bi-clock"></i> Hết hạn';
-                            wrap.appendChild(span);
-                        }
-                    }
+                    showToast(data.message, 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = iconLabel;
                 }
+            })
+            .catch(err => {
+                showToast('Lỗi kết nối: ' + err.message, 'error');
+                btn.disabled = false;
+                btn.innerHTML = iconLabel;
             });
-        });
-    })();
+    }
+
+    function checkinTop(btn) {
+        chamCongTop(btn, '/cham-cong/checkin', '<i class="bi bi-box-arrow-in-right"></i> Check-in');
+    }
+
+    function checkoutTop(btn) {
+        chamCongTop(btn, '/cham-cong/checkout', '<i class="bi bi-box-arrow-left"></i> Check-out');
+    }
 
     /*]]>*/
 </script>
